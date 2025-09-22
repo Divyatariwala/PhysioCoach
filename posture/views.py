@@ -22,34 +22,91 @@ def home(request):
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST['username']
+        username = request.POST['username'].strip()
         password = request.POST['password']
+
+        # 1. Empty fields
+        if not username or not password:
+            messages.error(request, "Both username and password are required")
+            return render(request, 'posture/login.html')
+
+        # 2. Authenticate
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            # 3. Check active
+            if not user.is_active:
+                messages.error(request, "This account is inactive. Contact admin.")
+                return render(request, 'posture/login.html')
+
             login(request, user)
             return redirect('exercises')
         else:
             messages.error(request, "Invalid username or password")
+            return render(request, 'posture/login.html')
+
     return render(request, 'posture/login.html')
+
 def register_view(request):
     if request.method == "POST":
-        username = request.POST['username']
-        email = request.POST['email']
+        username = request.POST['username'].strip()
+        email = request.POST['email'].strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
         password1 = request.POST['password1']
         password2 = request.POST['password2']
 
+        # 1. Check empty fields
+        if not username or not email or not password1 or not password2:
+            messages.error(request, "All fields are required")
+            return render(request, 'posture/register.html')
+
+        # 2. Passwords match
         if password1 != password2:
             messages.error(request, "Passwords do not match")
             return render(request, 'posture/register.html')
 
+        # 3. Password length
+        if len(password1) < 8:
+            messages.error(request, "Password must be at least 8 characters long")
+            return render(request, 'posture/register.html')
+
+        # 4. Password strength
+        import re
+        if not re.search(r"\d", password1) or not re.search(r"[A-Z]", password1) or not re.search(r"[a-z]", password1):
+            messages.error(request, "Password must include uppercase, lowercase and a number")
+            return render(request, 'posture/register.html')
+
+        # 5. Unique username
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists")
             return render(request, 'posture/register.html')
 
-        user = User.objects.create_user(username=username, email=email, password=password1)
+        # 6. Unique email
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered")
+            return render(request, 'posture/register.html')
+
+        # 7. Valid email format
+        from django.core.validators import validate_email
+        from django.core.exceptions import ValidationError
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Invalid email format")
+            return render(request, 'posture/register.html')
+
+        # Create user if all checks pass
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password1,
+            first_name=first_name,
+            last_name=last_name
+        )
         user.save()
         messages.success(request, "Account created successfully! Please login.")
         return redirect('login')
+
     return render(request, 'posture/register.html')
 
 def logout_view(request):
