@@ -1,0 +1,35 @@
+{% extends "posture/base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="card shadow-lg p-4" style="width: 450px; border-radius:15px; background: linear-gradient(135deg, #2d3436, #4CAF50); color: white;">
+        <h2 class="text-center mb-4">Register</h2>
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    Please fix the errors below.
+                </div>
+            {% endif %}
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" name="username" id="username" required placeholder="Enter username">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" id="email" required placeholder="Enter email">
+            </div>
+            <div class="mb-3">
+                <label for="password1" class="form-label">Password</label>
+                <input type="password" class="form-control" name="password1" id="password1" required placeholder="Enter password">
+            </div>
+            <div class="mb-3">
+                <label for="password2" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" name="password2" id="password2" required placeholder="Confirm password">
+            </div>
+            <button type="submit" class="btn btn-light w-100">Register</button>
+            <p class="mt-3 text-center">Already have an account? <a href="{% url 'login' %}" class="text-white text-decoration-underline">Login</a></p>
+        </form>
+    </div>
+</div>
+{% endblock %}

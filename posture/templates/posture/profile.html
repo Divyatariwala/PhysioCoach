@@ -1,0 +1,26 @@
+{% extends "posture/base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ user.username }}'s Profile</h1>
+    <p>Email: {{ user.email }}</p>
+    <h3>Exercise History</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Exercise</th>
+                <th>Reps Completed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in exercise_records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.exercise_type }}</td>
+                <td>{{ record.reps }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

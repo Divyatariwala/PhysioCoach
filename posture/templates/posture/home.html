@@ -1,0 +1,12 @@
+{% extends "posture/base.html" %}
+{% block content %}
+<div class="container text-center mt-5">
+    <h1>Welcome to AI Physiotherapy Coach</h1>
+    <p>Track your exercises, correct your posture, and improve your fitness!</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'exercises' %}" class="btn btn-primary btn-lg">Start Exercising</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="btn btn-success btn-lg">Login to Start</a>
+    {% endif %}
+</div>
+{% endblock %}

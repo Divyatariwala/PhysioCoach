@@ -1,0 +1,41 @@
+{% extends "posture/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container text-center mt-5">
+  <h1>Exercise Session</h1>
+  
+  <!-- Exercise Selector -->
+  <div class="mb-3">
+    <select id="exerciseSelect" class="form-select w-25 mx-auto">
+      <option value="squat">Squat</option>
+      <option value="pushup">Push-up</option>
+      <option value="lunge">Lunge</option>
+    </select>
+  </div>
+
+  <!-- Start/Stop Buttons -->
+  <button class="btn btn-primary" onclick="startCamera()">Start Workout</button>
+  <button class="btn btn-danger" onclick="stopCamera()">Stop Workout</button>
+
+  <!-- Video Feed -->
+  <div class="d-flex justify-content-center mt-3">
+    <div class="position-relative" style="width:640px; height:480px;">
+      <video id="video" width="640" height="480" autoplay style="position:absolute; left:0; top:0;"></video>
+      <canvas id="overlay" width="640" height="480" style="position:absolute; left:0; top:0;"></canvas>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <p id="feedback" class="mt-3 fw-bold"></p>
+
+  <!-- Dashboard -->
+  <h2 class="mt-5">Progress Dashboard</h2>
+  <canvas id="progressChart" width="600" height="300"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'posture/js/video_capture.js' %}"></script>
+<script src="{% static 'posture/js/exercise_logic.js' %}"></script>
+<script src="{% static 'posture/js/dashboard.js' %}"></script>
+{% endblock %}
