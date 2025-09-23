@@ -3,44 +3,51 @@
 {% block content %}
 
 <!-- Hero Section -->
-<section class="py-5 text-center" style="background: linear-gradient(135deg, #4CAF50, #2d3436); color: white;">
-    <div class="container">
-        <h1 class="display-4 fw-bold">AI Physiotherapy Coach</h1>
-        <p class="lead mt-3">Your personal AI assistant for exercise tracking, posture correction, and fitness improvement.</p>
-        {% if user.is_authenticated %}
-            <a href="{% url 'exercises' %}" class="btn btn-light btn-lg mt-3">Start Exercising</a>
-            <a href="{% url 'profile' %}" class="btn btn-outline-light btn-lg mt-3">View Profile</a>
-        {% else %}
-            <a href="{% url 'login' %}" class="btn btn-light btn-lg mt-3">Login to Start</a>
-            <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg mt-3">Register Now</a>
-        {% endif %}
+<section class="hero-section d-flex align-items-center">
+    <div class="container text-center text-white">
+        <h1 class="display-3 fw-bold hero-title">AI Physiotherapy Coach</h1>
+        <p class="lead hero-subtitle mt-3">Your AI-powered assistant for exercise tracking, posture correction, and fitness improvement.</p>
+        <div class="mt-4 hero-buttons">
+            {% if user.is_authenticated %}
+                <a href="{% url 'exercises' %}" class="btn btn-hero-primary mx-2">Start Exercising</a>
+                <a href="{% url 'profile' %}" class="btn btn-hero-outline mx-2">View Profile</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-hero-primary mx-2">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-hero-outline mx-2">Register</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-shapes">
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+        <div class="circle circle3"></div>
     </div>
 </section>
 
 <!-- Features Section -->
 <section class="py-5 bg-light">
     <div class="container">
-        <h2 class="text-center fw-bold mb-5">Features</h2>
+        <h2 class="text-center fw-bold mb-5 section-title">Key Features</h2>
         <div class="row g-4">
             <div class="col-md-4 text-center">
-                <div class="card shadow-sm h-100 p-4 border-0">
-                    <img src="{% static 'posture/images/reps.png' %}" class="mb-3" style="width:80px;">
-                    <h5 class="fw-bold">Repetition Counting</h5>
-                    <p>Automatically track your reps for exercises like squats, push-ups, and lunges, so you can focus on your form.</p>
+                <div class="feature-card">
+                    <img src="{% static 'posture/images/reps.png' %}" class="feature-icon mb-3">
+                    <h5 class="fw-bold">Repetition Tracking</h5>
+                    <p>Automatically count your reps and focus on improving form with AI-powered tracking.</p>
                 </div>
             </div>
             <div class="col-md-4 text-center">
-                <div class="card shadow-sm h-100 p-4 border-0">
-                    <img src="{% static 'posture/images/posture.png' %}" class="mb-3" style="width:80px;">
-                    <h5 class="fw-bold">Form Correction</h5>
-                    <p>Get real-time posture feedback. Our AI highlights misaligned joints and suggests corrections for safer workouts.</p>
+                <div class="feature-card">
+                    <img src="{% static 'posture/images/posture.png' %}" class="feature-icon mb-3">
+                    <h5 class="fw-bold">Posture Correction</h5>
+                    <p>Get live feedback on your posture and avoid injuries by aligning your movements correctly.</p>
                 </div>
             </div>
             <div class="col-md-4 text-center">
-                <div class="card shadow-sm h-100 p-4 border-0">
-                    <img src="{% static 'posture/images/guidance.png' %}" class="mb-3" style="width:80px;">
-                    <h5 class="fw-bold">Exercise Guidance</h5>
-                    <p>Receive personalized tempo, rest, and pacing suggestions to maximize results and reduce injury risk.</p>
+                <div class="feature-card">
+                    <img src="{% static 'posture/images/guidance.png' %}" class="feature-icon mb-3">
+                    <h5 class="fw-bold">Personalized Guidance</h5>
+                    <p>Receive tips on pace, rest, and exercise form to maximize performance and results.</p>
                 </div>
             </div>
         </div>
@@ -48,44 +55,206 @@
 </section>
 
 <!-- How it Works Section -->
-<section class="py-5">
+<section class="py-5 gradient-bg text-white">
     <div class="container">
-        <h2 class="text-center fw-bold mb-5">How It Works</h2>
+        <h2 class="text-center fw-bold mb-5 section-title">How It Works</h2>
         <div class="row g-4">
-            <div class="col-md-4 text-center">
-                <div class="p-4 border rounded shadow-sm h-100">
-                    <h5 class="fw-bold">Step 1: Login</h5>
-                    <p>Create an account or login to access your personalized AI coach dashboard.</p>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <i class="bi bi-person-circle step-icon"></i>
+                    <h5 class="fw-bold mt-3">Step 1: Login</h5>
+                    <p>Sign in or register to access your personalized AI physiotherapy dashboard.</p>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="p-4 border rounded shadow-sm h-100">
-                    <h5 class="fw-bold">Step 2: Select Exercise</h5>
-                    <p>Choose an exercise and start the AI-powered session using your webcam for live posture analysis.</p>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <i class="bi bi-play-btn step-icon"></i>
+                    <h5 class="fw-bold mt-3">Step 2: Select Exercise</h5>
+                    <p>Pick an exercise and start a live session using your webcam for real-time posture analysis.</p>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="p-4 border rounded shadow-sm h-100">
-                    <h5 class="fw-bold">Step 3: Improve & Track</h5>
-                    <p>Get instant feedback, correct your posture, and track your exercise records on your profile.</p>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <i class="bi bi-bar-chart-line step-icon"></i>
+                    <h5 class="fw-bold mt-3">Step 3: Improve & Track</h5>
+                    <p>Receive instant feedback, correct your posture, and track progress on your profile.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Call to Action -->
-<section class="py-5 text-center" style="background: #2d3436; color: white;">
+<!-- Testimonials Section -->
+<section class="py-5">
     <div class="container">
-        <h3 class="mb-4">Ready to Improve Your Fitness?</h3>
+        <h2 class="text-center fw-bold mb-5 section-title">What Users Say</h2>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="testimonial-card">
+                    <p>"AI Coach helped me correct my posture in just 2 weeks. Amazing!"</p>
+                    <h6 class="fw-bold mt-2">- Alex J.</h6>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="testimonial-card">
+                    <p>"Counting reps automatically was a game-changer. Highly recommend!"</p>
+                    <h6 class="fw-bold mt-2">- Priya S.</h6>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="testimonial-card">
+                    <p>"The personalized guidance keeps me motivated every day!"</p>
+                    <h6 class="fw-bold mt-2">- John D.</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="py-5 cta-section text-center text-white">
+    <div class="container">
+        <h3 class="fw-bold mb-4">Ready to Start Your AI Fitness Journey?</h3>
         {% if user.is_authenticated %}
-            <a href="{% url 'exercises' %}" class="btn btn-light btn-lg mx-2">Start Exercising</a>
-            <a href="{% url 'profile' %}" class="btn btn-outline-light btn-lg mx-2">View Profile</a>
+            <a href="{% url 'exercises' %}" class="btn btn-cta mx-2">Start Exercising</a>
+            <a href="{% url 'profile' %}" class="btn btn-cta-outline mx-2">View Profile</a>
         {% else %}
-            <a href="{% url 'login' %}" class="btn btn-light btn-lg mx-2">Login Now</a>
-            <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg mx-2">Register Free</a>
+            <a href="{% url 'login' %}" class="btn btn-cta mx-2">Login Now</a>
+            <a href="{% url 'register' %}" class="btn btn-cta-outline mx-2">Register Free</a>
         {% endif %}
     </div>
 </section>
+
+<!-- Footer -->
+<footer class="footer py-5 gradient-bg-footer text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-4 text-center text-md-start">
+                <h5 class="fw-bold mb-3">PhysioCoach</h5>
+                <p>Your AI companion for better fitness and posture.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <h6 class="fw-bold mb-3">Quick Links</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'home' %}" class="footer-link">Home</a></li>
+                    <li><a href="{% url 'exercises' %}" class="footer-link">Exercises</a></li>
+                    <li><a href="{% url 'profile' %}" class="footer-link">Profile</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 text-center text-md-end">
+                <h6 class="fw-bold mb-3">Follow Us</h6>
+                <a href="#" class="footer-social"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="footer-social"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="footer-social"><i class="bi bi-instagram"></i></a>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            &copy; 2025 AI Physiotherapy Coach. All Rights Reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- Custom Styles -->
+<style>
+/* Hero */
+.hero-section {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #ff6f61, #2b2d42);
+    overflow: hidden;
+}
+.hero-shapes .circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.2;
+}
+.circle1 { width: 150px; height: 150px; top: 10%; left: 15%; background: #fff; }
+.circle2 { width: 200px; height: 200px; bottom: 10%; right: 20%; background: #ffde59; }
+.circle3 { width: 100px; height: 100px; top: 50%; right: 50%; background: #00bfae; }
+
+/* Buttons */
+.btn-hero-primary {
+    background: #ffde59;
+    color: #2b2d42;
+    border: 0;
+    font-weight: bold;
+    padding: 12px 28px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+.btn-hero-outline {
+    border: 2px solid #ffde59;
+    color: #ffde59;
+    background: transparent;
+    padding: 10px 26px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.btn-hero-outline:hover { background: #ffde59; color: #2b2d42; }
+
+/* Feature cards */
+.feature-card {
+    background: #2b2d42;
+    padding: 2rem;
+    border-radius: 20px;
+    color: white;
+    box-shadow: 8px 8px 20px #1b1b2f, -8px -8px 20px #3a3f58;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-card:hover { transform: translateY(-10px); box-shadow: 12px 12px 25px #1b1b2f, -12px -12px 25px #3a3f58; }
+.feature-icon { width: 60px; }
+
+/* Steps */
+.gradient-bg { background: linear-gradient(135deg, #6a0572, #00909e); }
+.step-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: inset 4px 4px 15px rgba(0,0,0,0.2), inset -4px -4px 15px rgba(255,255,255,0.1);
+    transition: transform 0.3s ease;
+}
+.step-card:hover { transform: translateY(-10px); }
+.step-icon { font-size: 2rem; color: #ffde59; }
+
+/* Testimonials */
+.testimonial-card {
+    background: #ffde59;
+    padding: 1.5rem;
+    border-radius: 20px;
+    color: #2b2d42;
+    box-shadow: 6px 6px 15px #bfae59, -6px -6px 15px #fff7b0;
+    transition: transform 0.3s ease;
+}
+.testimonial-card:hover { transform: translateY(-8px); }
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #2b2d42, #6a0572);
+}
+.btn-cta { background: #ffde59; color: #2b2d42; border-radius: 12px; font-weight: bold; padding: 12px 28px; }
+.btn-cta-outline { border: 2px solid #ffde59; color: #ffde59; background: transparent; padding: 10px 26px; border-radius: 12px; }
+.btn-cta-outline:hover { background: #ffde59; color: #2b2d42; }
+
+/* Footer */
+.gradient-bg-footer { background: linear-gradient(135deg, #2b2d42, #6a0572); }
+.footer-link { color: #ffde59; text-decoration: none; transition: color 0.3s; }
+.footer-link:hover { color: #fff; }
+.footer-social { color: #ffde59; margin: 0 8px; font-size: 1.3rem; transition: color 0.3s; }
+.footer-social:hover { color: #fff; }
+.section-title { position: relative; display: inline-block; }
+.section-title::after {
+    content: '';
+    display: block;
+    height: 4px;
+    width: 60px;
+    background: #ffde59;
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
+</style>
 
 {% endblock %}

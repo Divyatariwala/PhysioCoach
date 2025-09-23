@@ -25,6 +25,7 @@ urlpatterns = [
     path('analyze_pose/', views.analyze_pose, name='analyze_pose'),
     path('video_feed/', views.video_feed, name='video_feed'),
     path('exercises/', views.exercises, name='exercises'),
+    path('save_exercise_record/', views.save_exercise_record, name='save_exercise_record'),
     path('profile/', views.profile, name='profile'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),

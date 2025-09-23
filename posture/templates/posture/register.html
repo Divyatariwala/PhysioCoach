@@ -1,38 +1,158 @@
 {% extends "posture/base.html" %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
-    <div class="card shadow-lg p-4" style="width: 450px; border-radius:15px; background: linear-gradient(135deg, #2d3436, #4CAF50); color: white;">
-        <h2 class="text-center mb-4">Register</h2>
-        <!-- Messages block -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} text-center">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        <form method="POST" action="{% url 'register' %}">
+<div class="register-page d-flex justify-content-center align-items-center" style="min-height: 90vh; background: #f2f5f7;">
+    <div class="register-card p-5 rounded-4 text-center shadow-lg" 
+         style="width: 480px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
+        <h2 class="fw-bold mb-4" style="color: #2d3436;">Create Your Account</h2>
+
+        <form id="registerForm" method="POST" action="{% url 'register' %}" novalidate>
             {% csrf_token %}
-            <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" name="username" id="username" required placeholder="Enter username">
+
+            <!-- Username -->
+            <div class="mb-3 text-start">
+                <label for="username" class="form-label fw-semibold" style="color:#2d3436;">Username</label>
+                <input type="text" class="form-control neumorphic-input" name="username" id="username" placeholder="Choose a username">
+                <div id="usernameError" class="form-error"></div>
             </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" name="email" id="email" required placeholder="Enter email">
+
+            <!-- Email -->
+            <div class="mb-3 text-start">
+                <label for="email" class="form-label fw-semibold" style="color:#2d3436;">Email</label>
+                <input type="email" class="form-control neumorphic-input" name="email" id="email" placeholder="Enter your email">
+                <div id="emailError" class="form-error"></div>
             </div>
-            <div class="mb-3">
-                <label for="password1" class="form-label">Password</label>
-                <input type="password" class="form-control" name="password1" id="password1" required placeholder="Enter password">
+
+            <!-- Password -->
+            <div class="mb-3 text-start">
+                <label for="password1" class="form-label fw-semibold" style="color:#2d3436;">Password</label>
+                <input type="password" class="form-control neumorphic-input" name="password1" id="password1" placeholder="Create a password">
+                <div id="password1Error" class="form-error"></div>
             </div>
-            <div class="mb-3">
-                <label for="password2" class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" name="password2" id="password2" required placeholder="Confirm password">
+
+            <!-- Confirm Password -->
+            <div class="mb-3 text-start">
+                <label for="password2" class="form-label fw-semibold" style="color:#2d3436;">Confirm Password</label>
+                <input type="password" class="form-control neumorphic-input" name="password2" id="password2" placeholder="Confirm your password">
+                <div id="password2Error" class="form-error"></div>
             </div>
-            <button type="submit" class="btn btn-light w-100">Register</button>
-            <p class="mt-3 text-center">Already have an account? <a href="{% url 'login' %}" class="text-white text-decoration-underline">Login</a></p>
+
+            <!-- Django backend messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="form-error">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <button type="submit" class="btn neon-btn w-100 mb-3">Register</button>
+            <p style="color:#2d3436;">Already have an account?
+                <a href="{% url 'login' %}" class="text-success fw-bold text-decoration-underline">Login</a>
+            </p>
         </form>
     </div>
 </div>
+
+<style>
+/* Error styling */
+.form-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 5px;
+    margin-left: 8px; /* spacing from input edge */
+    text-align: left;
+}
+
+/* Inputs */
+.neumorphic-input {
+    border-radius: 15px;
+    border: none;
+    padding: 12px 15px;
+    background: #f2f5f7;
+    color: #2d3436;
+    width: 100%;
+    box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7);
+    transition: all 0.3s ease;
+}
+.neumorphic-input:focus {
+    outline: none;
+    box-shadow: inset 4px 4px 12px rgba(0,0,0,0.15), inset -4px -4px 12px rgba(255,255,255,0.8);
+}
+
+/* Button */
+.neon-btn {
+    border-radius: 20px;
+    border: 2px solid #4CAF50;
+    background: #ffffff;
+    color: #4CAF50;
+    font-weight: 700;
+    padding: 12px 0;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+.neon-btn:hover {
+    background: #4CAF50;
+    color: #ffffff;
+    box-shadow: 0 0 0px #4CAF50, 0 0 7px #4CAF50;
+}
+</style>
+
+<script>
+document.getElementById("registerForm").addEventListener("submit", function(event) {
+    let valid = true;
+
+    // Reset errors
+    document.getElementById("usernameError").textContent = "";
+    document.getElementById("emailError").textContent = "";
+    document.getElementById("password1Error").textContent = "";
+    document.getElementById("password2Error").textContent = "";
+
+    // Values
+    const username = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password1 = document.getElementById("password1").value.trim();
+    const password2 = document.getElementById("password2").value.trim();
+
+    // Username validation
+    if (!username) {
+        document.getElementById("usernameError").textContent = "Username is required";
+        valid = false;
+    } else if (username.length < 3) {
+        document.getElementById("usernameError").textContent = "Username must be at least 3 characters";
+        valid = false;
+    }
+
+    // Email validation
+    if (!email) {
+        document.getElementById("emailError").textContent = "Email is required";
+        valid = false;
+    } else {
+        const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+        if (!emailRegex.test(email)) {
+            document.getElementById("emailError").textContent = "Enter a valid email address";
+            valid = false;
+        }
+    }
+
+    // Password validation
+    if (!password1 && !password2) {
+        document.getElementById("password1Error").textContent = "Password is required";
+        document.getElementById("password2Error").textContent = "Confirm Password is required";
+        valid = false;
+    } else if (password1.length < 6) {
+        document.getElementById("password1Error").textContent = "Password must be at least 6 characters";
+        valid = false;
+    }
+
+    // Confirm password
+    if (password1 && password2 !== password1) {
+        document.getElementById("password2Error").textContent = "Passwords do not match";
+        valid = false;
+    }
+
+    if (!valid) {
+        event.preventDefault();
+    }
+});
+</script>
 {% endblock %}

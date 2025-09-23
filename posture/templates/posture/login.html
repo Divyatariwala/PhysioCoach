@@ -1,30 +1,138 @@
 {% extends "posture/base.html" %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
-    <div class="card shadow-lg p-4" style="width: 400px; border-radius:15px; background: linear-gradient(135deg, #4CAF50, #2d3436); color: white;">
-        <h2 class="text-center mb-4">Login</h2>
-        <!-- Messages block -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} text-center">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        <form method="POST" action="{% url 'login' %}">
+<div class="login-page d-flex justify-content-center align-items-center" style="min-height: 90vh; background: #f2f5f7;">
+    <div class="login-card p-5 rounded-4 text-center shadow-lg"
+        style="width: 420px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
+        <h2 class="fw-bold mb-4" style="color: #2d3436;">Welcome Back</h2>
+
+        <form id="loginForm" method="POST" action="{% url 'login' %}" novalidate>
             {% csrf_token %}
-            <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" name="username" id="username" required placeholder="Enter your username">
+
+            <!-- Username -->
+            <div class="mb-3 text-start">
+                <label for="username" class="form-label fw-semibold" style="color:#2d3436;">Username</label>
+                <input type="text" class="form-control neumorphic-input" name="username" id="username"
+                    placeholder="Enter your username">
+                <div id="usernameError" class="form-error"></div>
             </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" name="password" id="password" required placeholder="Enter your password">
+
+            <!-- Password -->
+            <div class="mb-3 text-start">
+                <label for="password" class="form-label fw-semibold" style="color:#2d3436;">Password</label>
+                <input type="password" class="form-control neumorphic-input" name="password" id="password"
+                    placeholder="Enter your password">
+                <div id="passwordError" class="form-error"></div>
             </div>
-            <button type="submit" class="btn btn-light w-100">Login</button>
-            <p class="mt-3 text-center">Don't have an account? <a href="{% url 'register' %}" class="text-white text-decoration-underline">Register</a></p>
+
+            <!-- Backend messages -->
+            {% if messages %}
+            {% for message in messages %}
+            <div class="form-error pb-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            <button type="submit" class="btn neon-btn w-100 mb-3">Login</button>
+            <p style="color:#2d3436;">Don't have an account?
+                <a href="{% url 'register' %}" class="text-success fw-bold text-decoration-underline">Register</a>
+            </p>
         </form>
     </div>
 </div>
+
+<style>
+    .neumorphic-input {
+        border-radius: 15px;
+        border: none;
+        padding: 12px 15px;
+        background: #f2f5f7;
+        color: #2d3436;
+        width: 100%;
+        box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1), inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+    }
+
+    .neumorphic-input:focus {
+        outline: none;
+        box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15), inset -4px -4px 12px rgba(255, 255, 255, 0.8);
+    }
+
+
+    .form-error {
+        color: #dc3545;
+        /* Bootstrap danger red */
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-top: 5px;
+        margin-left: 4px;
+        /* ✅ adds little left padding */
+        text-align: left;
+        /* keeps it aligned to left */
+    }
+
+
+    /* Neumorphic input fields */
+    .neumorphic-input {
+        border-radius: 15px;
+        border: none;
+        padding: 12px 15px;
+        background: #f2f5f7;
+        color: #2d3436;
+        box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1), inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+    }
+
+    .neumorphic-input:focus {
+        outline: none;
+        box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15), inset -4px -4px 12px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Neon-like button */
+    .neon-btn {
+        border-radius: 20px;
+        border: 2px solid #4CAF50;
+        background: #ffffff;
+        color: #4CAF50;
+        font-weight: 700;
+        padding: 12px 0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .neon-btn:hover {
+        background: #4CAF50;
+        color: #ffffff;
+        box-shadow: 0 0 0px #4CAF50, 0 0 7px #4CAF50;
+    }
+</style>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", function (event) {
+        let valid = true;
+
+        // Reset errors
+        document.getElementById("usernameError").textContent = "";
+        document.getElementById("passwordError").textContent = "";
+
+        // Get values
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        // Username validation
+        if (!username) {
+            document.getElementById("usernameError").textContent = "Username is required";
+            valid = false;
+        }
+
+        // Password validation
+        if (!password) {
+            document.getElementById("passwordError").textContent = "Password is required";
+            valid = false;
+        }
+
+        // Prevent form submission if invalid
+        if (!valid) {
+            event.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

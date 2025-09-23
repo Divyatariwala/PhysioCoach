@@ -1,26 +1,86 @@
 {% extends "posture/base.html" %}
 {% block content %}
-<div class="container mt-5">
-    <h1>{{ user.username }}'s Profile</h1>
-    <p>Email: {{ user.email }}</p>
-    <h3>Exercise History</h3>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Exercise</th>
-                <th>Reps Completed</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record in exercise_records %}
-            <tr>
-                <td>{{ record.date }}</td>
-                <td>{{ record.exercise_type }}</td>
-                <td>{{ record.reps }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="profile-page d-flex justify-content-center align-items-center" 
+     style="min-height: 100vh; background: #f2f5f7; padding: 40px 0;">
+
+    <div class="profile-card p-5 rounded-4 shadow-lg" 
+         style="width: 95%; max-width: 900px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
+
+        <!-- Profile Header -->
+        <div class="text-center mb-5">
+            <div class="profile-avatar mx-auto mb-3">
+                <i class="bi bi-person-circle" style="font-size: 5rem; color:#2d3436;"></i>
+            </div>
+            <h2 class="fw-bold" style="color:#2d3436;">{{ user.username }}'s Profile</h2>
+            <p class="text-muted mb-0">Email: <span class="fw-semibold">{{ user.email }}</span></p>
+        </div>
+
+        <!-- History Table -->
+        <div class="exercise-history">
+            <h3 class="fw-bold mb-3" style="color:#2d3436;">Exercise History</h3>
+            <div class="table-responsive">
+                <table class="table neumorphic-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Exercise</th>
+                            <th>Reps Completed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in exercise_records %}
+                        <tr>
+                            <td>{{ record.date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ record.exercise_type }}</td>
+                            <td>{{ record.reps }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No records yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+/* Card Styling */
+.profile-card {
+    background: linear-gradient(135deg, #a0e3b2, #ffffff);
+    border-radius: 25px;
+}
+
+/* Neumorphic Table */
+.neumorphic-table {
+    background: #f2f5f7;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7);
+}
+.neumorphic-table th {
+    background: #4CAF50;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+}
+.neumorphic-table td {
+    text-align: center;
+    color: #2d3436;
+}
+
+/* Avatar */
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #f2f5f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7);
+}
+</style>
 {% endblock %}
