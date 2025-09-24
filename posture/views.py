@@ -111,7 +111,7 @@ def register_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('home')
 
 @login_required
 def exercises(request):
@@ -121,6 +121,12 @@ def exercises(request):
 def profile(request):
     records = ExerciseRecord.objects.filter(user=request.user).order_by('-date')
     return render(request, 'posture/profile.html', {'exercise_records': records})
+
+def about(request):
+    return render(request, 'posture/about.html')
+
+def contact(request):
+    return render(request, 'posture/contact.html')
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress TensorFlow logs
 

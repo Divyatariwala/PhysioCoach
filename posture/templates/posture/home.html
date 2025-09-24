@@ -127,32 +127,59 @@
 
 <!-- Footer -->
 <footer class="footer py-5 gradient-bg-footer text-white">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-4 text-center text-md-start">
-                <h5 class="fw-bold mb-3">PhysioCoach</h5>
-                <p>Your AI companion for better fitness and posture.</p>
-            </div>
-            <div class="col-md-4 text-center">
-                <h6 class="fw-bold mb-3">Quick Links</h6>
-                <ul class="list-unstyled">
-                    <li><a href="{% url 'home' %}" class="footer-link">Home</a></li>
-                    <li><a href="{% url 'exercises' %}" class="footer-link">Exercises</a></li>
-                    <li><a href="{% url 'profile' %}" class="footer-link">Profile</a></li>
-                </ul>
-            </div>
-            <div class="col-md-4 text-center text-md-end">
-                <h6 class="fw-bold mb-3">Follow Us</h6>
-                <a href="#" class="footer-social"><i class="bi bi-facebook"></i></a>
-                <a href="#" class="footer-social"><i class="bi bi-twitter"></i></a>
-                <a href="#" class="footer-social"><i class="bi bi-instagram"></i></a>
-            </div>
+  <div class="container">
+    <div class="row g-4">
+      <!-- About -->
+      <div class="col-md-4">
+        <h5 class="fw-bold mb-3">About PhysioCoach</h5>
+        <p>AI-powered physiotherapy companion to track exercises, correct posture, and boost your fitness safely.</p>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="col-md-2">
+        <h6 class="fw-bold mb-3">Quick Links</h6>
+        <ul class="list-unstyled">
+          <li><a href="{% url 'home' %}" class="footer-link">Home</a></li>
+          <li><a href="{% url 'exercises' %}" class="footer-link">Exercises</a></li>
+          <li><a href="{% url 'profile' %}" class="footer-link">Profile</a></li>
+          <li><a href="#" class="footer-link">About</a></li>
+          <li><a href="#" class="footer-link">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div class="col-md-3">
+        <h6 class="fw-bold mb-3">Support</h6>
+        <ul class="list-unstyled">
+          <li><a href="#" class="footer-link">Help Center</a></li>
+          <li><a href="#" class="footer-link">Terms & Conditions</a></li>
+          <li><a href="#" class="footer-link">Privacy Policy</a></li>
+          <li><a href="#" class="footer-link">FAQs</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div class="col-md-3">
+        <h6 class="fw-bold mb-3">Contact Us</h6>
+        <p><i class="bi bi-geo-alt"></i> London, UK</p>
+        <p><i class="bi bi-envelope"></i> support@physiocoach.com</p>
+        <p><i class="bi bi-telephone"></i> +44 1234 567890</p>
+        <div class="mt-3">
+          <a href="#" class="footer-social"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="footer-social"><i class="bi bi-twitter"></i></a>
+          <a href="#" class="footer-social"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="footer-social"><i class="bi bi-linkedin"></i></a>
         </div>
-        <div class="text-center mt-4">
-            &copy; 2025 AI Physiotherapy Coach. All Rights Reserved.
-        </div>
+      </div>
     </div>
+
+    <!-- Bottom -->
+    <div class="text-center mt-4 border-top pt-3">
+      <small>&copy; 2025 PhysioCoach. All Rights Reserved.</small>
+    </div>
+  </div>
 </footer>
+
 
 <!-- Custom Styles -->
 <style>
@@ -163,98 +190,174 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #ff6f61, #2b2d42);
+    background: linear-gradient(135deg, #7ed957, #d4f8e8);
     overflow: hidden;
+}
+.hero-title {
+    color: #1b4332;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+}
+.hero-subtitle {
+    color: #2d6a4f;
 }
 .hero-shapes .circle {
     position: absolute;
     border-radius: 50%;
-    opacity: 0.2;
+    opacity: 0.25;
 }
-.circle1 { width: 150px; height: 150px; top: 10%; left: 15%; background: #fff; }
-.circle2 { width: 200px; height: 200px; bottom: 10%; right: 20%; background: #ffde59; }
-.circle3 { width: 100px; height: 100px; top: 50%; right: 50%; background: #00bfae; }
+.circle1 { width: 150px; height: 150px; top: 10%; left: 15%; background: #ffffff; }
+.circle2 { width: 200px; height: 200px; bottom: 10%; right: 20%; background: #95d5b2; }
+.circle3 { width: 100px; height: 100px; top: 50%; right: 50%; background: #52b788; }
 
 /* Buttons */
 .btn-hero-primary {
-    background: #ffde59;
-    color: #2b2d42;
+    background: #1b4332;
+    color: #ffffff;
     border: 0;
     font-weight: bold;
     padding: 12px 28px;
     border-radius: 12px;
     transition: all 0.3s ease;
 }
-.btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+.btn-hero-primary:hover {
+    transform: translateY(-3px);
+    background: #40916c;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
 .btn-hero-outline {
-    border: 2px solid #ffde59;
-    color: #ffde59;
+    border: 2px solid #1b4332;
+    color: #1b4332;
     background: transparent;
     padding: 10px 26px;
     border-radius: 12px;
     transition: all 0.3s ease;
 }
-.btn-hero-outline:hover { background: #ffde59; color: #2b2d42; }
+.btn-hero-outline:hover {
+    background: #1b4332;
+    color: #ffffff;
+}
 
 /* Feature cards */
 .feature-card {
-    background: #2b2d42;
+    background: #ffffff;
     padding: 2rem;
     border-radius: 20px;
-    color: white;
-    box-shadow: 8px 8px 20px #1b1b2f, -8px -8px 20px #3a3f58;
+    color: #2b2d42;
+    box-shadow: 6px 6px 20px rgba(0,0,0,0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.feature-card:hover { transform: translateY(-10px); box-shadow: 12px 12px 25px #1b1b2f, -12px -12px 25px #3a3f58; }
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 10px 10px 30px rgba(0,0,0,0.15);
+}
 .feature-icon { width: 60px; }
 
 /* Steps */
-.gradient-bg { background: linear-gradient(135deg, #6a0572, #00909e); }
+/* How It Works Section */
+.gradient-bg {
+    background: linear-gradient(135deg, #7ed957, #b7efc5); /* fresh pistachio gradient */
+    color: #1b4332;
+}
 .step-card {
-    background: rgba(255,255,255,0.1);
+    background: #ffffff;
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: inset 4px 4px 15px rgba(0,0,0,0.2), inset -4px -4px 15px rgba(255,255,255,0.1);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
 }
 .step-card:hover { transform: translateY(-10px); }
-.step-icon { font-size: 2rem; color: #ffde59; }
+.step-icon { font-size: 2rem; color: #2d6a4f; }
 
-/* Testimonials */
+/* Testimonials Section */
 .testimonial-card {
-    background: #ffde59;
+    background: linear-gradient(135deg, #95d5b2, #d4f8e8); /* lighter pistachio gradient */
     padding: 1.5rem;
     border-radius: 20px;
-    color: #2b2d42;
-    box-shadow: 6px 6px 15px #bfae59, -6px -6px 15px #fff7b0;
+    color: #1b4332;
+    box-shadow: 4px 4px 20px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
 }
-.testimonial-card:hover { transform: translateY(-8px); }
+.testimonial-card:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 6px 6px 25px rgba(0,0,0,0.15);
+}
+
 
 /* CTA Section */
 .cta-section {
-    background: linear-gradient(135deg, #2b2d42, #6a0572);
+    background: linear-gradient(135deg, #7ed957, #95d5b2);
+    color: #1b4332;
 }
-.btn-cta { background: #ffde59; color: #2b2d42; border-radius: 12px; font-weight: bold; padding: 12px 28px; }
-.btn-cta-outline { border: 2px solid #ffde59; color: #ffde59; background: transparent; padding: 10px 26px; border-radius: 12px; }
-.btn-cta-outline:hover { background: #ffde59; color: #2b2d42; }
+.btn-cta {
+    background: #1b4332;
+    color: #ffffff;
+    border-radius: 12px;
+    font-weight: bold;
+    padding: 12px 28px;
+    transition: all 0.3s ease;
+}
+.btn-cta:hover {
+    background: #1b4332;
+    color: #ffffff;
+}
+.btn-cta-outline {
+    border: 2px solid #1b4332;
+    color: #1b4332;
+    background: transparent;
+    padding: 10px 26px;
+    border-radius: 12px;
+}
+.btn-cta-outline:hover {
+    background: #1b4332;
+    color: #ffffff;
+}
 
 /* Footer */
-.gradient-bg-footer { background: linear-gradient(135deg, #2b2d42, #6a0572); }
-.footer-link { color: #ffde59; text-decoration: none; transition: color 0.3s; }
-.footer-link:hover { color: #fff; }
-.footer-social { color: #ffde59; margin: 0 8px; font-size: 1.3rem; transition: color 0.3s; }
-.footer-social:hover { color: #fff; }
-.section-title { position: relative; display: inline-block; }
-.section-title::after {
-    content: '';
-    display: block;
-    height: 4px;
-    width: 60px;
-    background: #ffde59;
-    margin: 8px auto 0;
-    border-radius: 2px;
+.gradient-bg-footer {
+    background: linear-gradient(135deg, #7ed957, #d4f8e8); /* match hero */
+    color: #1b4332; /* dark green text like hero title */
+    padding: 3rem 0;
+    text-align: center;
+    border-top: 4px solid #52b788; /* optional accent */
+    position: relative;
 }
+
+/* Links */
+.footer-link {
+    color: #1b4332; /* match hero dark green */
+    font-weight: 500;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 1rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+.footer-link:hover {
+    color: #40916c; /* subtle hover */
+    transform: scale(1.05);
+}
+
+/* Social Icons */
+.footer-social {
+    font-size: 1.8rem;
+    color: #1b4332; /* match hero */
+    margin: 0 12px;
+    transition: transform 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
+.footer-social:hover {
+    color: #52b788; /* subtle hover accent */
+    transform: translateY(-4px) scale(1.1);
+}
+
+/* Bottom Text */
+.footer-bottom {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #2d6a4f; /* slightly darker than background */
+    letter-spacing: 0.3px;
+}
+
+
 </style>
 
 {% endblock %}
