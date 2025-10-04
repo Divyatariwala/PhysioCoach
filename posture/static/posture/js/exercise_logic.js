@@ -1,7 +1,9 @@
 // exercise_logic.js
-import { analyzeSquat } from './squat.js';
-import { analyzePushup } from './pushup.js';
-import { analyzeLunge } from './lunge.js';
+
+import { analyzeSquat } from "./exercises/squat.js";
+import { analyzePushup } from "./exercises/pushup.js";
+import { analyzeLunge } from "./exercises/lunge.js";
+
 
 // CSRF helper
 function getCSRFToken() {

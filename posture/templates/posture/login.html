@@ -4,7 +4,14 @@
 <div class="login-page d-flex justify-content-center align-items-center" style="min-height: 90vh; background: #f2f5f7;">
     <div class="login-card p-5 rounded-4 text-center shadow-lg"
         style="width: 420px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
+
         <h2 class="fw-bold mb-4" style="color: #2d3436;">Welcome Back</h2>
+
+        <!-- Floating Popup -->
+        <div id="formPopup"
+            class="position-absolute top-50 start-50 translate-middle d-none p-3 rounded shadow text-white"
+            style="z-index: 1050; min-width: 250px; text-align:center;"></div>
+
 
         <form id="loginForm" method="POST" action="{% url 'login' %}" novalidate>
             {% csrf_token %}
@@ -23,14 +30,17 @@
                 <input type="password" class="form-control neumorphic-input" name="password" id="password"
                     placeholder="Enter your password">
                 <div id="passwordError" class="form-error"></div>
+               
+                <!-- Server-side messages -->
+                {% if messages %}
+                {% for message in messages %}
+                <div class="form-error"
+                    style="margin-top: 5px;">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
             </div>
-
-            <!-- Backend messages -->
-            {% if messages %}
-            {% for message in messages %}
-            <div class="form-error pb-2">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
 
             <button type="submit" class="btn neon-btn w-100 mb-3">Login</button>
             <p style="color:#2d3436;">Don't have an account?

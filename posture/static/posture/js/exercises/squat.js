@@ -1,5 +1,5 @@
 // squat.js
-import { calculateAngle, smoothAngle } from './exercise_logic.js';
+import { calculateAngle, smoothAngle } from '../exercise_logic.js';
 
 export function analyzeSquat(landmarks, state){
   const LEFT_HIP=23, LEFT_KNEE=25, LEFT_ANKLE=27;

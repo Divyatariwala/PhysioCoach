@@ -144,3 +144,6 @@ function drawLandmarks(landmarks) {
     ctx.fillText(`Reps: ${state.count}`, 20, 30);
     if (state.feedback) ctx.fillText(state.feedback, 20, 60);
 }
+
+window.startCamera = startCamera;
+window.stopCamera = stopCamera;

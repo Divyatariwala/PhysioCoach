@@ -1,158 +1,241 @@
 {% extends "posture/base.html" %}
 
 {% block content %}
-<div class="register-page d-flex justify-content-center align-items-center" style="min-height: 90vh; background: #f2f5f7;">
-    <div class="register-card p-5 rounded-4 text-center shadow-lg" 
-         style="width: 480px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
-        <h2 class="fw-bold mb-4" style="color: #2d3436;">Create Your Account</h2>
+<div class="register-page d-flex justify-content-center align-items-center py-5"
+    style="min-height: 90vh; background: #f2f5f7; position: relative;">
+    <div class="register-card p-4 p-md-5 rounded-4 text-start shadow-lg position-relative"
+        style="max-width: 520px; width: 100%; background: linear-gradient(135deg, #a0e3b2, #ffffff);">
+
+        <h2 class="fw-bold mb-4 text-center" style="color: #2d3436;">Create Your Account</h2>
+
+        <!-- Floating Popup -->
+        <div id="formPopup"
+            class="position-absolute top-50 start-50 translate-middle d-none p-3 rounded shadow text-white"
+            style="z-index: 1050; min-width: 250px; text-align:center;"></div>
 
         <form id="registerForm" method="POST" action="{% url 'register' %}" novalidate>
             {% csrf_token %}
 
+            <!-- Names in one row -->
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="firstname" class="form-label fw-semibold" style="color:#2d3436;">First Name</label>
+                    <input type="text" class="form-control neumorphic-input" name="first_name" id="firstname"
+                        placeholder="First Name">
+                    <div id="firstnameError" class="form-error"></div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="lastname" class="form-label fw-semibold" style="color:#2d3436;">Last Name</label>
+                    <input type="text" class="form-control neumorphic-input" name="last_name" id="lastname"
+                        placeholder="Last Name">
+                    <div id="lastnameError" class="form-error"></div>
+                </div>
+            </div>
+
             <!-- Username -->
-            <div class="mb-3 text-start">
+            <div class="mb-3">
                 <label for="username" class="form-label fw-semibold" style="color:#2d3436;">Username</label>
-                <input type="text" class="form-control neumorphic-input" name="username" id="username" placeholder="Choose a username">
+                <input type="text" class="form-control neumorphic-input" name="username" id="username"
+                    placeholder="Username">
                 <div id="usernameError" class="form-error"></div>
             </div>
 
             <!-- Email -->
-            <div class="mb-3 text-start">
+            <div class="mb-3">
                 <label for="email" class="form-label fw-semibold" style="color:#2d3436;">Email</label>
-                <input type="email" class="form-control neumorphic-input" name="email" id="email" placeholder="Enter your email">
+                <input type="email" class="form-control neumorphic-input" name="email" id="email"
+                    placeholder="Enter your email">
                 <div id="emailError" class="form-error"></div>
             </div>
 
-            <!-- Password -->
-            <div class="mb-3 text-start">
-                <label for="password1" class="form-label fw-semibold" style="color:#2d3436;">Password</label>
-                <input type="password" class="form-control neumorphic-input" name="password1" id="password1" placeholder="Create a password">
-                <div id="password1Error" class="form-error"></div>
+            <div class="row mb-3">
+                <!-- Age -->
+                <div class="col-12 col-md-6">
+                    <label for="age" class="form-label fw-semibold" style="color:#2d3436;">Age</label>
+                    <input type="number" class="form-control neumorphic-input" name="age" id="age"
+                        placeholder="Enter your age" min="1" max="120">
+                    <div id="ageError" class="form-error"></div>
+                </div>
+                <!-- Gender -->
+                <div class="col-12 col-md-6">
+                    <label for="gender" class="form-label fw-semibold" style="color:#2d3436;">Gender</label>
+                    <select class="form-select neumorphic-input" name="gender" id="gender">
+                        <option value="" disabled selected>Select your gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div id="genderError" class="form-error"></div>
+                </div>
             </div>
 
-            <!-- Confirm Password -->
-            <div class="mb-3 text-start">
-                <label for="password2" class="form-label fw-semibold" style="color:#2d3436;">Confirm Password</label>
-                <input type="password" class="form-control neumorphic-input" name="password2" id="password2" placeholder="Confirm your password">
-                <div id="password2Error" class="form-error"></div>
+            <!-- Passwords in one row -->
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="password1" class="form-label fw-semibold" style="color:#2d3436;">Password</label>
+                    <input type="password" class="form-control neumorphic-input" name="password1" id="password1"
+                        placeholder="Create a password">
+                    <div id="password1Error" class="form-error"></div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="password2" class="form-label fw-semibold" style="color:#2d3436;">Confirm
+                        Password</label>
+                    <input type="password" class="form-control neumorphic-input" name="password2" id="password2"
+                        placeholder="Confirm your password">
+                    <div id="password2Error" class="form-error"></div>
+                </div>
             </div>
-
-            <!-- Django backend messages -->
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="form-error">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
 
             <button type="submit" class="btn neon-btn w-100 mb-3">Register</button>
-            <p style="color:#2d3436;">Already have an account?
-                <a href="{% url 'login' %}" class="text-success fw-bold text-decoration-underline">Login</a>
+            <p class="text-center" style="color:#2d3436;">Already have an account?
+                <a href="{% url 'login' %}" class="text-center text-success fw-bold text-decoration-underline">Login</a>
             </p>
         </form>
     </div>
 </div>
 
+{% if messages %}
+<div id="message-data" data-messages='[
+        {% for message in messages %}
+            {"text": "{{ message|escapejs }}", "tag": "{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]' style="display:none;"></div>
+{% endif %}
+
 <style>
-/* Error styling */
-.form-error {
-    color: #dc3545;
-    font-size: 0.85rem;
-    font-weight: 500;
-    margin-top: 5px;
-    margin-left: 8px; /* spacing from input edge */
-    text-align: left;
-}
-
-/* Inputs */
-.neumorphic-input {
-    border-radius: 15px;
-    border: none;
-    padding: 12px 15px;
-    background: #f2f5f7;
-    color: #2d3436;
-    width: 100%;
-    box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7);
-    transition: all 0.3s ease;
-}
-.neumorphic-input:focus {
-    outline: none;
-    box-shadow: inset 4px 4px 12px rgba(0,0,0,0.15), inset -4px -4px 12px rgba(255,255,255,0.8);
-}
-
-/* Button */
-.neon-btn {
-    border-radius: 20px;
-    border: 2px solid #4CAF50;
-    background: #ffffff;
-    color: #4CAF50;
-    font-weight: 700;
-    padding: 12px 0;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-.neon-btn:hover {
-    background: #4CAF50;
-    color: #ffffff;
-    box-shadow: 0 0 0px #4CAF50, 0 0 7px #4CAF50;
-}
-</style>
-
-<script>
-document.getElementById("registerForm").addEventListener("submit", function(event) {
-    let valid = true;
-
-    // Reset errors
-    document.getElementById("usernameError").textContent = "";
-    document.getElementById("emailError").textContent = "";
-    document.getElementById("password1Error").textContent = "";
-    document.getElementById("password2Error").textContent = "";
-
-    // Values
-    const username = document.getElementById("username").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password1 = document.getElementById("password1").value.trim();
-    const password2 = document.getElementById("password2").value.trim();
-
-    // Username validation
-    if (!username) {
-        document.getElementById("usernameError").textContent = "Username is required";
-        valid = false;
-    } else if (username.length < 3) {
-        document.getElementById("usernameError").textContent = "Username must be at least 3 characters";
-        valid = false;
-    }
-
-    // Email validation
-    if (!email) {
-        document.getElementById("emailError").textContent = "Email is required";
-        valid = false;
-    } else {
-        const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
-        if (!emailRegex.test(email)) {
-            document.getElementById("emailError").textContent = "Enter a valid email address";
-            valid = false;
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .register-card {
+            padding: 20px !important;
         }
     }
 
-    // Password validation
-    if (!password1 && !password2) {
-        document.getElementById("password1Error").textContent = "Password is required";
-        document.getElementById("password2Error").textContent = "Confirm Password is required";
-        valid = false;
-    } else if (password1.length < 6) {
-        document.getElementById("password1Error").textContent = "Password must be at least 6 characters";
-        valid = false;
+    /* Error styling */
+    .form-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-top: 5px;
+        text-align: left;
     }
 
-    // Confirm password
-    if (password1 && password2 !== password1) {
-        document.getElementById("password2Error").textContent = "Passwords do not match";
-        valid = false;
+    /* Inputs */
+    .neumorphic-input {
+        border-radius: 15px;
+        border: none;
+        padding: 12px 15px;
+        background: #f2f5f7;
+        color: #2d3436;
+        width: 100%;
+        box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1), inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
     }
 
-    if (!valid) {
-        event.preventDefault();
+    .neumorphic-input:focus {
+        outline: none;
+        box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15), inset -4px -4px 12px rgba(255, 255, 255, 0.8);
     }
-});
+
+    /* Button */
+    .neon-btn {
+        border-radius: 20px;
+        border: 2px solid #4CAF50;
+        background: #ffffff;
+        color: #4CAF50;
+        font-weight: 700;
+        padding: 12px 0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .neon-btn:hover {
+        background: #4CAF50;
+        color: #ffffff;
+        box-shadow: 0 0 7px #4CAF50;
+    }
+
+    /* Popup colors */
+    #formPopup.success {
+        background-color: rgba(40, 167, 69, 0.9);
+    }
+
+    /* green */
+    #formPopup.error {
+        background-color: rgba(220, 53, 69, 0.9);
+    }
+
+    /* red */
+</style>
+
+<script>
+    document.getElementById("registerForm").addEventListener("submit", function (event) {
+        let valid = true;
+
+        // Reset errors
+        ["firstnameError", "lastnameError", "usernameError", "ageError", "genderError", "emailError", "password1Error", "password2Error"].forEach(id => {
+            document.getElementById(id).textContent = "";
+        });
+
+        // Values
+        const first_name = document.getElementById("firstname").value.trim();
+        const last_name = document.getElementById("lastname").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const age = document.getElementById("age").value.trim();
+        const gender = document.getElementById("gender").value;
+        const email = document.getElementById("email").value.trim();
+        const password1 = document.getElementById("password1").value.trim();
+        const password2 = document.getElementById("password2").value.trim();
+
+        // Validations
+        if (!first_name) { document.getElementById("firstnameError").textContent = "First Name is required"; valid = false; }
+        else if (first_name.length < 3) { document.getElementById("firstnameError").textContent = "First Name must be at least 3 characters"; valid = false; }
+
+        if (!last_name) { document.getElementById("lastnameError").textContent = "Last Name is required"; valid = false; }
+        else if (last_name.length < 3) { document.getElementById("lastnameError").textContent = "Last Name must be at least 3 characters"; valid = false; }
+
+        if (!username) { document.getElementById("usernameError").textContent = "Username is required"; valid = false; }
+        else if (username.length < 3) { document.getElementById("usernameError").textContent = "Username must be at least 3 characters"; valid = false; }
+
+        if (!age) { document.getElementById("ageError").textContent = "Age is required"; valid = false; }
+        else if (isNaN(age) || age < 1 || age > 120) { document.getElementById("ageError").textContent = "Enter a valid age between 1 and 120"; valid = false; }
+
+        if (!gender) { document.getElementById("genderError").textContent = "Gender is required"; valid = false; }
+
+        if (!email) { document.getElementById("emailError").textContent = "Email is required"; valid = false; }
+        else { const emailRegex = /^[^@]+@[^@]+\.[^@]+$/; if (!emailRegex.test(email)) { document.getElementById("emailError").textContent = "Enter a valid email address"; valid = false; } }
+
+        if (!password1) { document.getElementById("password1Error").textContent = "Password is required"; valid = false; }
+        else if (password1.length < 6) { document.getElementById("password1Error").textContent = "Password must be at least 6 characters"; valid = false; }
+
+        if (!password2) { document.getElementById("password2Error").textContent = "Confirm Password is required"; valid = false; }
+        else if (password1 && password2 !== password1) { document.getElementById("password2Error").textContent = "Passwords do not match"; valid = false; }
+
+        if (!valid) event.preventDefault();
+    });
+    
+    // Function to show popup messages
+    document.addEventListener("DOMContentLoaded", function () {
+        const messageDiv = document.getElementById("message-data");
+        if (!messageDiv) return;
+
+        const messages = JSON.parse(messageDiv.getAttribute("data-messages"));
+        const popup = document.getElementById("formPopup");
+
+        messages.forEach(msg => {
+            popup.textContent = msg.text;
+            popup.classList.add(msg.tag);
+            popup.classList.remove("d-none");
+
+            // Fade in
+            setTimeout(() => { popup.style.opacity = 1; }, 100);
+
+            // Fade out after 4s
+            setTimeout(() => { popup.style.opacity = 0; }, 4100);
+
+            // Hide completely after fade out
+            setTimeout(() => { popup.classList.add("d-none"); }, 4600);
+        });
+    });
+
 </script>
 {% endblock %}

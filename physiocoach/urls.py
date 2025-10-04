@@ -16,21 +16,31 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from posture import views
 from django.conf import settings
+from posture import views
 from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Basic Pages
     path('', views.home, name='home'),
-    path('analyze_pose/', views.analyze_pose, name='analyze_pose'),
-    path('video_feed/', views.video_feed, name='video_feed'),
-    path('exercises/', views.exercises, name='exercises'),
-    path('save_exercise_record/', views.save_exercise_record, name='save_exercise_record'),
-    path('profile/', views.profile, name='profile'),
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
+    path('profile/', views.profile, name='profile'),
+    path('exercises/', views.exercises, name='exercises'),
+    
+   # Authentication
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
+
+    # Workout
+    path('start_workout/<int:exercise_id>/', views.start_workout, name='start_workout'),
+    path('save_repetitions/<uuid:session_id>/', views.save_repetitions, name='save_repetitions'),
+
+    # Mediapipe Posture Analysis
+    path('video_feed/', views.video_feed, name='video_feed'),
+    path('analyze_pose/', views.analyze_pose, name='analyze_pose'),    
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

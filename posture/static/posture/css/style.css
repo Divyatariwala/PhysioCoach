@@ -1,9 +1,13 @@
-/* Base typography */
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Roboto:wght@400;500&display=swap');
+
+/* Body default font */
 body {
     font-family: 'Roboto', sans-serif;
     font-weight: 400;
     color: #1b4332;
 }
+   
 
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Montserrat', sans-serif;
