@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Exercise, TherapyPlan, WorkoutSession, Repetition, Profile
 
 # Inline for Profile
 class ProfileInline(admin.StackedInline):
@@ -40,3 +40,11 @@ class ProfileAdmin(admin.ModelAdmin):
     def get_email(self, obj):
         return obj.user.email
     get_email.short_description = 'Email'
+
+
+# Register Exercise so admin can add/edit/delete
+@admin.register(Exercise)
+class ExerciseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'target_muscle', 'difficulty_level', 'video_demo_url')
+    search_fields = ('name', 'target_muscle')
+    list_filter = ('difficulty_level',)

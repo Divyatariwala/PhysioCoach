@@ -2,33 +2,45 @@
 {% load static %}
 
 {% block content %}
-<div class="exercise-page d-flex flex-column justify-content-center align-items-center" 
-     style="min-height: 100vh; background: #f2f5f7; padding: 40px 0;">
+<div class="exercise-page d-flex flex-column justify-content-center align-items-center"
+    style="min-height: 100vh; background: #f2f5f7; padding: 40px 0;">
 
-    <!-- Card -->
-    <div class="exercise-card p-5 rounded-4 shadow-lg" 
-         style="width: 90%; max-width: 1000px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
+    <div class="exercise-card p-5 rounded-4 shadow-lg"
+        style="width: 90%; max-width: 1000px; background: linear-gradient(135deg, #a0e3b2, #ffffff); border-radius: 25px;">
 
-        <!-- Heading -->
         <h1 class="fw-bold text-center mb-4" style="color:#2d3436;">Exercise Session</h1>
 
         <!-- Exercise Selector -->
         <div class="mb-4 text-center">
             <label for="exerciseSelect" class="form-label fw-semibold" style="color:#2d3436;">Choose Exercise</label>
             <select id="exerciseSelect" class="form-select neumorphic-input mx-auto" style="max-width:250px;">
-                <option value="squat">Squat</option>
-                <option value="pushup">Push-up</option>
-                <option value="lunge">Lunge</option>
+                {% for exercise in exercises %}
+                <option value="{{ exercise.exercise_id }}">{{ exercise.name }}</option>
+                {% empty %}
+                <option value="">No exercises available</option>
+                {% endfor %}
             </select>
         </div>
 
-        <!-- Buttons -->
-        <div class="d-flex justify-content-center gap-3 mb-4">
-            <button class="btn neon-btn" onclick="startCamera()">Start Workout</button>
-            <button class="btn neon-btn-danger" onclick="stopCamera()">Stop Workout</button>
+        <!-- Exercise Info -->
+        <div id="exerciseInfo" class="mb-4 text-start" style="color:#2d3436;">
+            <p><strong>Description:</strong> <span id="exerciseDescription"></span></p>
+            <p><strong>Target Muscle:</strong> <span id="exerciseMuscle"></span></p>
+            <p><strong>Difficulty Level:</strong> <span id="exerciseDifficulty"></span></p>
         </div>
 
-        <!-- Video Feed -->
+        <!-- Demo Video -->
+        <div class="mb-4 text-center">
+            <video id="demoVideo" width="640" height="360" controls></video>
+        </div>
+
+        <!-- Start/Stop Buttons -->
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <button class="btn neon-btn" id="startBtn">Start Workout</button>
+            <button class="btn neon-btn-danger" id="stopBtn">Stop Workout</button>
+        </div>
+
+        <!-- Live Video Feed -->
         <div class="d-flex justify-content-center mb-4">
             <div class="position-relative video-container">
                 <video id="video" width="640" height="480" autoplay></video>
@@ -36,91 +48,212 @@
             </div>
         </div>
 
-        <!-- Feedback -->
+        <!-- Feedback & Stats -->
         <p id="feedback" class="fw-bold text-center mt-2" style="color:#2d3436; font-size:1.2rem;"></p>
-
-        <!-- Dashboard -->
-        <div class="mt-5">
-            <h2 class="fw-bold text-center mb-3" style="color:#2d3436;">Progress Dashboard</h2>
-            <canvas id="progressChart" width="600" height="300" class="mx-auto"></canvas>
-        </div>
+        <p id="repCount" class="fw-bold text-center mt-2">Reps: 0</p>
+        <p id="sessionTime" class="fw-bold text-center mt-2">Time: 0s</p>
     </div>
 </div>
 
 <style>
 /* Neumorphic Inputs */
-.neumorphic-input {
-    border-radius: 15px;
-    border: none;
-    padding: 12px 15px;
-    background: #f2f5f7;
-    color: #2d3436;
-    box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7);
-    transition: all 0.3s ease;
-}
-.neumorphic-input:focus {
-    outline: none;
-    box-shadow: inset 4px 4px 12px rgba(0,0,0,0.15), inset -4px -4px 12px rgba(255,255,255,0.8);
-}
+.neumorphic-input { border-radius: 15px; border: none; padding: 12px 15px; background: #f2f5f7; color: #2d3436; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7); transition: all 0.3s ease;}
+.neumorphic-input:focus { outline: none; box-shadow: inset 4px 4px 12px rgba(0,0,0,0.15), inset -4px -4px 12px rgba(255,255,255,0.8); }
 
 /* Buttons */
-.neon-btn {
-    border-radius: 20px;
-    border: 2px solid #4CAF50;
-    background: #ffffff;
-    color: #4CAF50;
-    font-weight: 700;
-    padding: 12px 30px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-.neon-btn:hover {
-    background: #4CAF50;
-    color: #ffffff;
-    box-shadow: 0 0 3px #4CAF50, 0 0 7px #4CAF50;
-}
+.neon-btn { border-radius: 20px; border: 2px solid #4CAF50; background: #ffffff; color: #4CAF50; font-weight: 700; padding: 12px 30px; font-size: 1rem; transition: all 0.3s ease; }
+.neon-btn:hover { background: #4CAF50; color: #ffffff; box-shadow: 0 0 3px #4CAF50, 0 0 7px #4CAF50; }
 
-.neon-btn-danger {
-    border-radius: 20px;
-    border: 2px solid #e74c3c;
-    background: #ffffff;
-    color: #e74c3c;
-    font-weight: 700;
-    padding: 12px 30px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-.neon-btn-danger:hover {
-    background: #e74c3c;
-    color: #ffffff;
-    box-shadow: 0 0 3px #e74c3c, 0 0 7px #e74c3c;
-}
+.neon-btn-danger { border-radius: 20px; border: 2px solid #e74c3c; background: #ffffff; color: #e74c3c; font-weight: 700; padding: 12px 30px; font-size: 1rem; transition: all 0.3s ease; }
+.neon-btn-danger:hover { background: #e74c3c; color: #ffffff; box-shadow: 0 0 3px #e74c3c, 0 0 7px #e74c3c; }
 
-/* Video Container with neumorphism */
-.video-container {
-    width: 640px;
-    height: 480px;
-    border-radius: 20px;
-    overflow: hidden;
-    background: #f2f5f7;
-    box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7);
-    position: relative;
-}
-.video-container video,
-.video-container canvas {
-    position: absolute;
-    left: 0;
-    top: 0;
-    border-radius: 20px;
-}
+/* Video Container */
+.video-container { width: 640px; height: 480px; border-radius: 20px; overflow: hidden; background: #f2f5f7; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.1), inset -6px -6px 12px rgba(255,255,255,0.7); position: relative; }
+.video-container video, .video-container canvas { position: absolute; left: 0; top: 0; border-radius: 20px; }
 </style>
-
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="{% static 'posture/js/video_capture.js' %}"></script>
-<script type="module" src="{% static 'posture/js/exercise_logic.js' %}"></script>
-<script type="module" src="{% static 'posture/js/dashboard.js' %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+
+<script>
+const exerciseData = JSON.parse('{{ exercise_data_json|default:"[]"|escapejs }}');
+
+const exerciseSelect = document.getElementById("exerciseSelect");
+const descriptionEl = document.getElementById("exerciseDescription");
+const muscleEl = document.getElementById("exerciseMuscle");
+const difficultyEl = document.getElementById("exerciseDifficulty");
+const demoVideoEl = document.getElementById("demoVideo");
+
+const video = document.getElementById("video");
+const overlay = document.getElementById("overlay");
+const ctx = overlay.getContext("2d");
+
+let detector;
+let sessionActive = false;
+let repCount = 0;
+let reps = [];
+let startTime = null;
+let repTriggered = false;
+let currentSessionId = null;
+
+// Update Exercise Info
+function updateExerciseInfo() {
+    const selectedId = parseInt(exerciseSelect.value);
+    const exercise = exerciseData.find(e => e.id === selectedId);
+    if (exercise) {
+        descriptionEl.textContent = exercise.description;
+        muscleEl.textContent = exercise.target_muscle;
+        difficultyEl.textContent = exercise.difficulty_level;
+        demoVideoEl.src = exercise.video_demo_url;
+    } else {
+        descriptionEl.textContent = "";
+        muscleEl.textContent = "";
+        difficultyEl.textContent = "";
+        demoVideoEl.src = "";
+    }
+}
+updateExerciseInfo();
+exerciseSelect.addEventListener("change", updateExerciseInfo);
+
+// Draw keypoints
+function drawKeypoints(pose){
+    pose.keypoints.forEach(k => {
+        if(k.score > 0.5){
+            ctx.beginPath();
+            ctx.arc(k.x, k.y, 5, 0, 2*Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+        }
+    });
+}
+
+// Simple rep counting based on right wrist movement
+function checkExercisePose(pose){
+    const rightWrist = pose.keypoints.find(k => k.name==='right_wrist');
+    if(!rightWrist || rightWrist.score < 0.5) return;
+
+    if(rightWrist.y < 150 && !repTriggered){
+        repCount++;
+        const accuracy = Math.round(rightWrist.score * 100);
+        reps.push({count_number: repCount, timestamp: new Date(), posture_accuracy: accuracy});
+        repTriggered = true;
+
+        // Save repetition immediately
+        if(currentSessionId){
+            fetch(`/save_repetitions/${currentSessionId}/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    count_number: repCount,
+                    posture_accuracy: accuracy
+                })
+            }).then(res=>res.json())
+              .then(data=>console.log("Rep saved:", data))
+              .catch(err=>console.error(err));
+
+            // Optionally, send feedback
+            fetch(`/save_feedback/${currentSessionId}/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    message: accuracy < 80 ? "Try to raise your hand higher!" : "Good posture!",
+                    accuracy_score: accuracy
+                })
+            }).then(res=>res.json())
+              .then(data=>console.log("Feedback saved:", data))
+              .catch(err=>console.error(err));
+        }
+    }
+
+    if(rightWrist.y > 300){
+        repTriggered = false;
+    }
+
+    document.getElementById('repCount').textContent = `Reps: ${repCount}`;
+}
+
+// Start workout
+document.getElementById('startBtn').addEventListener('click', async ()=>{
+    if(sessionActive) return;
+    sessionActive = true;
+    repCount = 0;
+    reps = [];
+    repTriggered = false;
+    startTime = new Date();
+
+    const selectedExercise = exerciseData.find(e => e.id===parseInt(exerciseSelect.value));
+    if(!selectedExercise) return alert("Select an exercise!");
+
+    // Create WorkoutSession on backend
+    const response = await fetch("{% url 'save_workout_session' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            exercise_id: selectedExercise.id,
+            start_time: startTime.toISOString(),
+            device_type: "webcam"
+        })
+    });
+    const data = await response.json();
+    currentSessionId = data.session_id;
+
+    detector = await posedetection.createDetector(posedetection.SupportedModels.MoveNet);
+    const stream = await navigator.mediaDevices.getUserMedia({video:true});
+    video.srcObject = stream;
+
+    async function detectFrame(){
+        if(!sessionActive) return;
+        const poses = await detector.estimatePoses(video);
+        ctx.clearRect(0,0,overlay.width,overlay.height);
+        poses.forEach(pose => {drawKeypoints(pose); checkExercisePose(pose);});
+        document.getElementById('sessionTime').textContent = `Time: ${Math.floor((new Date() - startTime)/1000)}s`;
+        requestAnimationFrame(detectFrame);
+    }
+    detectFrame();
+});
+
+// Stop workout
+document.getElementById('stopBtn').addEventListener('click', async ()=>{
+    if(!sessionActive) return;
+    sessionActive = false;
+
+    const tracks = video.srcObject?.getTracks();
+    tracks?.forEach(track=>track.stop());
+
+    const endTime = new Date();
+    const duration = Math.floor((endTime - startTime)/1000);
+
+    // Save total session duration
+    if(currentSessionId){
+        fetch("{% url 'save_workout_session' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                session_id: currentSessionId,
+                end_time: endTime.toISOString(),
+                duration: duration,
+                status: "Completed"
+            })
+        }).then(res=>res.json())
+          .then(data=>console.log("Session completed:", data))
+          .catch(err=>console.error(err));
+    }
+});
+</script>
+
 {% endblock %}

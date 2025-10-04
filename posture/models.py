@@ -11,7 +11,7 @@ class Profile(models.Model):
         ('Other', 'Other'),
     ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='posture/images/default-avatar.png')
     def __str__(self):
         return f"{self.user.username} Profile"
 
@@ -79,8 +79,6 @@ class Repetition(models.Model):
     session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE, related_name="repetitions")
     count_number = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    angle_left = models.FloatField()
-    angle_right = models.FloatField()
     posture_accuracy = models.FloatField(help_text="Posture accuracy in %")
 
     def __str__(self):

@@ -7,7 +7,7 @@ import numpy as np
 import json
 import os
 from django.http import JsonResponse, StreamingHttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -16,6 +16,10 @@ import mediapipe as mp
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from datetime import datetime
+from django.contrib.auth import update_session_auth_hash
+
+from physiocoach import settings
 
 # Import your models
 from .models import Profile, Exercise, WorkoutSession, Repetition, Report, Feedback
@@ -35,12 +39,48 @@ def contact(request):
 
 @login_required
 def profile(request):
-    return render(request, 'posture/profile.html')
+    user = request.user
+    reports = Report.objects.filter(user=user).order_by('-report_date')
+    profile = getattr(user, "profile", None)
+    if request.method == "POST" and request.FILES.get('profile_picture'):
+        uploaded_file = request.FILES['profile_picture']
+        # Save the file in static folder
+        file_name = f"user_{request.user.id}.png"
+        save_path = os.path.join(settings.BASE_DIR, 'static', 'posture', 'images', file_name)
+
+        with open(save_path, 'wb+') as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+
+        # Update profile to point to uploaded file
+        profile.profile_picture = f"posture/images/{file_name}"
+        profile.save()
+        return redirect('profile')
+
+    return render(request, "posture/profile.html", {"user": user, "profile": profile, "reports": reports})
 
 @login_required
 def exercises(request):
-    all_exercises = Exercise.objects.all()
-    return render(request, 'posture/exercises.html', {"exercises": all_exercises})
+    exercises = Exercise.objects.all()
+
+    # Prepare data for JS
+    exercise_data = [
+        {
+            "id": e.exercise_id,
+            "name": e.name,
+            "description": e.description,
+            "target_muscle": e.target_muscle,
+            "difficulty_level": e.difficulty_level,
+            "video_demo_url": e.video_demo_url
+        } for e in exercises
+    ]
+
+    context = {
+        "exercises": exercises,
+        "exercise_data_json": json.dumps(exercise_data)  # ✅ must serialize
+    }
+    return render(request, "posture/exercises.html", context)
+
 
 
 # ---------------------------
@@ -109,6 +149,24 @@ def register_view(request):
 
     return render(request, 'posture/register.html')
 
+@login_required
+def forgot_password(request):
+    context = {}
+    if request.method == "POST":
+        old_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+        user = request.user
+
+        if not user.check_password(old_password):
+            context["old_password_error"] = "Old password is incorrect"
+        else:
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)
+            context["success_message"] = "Password changed successfully"
+
+    return render(request, "posture/forgot_password.html", context)
 
 def logout_view(request):
     logout(request)
@@ -120,38 +178,100 @@ def logout_view(request):
 # ---------------------------
 
 @login_required
-def start_workout(request, exercise_id):
-    """Start a workout session for a given exercise"""
-    exercise = Exercise.objects.get(pk=exercise_id)
-    session = WorkoutSession.objects.create(
-        user=request.user,
-        exercise=exercise,
-        start_time=timezone.now(),
-        status="Active",
-        device_type="Webcam"
-    )
-    return JsonResponse({"session_id": session.session_id, "message": "Workout started"})
+def save_workout_session(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
+    try:
+        data = json.loads(request.body)
+
+        # ---- STOP WORKOUT ----
+        if "session_id" in data:
+            session_id = data.get("session_id")
+            session = WorkoutSession.objects.get(id=session_id)
+
+            if "end_time" in data:
+                session.end_time = datetime.fromisoformat(data["end_time"])
+            if "duration" in data:
+                session.duration = data["duration"]
+            if "status" in data:
+                session.status = data["status"]
+
+            session.save()
+            return JsonResponse({"status": "Workout session updated successfully"})
+
+        # ---- START WORKOUT ----
+        else:
+            exercise_id = data.get("exercise_id")
+            if not exercise_id:
+                return JsonResponse({"error": "exercise_id is required"}, status=400)
+
+            try:
+                exercise = Exercise.objects.get(id=exercise_id)
+            except Exercise.DoesNotExist:
+                return JsonResponse({"error": f"Exercise with id {exercise_id} not found"}, status=404)
+
+            start_time_str = data.get("start_time")
+            if not start_time_str:
+                return JsonResponse({"error": "start_time is required"}, status=400)
+
+            start_time = datetime.fromisoformat(start_time_str)
+            device_type = data.get("device_type", "webcam")
+
+            session = WorkoutSession.objects.create(
+                exercise=exercise,
+                start_time=start_time,
+                device_type=device_type,
+                status="In Progress"
+            )
+
+            return JsonResponse({"session_id": session.id})
+
+    except Exception as e:
+        print("Error in save_workout_session:", e)
+        return JsonResponse({"error": str(e)}, status=500)
+
+def save_repetitions(request, session_id):
+    """AJAX: Save reps after a workout session"""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        session = get_object_or_404(WorkoutSession, pk=session_id)
+        reps = data.get("reps", [])
+
+        for r in reps:
+            Repetition.objects.create(
+                session=session,
+                count_number=r.get("count_number"),
+                posture_accuracy=r.get("posture_accuracy")
+            )
+
+        # Mark session as completed
+        session.end_time = timezone.now()
+        session.duration = (session.end_time - session.start_time).total_seconds()
+        session.status = "Completed"
+        session.save()
+
+        return JsonResponse({"message": f"{len(reps)} reps saved, session completed"})
 
 @login_required
-def save_repetitions(request, session_id):
-    """Save a repetition for a session"""
+def save_feedback(request, session_id):
+    """
+    Save real-time AI feedback for a workout session.
+    """
     if request.method == "POST":
         data = json.loads(request.body)
         session = WorkoutSession.objects.get(pk=session_id)
 
-        rep = Repetition.objects.create(
+        feedback = Feedback.objects.create(
+            user=request.user,
             session=session,
-            count_number=data.get("count_number"),
-            angle_left=data.get("angle_left"),
-            angle_right=data.get("angle_right"),
-            posture_accuracy=data.get("posture_accuracy")
+            feedback_text=data.get("message"),
+            accuracy_score=data.get("accuracy_score", None),
+            dt_time=timezone.now()
         )
+        return JsonResponse({"message": "Feedback saved", "feedback_id": feedback.feedback_id})
 
-        return JsonResponse({
-            "rep_id": rep.rep_id,
-            "message": f"Repetition {rep.count_number} saved"
-        })
+
 
 
 # ---------------------------
@@ -204,3 +324,4 @@ def analyze_pose(request):
     return JsonResponse({
         "landmarks": landmarks_list
     })
+

@@ -33,14 +33,18 @@ urlpatterns = [
    # Authentication
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
+    path('forgot_password/', views.forgot_password, name='forgot_password'),
     path('logout/', views.logout_view, name='logout'),
 
     # Workout
-    path('start_workout/<int:exercise_id>/', views.start_workout, name='start_workout'),
+    path('save_workout_session/', views.save_workout_session, name='save_workout_session'),
     path('save_repetitions/<uuid:session_id>/', views.save_repetitions, name='save_repetitions'),
-
+    path('save_feedback/<int:session_id>/', views.save_feedback, name='save_feedback'),
+    
     # Mediapipe Posture Analysis
     path('video_feed/', views.video_feed, name='video_feed'),
     path('analyze_pose/', views.analyze_pose, name='analyze_pose'),    
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
