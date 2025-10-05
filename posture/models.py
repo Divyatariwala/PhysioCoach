@@ -5,13 +5,21 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.PositiveIntegerField()
+    
     GENDER_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
         ('Other', 'Other'),
     ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-    profile_picture = models.ImageField(upload_to='profile_pics/', default='posture/images/default-avatar.png')
+    
+    profile_picture = models.ImageField(
+        upload_to='profile_pics/',  # saved inside MEDIA_ROOT/profile_pics/
+        default='posture/images/default-avatar.png',  # default static image
+        blank=True,
+        null=True
+    )
+
     def __str__(self):
         return f"{self.user.username} Profile"
 

@@ -42,23 +42,29 @@ def profile(request):
     user = request.user
     reports = Report.objects.filter(user=user).order_by('-report_date')
     profile = getattr(user, "profile", None)
+
     if request.method == "POST" and request.FILES.get('profile_picture'):
         uploaded_file = request.FILES['profile_picture']
-        # Save the file in static folder
-        file_name = f"user_{request.user.id}.png"
-        save_path = os.path.join(settings.BASE_DIR, 'static', 'posture', 'images', file_name)
+        file_name = f"user_{user.id}.png"
+        folder_path = os.path.join(settings.MEDIA_ROOT, 'profile_pics')
+        os.makedirs(folder_path, exist_ok=True)
+        save_path = os.path.join(folder_path, file_name)
 
+        # Save uploaded file
         with open(save_path, 'wb+') as f:
             for chunk in uploaded_file.chunks():
                 f.write(chunk)
 
-        # Update profile to point to uploaded file
-        profile.profile_picture = f"posture/images/{file_name}"
+        profile.profile_picture = f"profile_pics/{file_name}"
         profile.save()
+
         return redirect('profile')
 
-    return render(request, "posture/profile.html", {"user": user, "profile": profile, "reports": reports})
-
+    return render(request, "posture/profile.html", {
+        "user": user,
+        "profile": profile,
+        "reports": reports
+    })
 @login_required
 def exercises(request):
     exercises = Exercise.objects.all()
@@ -114,15 +120,17 @@ def login_view(request):
 @csrf_protect
 def register_view(request):
     if request.method == "POST":
-        username = request.POST['username'].strip()
-        first_name = request.POST['first_name'].strip()
-        last_name = request.POST['last_name'].strip()
-        email = request.POST['email'].strip()
-        password1 = request.POST['password1']
-        password2 = request.POST['password2']
-        age = request.POST['age']
-        gender = request.POST['gender']
+        # Get form data
+        username = request.POST.get('username', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        age = request.POST.get('age', '').strip()
+        gender = request.POST.get('gender', '').strip()
 
+        # Basic validation
         if password1 != password2:
             messages.error(request, "Passwords do not match")
             return redirect('register')
@@ -131,6 +139,7 @@ def register_view(request):
             messages.error(request, "Username already exists")
             return redirect('register')
 
+        # Create user
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -138,18 +147,22 @@ def register_view(request):
             first_name=first_name,
             last_name=last_name
         )
-        # Profile is automatically created via signal
-        profile = user.profile
-        profile.age = age
-        profile.gender = gender
-        profile.save()
+
+        # Create or update Profile safely
+        profile, created = Profile.objects.get_or_create(
+            user=user,
+            defaults={'age': age, 'gender': gender}
+        )
+        if not created:
+            profile.age = age
+            profile.gender = gender
+            profile.save()
 
         messages.success(request, "Account successfully registered")
-        return redirect('register')
+        return redirect('login')  # redirect to login after registration
 
     return render(request, 'posture/register.html')
 
-@login_required
 def forgot_password(request):
     context = {}
     if request.method == "POST":
@@ -170,7 +183,12 @@ def forgot_password(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('home')
+     # If user logged out from admin panel
+    if request.path.startswith('/admin'):
+        return redirect('/admin/login/')
+
+    # Otherwise (normal website logout)
+    return redirect('exercises')
 
 
 # ---------------------------

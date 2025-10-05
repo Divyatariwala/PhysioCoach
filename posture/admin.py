@@ -21,7 +21,15 @@ admin.site.register(User, UserAdmin)
 # Optional: Register Profile separately for list view
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'get_first_name', 'get_last_name', 'get_email', 'age', 'gender')
+    list_display = (
+        'get_username',
+        'get_first_name',
+        'get_last_name',
+        'get_email',
+        'age',
+        'gender',
+        'get_profile_picture_path',
+    )
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'user__email')
     list_filter = ('gender',)
 
@@ -41,6 +49,12 @@ class ProfileAdmin(admin.ModelAdmin):
         return obj.user.email
     get_email.short_description = 'Email'
 
+    # ✅ Show the file path instead of the image
+    def get_profile_picture_path(self, obj):
+        if obj.profile_picture:
+            return obj.profile_picture.name  # Returns "profile_pics/user_1.png"
+        return "No picture uploaded"
+    get_profile_picture_path.short_description = 'Profile Picture Path'
 
 # Register Exercise so admin can add/edit/delete
 @admin.register(Exercise)

@@ -45,6 +45,8 @@ urlpatterns = [
     path('video_feed/', views.video_feed, name='video_feed'),
     path('analyze_pose/', views.analyze_pose, name='analyze_pose'),    
 
-]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 if settings.DEBUG:
+    # Serve static & media files during development
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

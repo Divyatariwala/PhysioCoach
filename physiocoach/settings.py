@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -115,8 +114,13 @@ USE_TZ = True
 
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+import os
+MEDIA_ROOT = os.path.join(BASE_DIR, 'physiocoach', 'media')
 
+# Redirect URLs for authentication
+LOGIN_URL = 'login'  # When @login_required is used, go here if not logged in
+LOGOUT_REDIRECT_URL = 'login'  # After logout, redirect here
+LOGIN_REDIRECT_URL = 'exercises'  # After login, go here
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
