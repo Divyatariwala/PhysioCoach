@@ -2,10 +2,13 @@
 {% load static %}
 {% block content %}
 <div class="profile-page d-flex justify-content-center align-items-center"
-     style="min-height: 100vh; padding: 40px 15px; background: #e0f1e7;">
+  style="min-height: 100vh; padding: 40px 15px; background: #e0f1e7;">
+
+  <!-- Particles Background -->
+  <canvas id="particles"></canvas>
 
   <div class="profile-card p-5 rounded-4 glass-card"
-       style="width: 95%; max-width: 850px; backdrop-filter: blur(15px); background: rgba(255,255,255,0.25); border-radius: 25px; border: 1px solid rgba(255,255,255,0.3);">
+    style="width: 95%; max-width: 850px; backdrop-filter: blur(15px); background: rgba(255,255,255,0.25); border-radius: 25px; border: 1px solid rgba(255,255,255,0.3);">
 
     <!-- Header / Avatar -->
     <div class="text-center mb-5">
@@ -13,8 +16,8 @@
         {% csrf_token %}
         <div class="avatar-wrapper mx-auto mb-3">
           <img class="profile-pic"
-     src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'posture/images/default-avatar.png' %}{% endif %}"
-     alt="" />
+            src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'posture/images/default-avatar.png' %}{% endif %}"
+            alt="" />
 
           <div class="upload-button">
             <i class="fa fa-arrow-circle-up" aria-hidden="true"></i>
@@ -31,17 +34,23 @@
       <h3 class="fw-bold mb-3" style="color:#1b4332;">Personal Information</h3>
       <div class="row g-3">
         <div class="col-md-6"><label class="form-label fw-semibold">First Name</label>
-          <input type="text" class="form-control" value="{{ user.first_name }}" readonly></div>
+          <input type="text" class="form-control" value="{{ user.first_name }}" readonly>
+        </div>
         <div class="col-md-6"><label class="form-label fw-semibold">Last Name</label>
-          <input type="text" class="form-control" value="{{ user.last_name }}" readonly></div>
+          <input type="text" class="form-control" value="{{ user.last_name }}" readonly>
+        </div>
         <div class="col-md-6"><label class="form-label fw-semibold">Username</label>
-          <input type="text" class="form-control" value="{{ user.username }}" readonly></div>
+          <input type="text" class="form-control" value="{{ user.username }}" readonly>
+        </div>
         <div class="col-md-6"><label class="form-label fw-semibold">Email</label>
-          <input type="text" class="form-control" value="{{ user.email }}" readonly></div>
+          <input type="text" class="form-control" value="{{ user.email }}" readonly>
+        </div>
         <div class="col-md-6"><label class="form-label fw-semibold">Age</label>
-          <input type="text" class="form-control" value="{{ profile.age }}" readonly></div>
+          <input type="text" class="form-control" value="{{ profile.age }}" readonly>
+        </div>
         <div class="col-md-6"><label class="form-label fw-semibold">Gender</label>
-          <input type="text" class="form-control" value="{{ profile.gender }}" readonly></div>
+          <input type="text" class="form-control" value="{{ profile.gender }}" readonly>
+        </div>
       </div>
     </div>
 
@@ -52,7 +61,7 @@
       <ul class="list-group shadow-sm rounded-4">
         {% for report in reports %}
         <li class="list-group-item d-flex justify-content-between align-items-center"
-            style="background: rgba(255,255,255,0.3); border-radius: 12px; margin-bottom: 10px;">
+          style="background: rgba(255,255,255,0.3); border-radius: 12px; margin-bottom: 10px;">
           <div>
             <strong>{{ report.title }}</strong><br>
             <small class="text-muted">Date: {{ report.date|date:"d M Y" }}</small>
@@ -81,66 +90,127 @@
 </div>
 
 <style>
-/* Avatar Hover Style */
-.avatar-wrapper {
-  position: relative;
-  height: 180px;
-  width: 180px;
-  margin: 0 auto 20px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  transition: transform 0.3s ease;
-}
-.avatar-wrapper:hover { transform: scale(1.05); cursor: pointer; }
-.avatar-wrapper .profile-pic { height: 100%; width: 100%; transition: 0.3s ease; }
-.avatar-wrapper:hover .profile-pic { opacity: 0.5; }
-.upload-button { position: absolute; top: 0; left: 0; height: 100%; width: 100%; text-align: center; }
-.upload-button i { font-size: 4.5rem; line-height: 180px; color: #1b4332; opacity: 0; transition: 0.3s ease; }
-.avatar-wrapper:hover .upload-button i { opacity: 0.9; }
+  /* Avatar Hover Style */
+  .avatar-wrapper {
+    position: relative;
+    height: 180px;
+    width: 180px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+  }
 
-/* Glassmorphic Card */
-.glass-card {
-  backdrop-filter: blur(15px);
-  background: rgba(255,255,255,0.25);
-  border: 1px solid rgba(255,255,255,0.3);
-  box-shadow: 8px 8px 16px rgba(0,0,0,0.05), -8px -8px 16px rgba(255,255,255,0.7);
-}
+  .avatar-wrapper:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+  }
 
-/* Inputs */
-input[readonly] {
-  background: rgba(255,255,255,0.25);
-  border: none;
-  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1),
-              inset -3px -3px 6px rgba(255,255,255,0.7);
-  border-radius: 10px;
-}
+  .avatar-wrapper .profile-pic {
+    height: 100%;
+    width: 100%;
+    transition: 0.3s ease;
+  }
 
-/* Reports List Hover */
-.list-group-item { transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; }
-.list-group-item:hover { transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .avatar-wrapper:hover .profile-pic {
+    opacity: 0.5;
+  }
+
+  .upload-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+  }
+
+  .upload-button i {
+    font-size: 4.5rem;
+    line-height: 180px;
+    color: #1b4332;
+    opacity: 0;
+    transition: 0.3s ease;
+  }
+
+  .avatar-wrapper:hover .upload-button i {
+    opacity: 0.9;
+  }
+
+  /* Glassmorphic Card */
+  .glass-card {
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.7);
+  }
+
+  /* Inputs */
+  input[readonly] {
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+      inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+  }
+
+  /* Reports List Hover */
+  .list-group-item {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+
+  .list-group-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  #particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script>
-$(document).ready(function () {
+  $(document).ready(function () {
     // Show file dialog
-    $(".upload-button").on('click', function() {
-        $(this).siblings(".file-upload").click();
+    $(".upload-button").on('click', function () {
+      $(this).siblings(".file-upload").click();
     });
 
     // Preview and auto-submit
-    $(".file-upload").on('change', function() {
-        const input = this;
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                $('.profile-pic').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]);
-            $("#profileForm").submit(); // auto-submit form
+    $(".file-upload").on('change', function () {
+      const input = this;
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          $('.profile-pic').attr('src', e.target.result);
         }
+        reader.readAsDataURL(input.files[0]);
+        $("#profileForm").submit(); // auto-submit form
+      }
     });
-});
+  });
+
+  // --- Particles ---
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    let particlesArray = [];
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+    class Particle {
+        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 3 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
+        update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width) this.speedX *= -1; if (this.y < 0 || this.y > canvas.height) this.speedY *= -1; }
+        draw() { ctx.fillStyle = "rgba(76,175,80,0.3)"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+    function initParticles() { particlesArray = []; for (let i = 0; i < 80; i++) { particlesArray.push(new Particle()); } }
+    function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); }
+    window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+    initParticles(); animateParticles();
 </script>
 {% endblock %}

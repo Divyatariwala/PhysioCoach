@@ -197,58 +197,47 @@ def logout_view(request):
 
 @login_required
 def save_workout_session(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=400)
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+            user = request.user  # logged-in user
 
-    try:
-        data = json.loads(request.body)
-
-        # ---- STOP WORKOUT ----
-        if "session_id" in data:
-            session_id = data.get("session_id")
-            session = WorkoutSession.objects.get(id=session_id)
-
-            if "end_time" in data:
-                session.end_time = datetime.fromisoformat(data["end_time"])
-            if "duration" in data:
-                session.duration = data["duration"]
-            if "status" in data:
-                session.status = data["status"]
-
-            session.save()
-            return JsonResponse({"status": "Workout session updated successfully"})
-
-        # ---- START WORKOUT ----
-        else:
             exercise_id = data.get("exercise_id")
-            if not exercise_id:
-                return JsonResponse({"error": "exercise_id is required"}, status=400)
+            session_id = data.get("session_id")
 
-            try:
-                exercise = Exercise.objects.get(id=exercise_id)
-            except Exercise.DoesNotExist:
-                return JsonResponse({"error": f"Exercise with id {exercise_id} not found"}, status=404)
+            # Start session
+            if exercise_id and not session_id:
+                exercise = Exercise.objects.get(exercise_id=exercise_id)
+                session = WorkoutSession.objects.create(
+                    user=user,
+                    exercise=exercise,
+                    start_time=datetime.fromisoformat(data["start_time"].replace("Z", "+00:00")),
+                    device_type=data.get("device_type", "Webcam"),
+                    status="Active",
+                )
+                return JsonResponse({"session_id": session.session_id})
 
-            start_time_str = data.get("start_time")
-            if not start_time_str:
-                return JsonResponse({"error": "start_time is required"}, status=400)
+            # End session
+            elif session_id:
+                session = WorkoutSession.objects.get(session_id=session_id)
+                end_time = datetime.fromisoformat(data["end_time"].replace("Z", "+00:00"))
+                session.end_time = end_time
+                session.duration = datetime.fromtimestamp(
+                    (end_time - session.start_time).total_seconds()
+                )
+                session.status = data.get("status", "Completed")
+                session.save()
+                return JsonResponse({"message": "Session updated successfully"})
 
-            start_time = datetime.fromisoformat(start_time_str)
-            device_type = data.get("device_type", "webcam")
+            return JsonResponse({"error": "Invalid data"}, status=400)
 
-            session = WorkoutSession.objects.create(
-                exercise=exercise,
-                start_time=start_time,
-                device_type=device_type,
-                status="In Progress"
-            )
+        except Exception as e:
+            print("🔥 Error in save_workout_session:", str(e))
+            return JsonResponse({"error": str(e)}, status=500)
 
-            return JsonResponse({"session_id": session.id})
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
-    except Exception as e:
-        print("Error in save_workout_session:", e)
-        return JsonResponse({"error": str(e)}, status=500)
-
+@login_required
 def save_repetitions(request, session_id):
     """AJAX: Save reps after a workout session"""
     if request.method == "POST":
