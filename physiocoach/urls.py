@@ -28,6 +28,7 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('profile/', views.profile, name='profile'),
+    path('update_profile_picture/', views.update_profile_picture, name='update_profile_picture'),
     path('exercises/', views.exercises, name='exercises'),
     
    # Authentication
@@ -42,9 +43,9 @@ urlpatterns = [
     path('save_feedback/<int:session_id>/', views.save_feedback, name='save_feedback'),
     
     # Mediapipe Posture Analysis
-    path('video_feed/', views.video_feed, name='video_feed'),
     path('analyze_pose/', views.analyze_pose, name='analyze_pose'),    
 
+    path('demo/', views.demo, name='demo'),
 ]
 if settings.DEBUG:
     # Serve static & media files during development

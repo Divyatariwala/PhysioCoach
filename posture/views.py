@@ -42,29 +42,21 @@ def profile(request):
     user = request.user
     reports = Report.objects.filter(user=user).order_by('-report_date')
     profile = getattr(user, "profile", None)
-
-    if request.method == "POST" and request.FILES.get('profile_picture'):
-        uploaded_file = request.FILES['profile_picture']
-        file_name = f"user_{user.id}.png"
-        folder_path = os.path.join(settings.MEDIA_ROOT, 'profile_pics')
-        os.makedirs(folder_path, exist_ok=True)
-        save_path = os.path.join(folder_path, file_name)
-
-        # Save uploaded file
-        with open(save_path, 'wb+') as f:
-            for chunk in uploaded_file.chunks():
-                f.write(chunk)
-
-        profile.profile_picture = f"profile_pics/{file_name}"
-        profile.save()
-
-        return redirect('profile')
-
     return render(request, "posture/profile.html", {
         "user": user,
         "profile": profile,
         "reports": reports
     })
+
+@login_required
+def update_profile_picture(request):
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        profile = request.user.profile
+        profile.profile_picture = request.FILES['profile_picture']
+        profile.save()
+        return JsonResponse({'status': 'success', 'image_url': profile.profile_picture.url})
+    return JsonResponse({'status': 'error'}, status=400)
+
 @login_required
 def exercises(request):
     exercises = Exercise.objects.all()
@@ -87,7 +79,8 @@ def exercises(request):
     }
     return render(request, "posture/exercises.html", context)
 
-
+def demo(request):
+    return render(request, 'posture/demo.html')
 
 # ---------------------------
 # LOGIN VIEW
@@ -289,30 +282,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress TensorFlow logs
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 
-def gen_frames():
-    cap = cv2.VideoCapture(0)
-    with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-        while True:
-            success, frame = cap.read()
-            if not success:
-                break
-
-            frame = cv2.flip(frame, 1)
-            image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose.process(image_rgb)
-
-            if results.pose_landmarks:
-                mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame_bytes = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-
-def video_feed(request):
-    return StreamingHttpResponse(gen_frames(), content_type='multipart/x-mixed-replace; boundary=frame')
-
-
+@login_required
 def analyze_pose(request):
     body = json.loads(request.body)
     frame_data = body['frame'].split(",")[1]

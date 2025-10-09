@@ -14,8 +14,7 @@ class Profile(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     
     profile_picture = models.ImageField(
-        upload_to='profile_pics/',  # saved inside MEDIA_ROOT/profile_pics/
-        default='posture/images/default-avatar.png',  # default static image
+        upload_to='profile_pics/',  # saved inside MEDIA_ROOT/profile_pics/ # default static image
         blank=True,
         null=True
     )

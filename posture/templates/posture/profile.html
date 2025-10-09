@@ -178,39 +178,61 @@
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script>
   $(document).ready(function () {
-    // Show file dialog
+
+    // Open file chooser
     $(".upload-button").on('click', function () {
-      $(this).siblings(".file-upload").click();
+      $(".file-upload").click();
     });
 
-    // Preview and auto-submit
+    // When file selected
     $(".file-upload").on('change', function () {
       const input = this;
       if (input.files && input.files[0]) {
         const reader = new FileReader();
+
+        // Show preview immediately
         reader.onload = function (e) {
           $('.profile-pic').attr('src', e.target.result);
-        }
+        };
         reader.readAsDataURL(input.files[0]);
-        $("#profileForm").submit(); // auto-submit form
+
+        // Prepare AJAX form data
+        const formData = new FormData();
+        formData.append('profile_picture', input.files[0]);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        // Send to backend
+        $.ajax({
+          url: "{% url 'update_profile_picture' %}",
+          type: "POST",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (response) {
+            console.log('✅ Profile picture updated successfully');
+          },
+          error: function () {
+            alert("⚠️ Error uploading image. Please try again.");
+          }
+        });
       }
     });
   });
 
   // --- Particles ---
-    const canvas = document.getElementById("particles");
-    const ctx = canvas.getContext("2d");
-    let particlesArray = [];
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const canvas = document.getElementById("particles");
+  const ctx = canvas.getContext("2d");
+  let particlesArray = [];
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 
-    class Particle {
-        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 3 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
-        update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width) this.speedX *= -1; if (this.y < 0 || this.y > canvas.height) this.speedY *= -1; }
-        draw() { ctx.fillStyle = "rgba(76,175,80,0.3)"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-    }
-    function initParticles() { particlesArray = []; for (let i = 0; i < 80; i++) { particlesArray.push(new Particle()); } }
-    function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); }
-    window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
-    initParticles(); animateParticles();
+  class Particle {
+    constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 3 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
+    update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width) this.speedX *= -1; if (this.y < 0 || this.y > canvas.height) this.speedY *= -1; }
+    draw() { ctx.fillStyle = "rgba(76,175,80,0.3)"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+  }
+  function initParticles() { particlesArray = []; for (let i = 0; i < 80; i++) { particlesArray.push(new Particle()); } }
+  function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); }
+  window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+  initParticles(); animateParticles();
 </script>
 {% endblock %}
