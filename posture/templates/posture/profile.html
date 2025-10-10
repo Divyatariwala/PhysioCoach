@@ -4,11 +4,8 @@
 <div class="profile-page d-flex justify-content-center align-items-center"
   style="min-height: 100vh; padding: 40px 15px; background: #e0f1e7;">
 
-  <!-- Particles Background -->
-  <canvas id="particles"></canvas>
-
   <div class="profile-card p-5 rounded-4 glass-card"
-    style="width: 95%; max-width: 850px; backdrop-filter: blur(15px); background: rgba(255,255,255,0.25); border-radius: 25px; border: 1px solid rgba(255,255,255,0.3);">
+    style="width: 95%; max-width: 850px; backdrop-filter: blur(15px); background: rgba(255,255,255,0.25); border-radius: 25px; border: 1px solid rgba(255,255,255,0.3); position: relative;">
 
     <!-- Header / Avatar -->
     <div class="text-center mb-5">
@@ -17,12 +14,10 @@
         <div class="avatar-wrapper mx-auto mb-3">
           <img class="profile-pic"
             src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'posture/images/default-avatar.png' %}{% endif %}"
-            alt="" />
-
+            alt="Profile Picture" />
           <div class="upload-button">
             <i class="fa fa-arrow-circle-up" aria-hidden="true"></i>
           </div>
-          <!-- Fixed file input -->
           <input type="file" name="profile_picture" class="file-upload" style="display:none;" />
         </div>
       </form>
@@ -54,29 +49,46 @@
       </div>
     </div>
 
+    <!-- Filter by Exercise -->
+    <div class="mb-4">
+      <label class="fw-semibold mb-2 text-dark">Filter Reports by Exercise:</label>
+      <div class="custom-select-wrapper">
+        <div class="custom-select" id="exerciseSelect">
+          <div class="custom-select-trigger">All Exercises</div>
+          <div class="custom-options">
+            <div class="custom-option" data-value="all">All Exercises</div>
+            {% for exercise in exercises %}
+              <div class="custom-option" data-value="{{ exercise.exercise_id }}">{{ exercise.name }}</div>
+            {% empty %}
+              <div class="custom-option" data-value="">No exercises available</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Reports Section -->
     <div class="reports-section mb-5">
       <h3 class="fw-bold mb-3" style="color:#1b4332;">Your Reports</h3>
-      {% if reports %}
       <ul class="list-group shadow-sm rounded-4">
         {% for report in reports %}
         <li class="list-group-item d-flex justify-content-between align-items-center"
           style="background: rgba(255,255,255,0.3); border-radius: 12px; margin-bottom: 10px;">
           <div>
-            <strong>{{ report.title }}</strong><br>
-            <small class="text-muted">Date: {{ report.date|date:"d M Y" }}</small>
+            <strong>{{ report.exercise.name }}</strong><br>
+            <small class="text-muted">Date: {{ report.generated_at|date:"d M Y" }}</small>
           </div>
-          <a href="{{ report.file.url }}" class="btn btn-success fw-semibold px-3 py-1 rounded-pill">
+          <a href="{{ report.pdf_file.url }}" class="btn btn-success fw-semibold px-3 py-1 rounded-pill" download>
             <i class="bi bi-download"></i> Download
           </a>
         </li>
+        {% empty %}
+        <li class="list-group-item text-center fw-semibold"
+          style="background: rgba(255,230,200,0.3); border-radius: 12px;">
+          <i class="bi bi-info-circle"></i> No reports available.
+        </li>
         {% endfor %}
       </ul>
-      {% else %}
-      <div class="alert alert-warning text-center rounded-4 fw-semibold" style="background: rgba(255,230,200,0.3);">
-        <i class="bi bi-info-circle"></i> No reports available yet.
-      </div>
-      {% endif %}
     </div>
 
     <!-- Forgot Password -->
@@ -89,150 +101,125 @@
   </div>
 </div>
 
+<!-- ===== CSS ===== -->
 <style>
-  /* Avatar Hover Style */
   .avatar-wrapper {
-    position: relative;
-    height: 180px;
-    width: 180px;
-    margin: 0 auto 20px;
-    border-radius: 50%;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
+    position: relative; height:180px; width:180px; margin:0 auto 20px; border-radius:50%; overflow:hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
   }
+  .avatar-wrapper:hover { transform: scale(1.05); cursor:pointer; }
+  .avatar-wrapper .profile-pic { height:100%; width:100%; transition:0.3s ease; }
+  .upload-button { position:absolute; top:0; left:0; height:100%; width:100%; text-align:center; }
+  .upload-button i { font-size:4.5rem; line-height:180px; color:#1b4332; opacity:0; transition:0.3s ease; }
+  .avatar-wrapper:hover .upload-button i { opacity:0.9; }
 
-  .avatar-wrapper:hover {
-    transform: scale(1.05);
-    cursor: pointer;
-  }
-
-  .avatar-wrapper .profile-pic {
-    height: 100%;
-    width: 100%;
-    transition: 0.3s ease;
-  }
-
-  .avatar-wrapper:hover .profile-pic {
-    opacity: 0.5;
-  }
-
-  .upload-button {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    text-align: center;
-  }
-
-  .upload-button i {
-    font-size: 4.5rem;
-    line-height: 180px;
-    color: #1b4332;
-    opacity: 0;
-    transition: 0.3s ease;
-  }
-
-  .avatar-wrapper:hover .upload-button i {
-    opacity: 0.9;
-  }
-
-  /* Glassmorphic Card */
   .glass-card {
     backdrop-filter: blur(15px);
-    background: rgba(255, 255, 255, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.7);
+    background: rgba(255,255,255,0.25);
+    border:1px solid rgba(255,255,255,0.3);
+    box-shadow:8px 8px 16px rgba(0,0,0,0.05), -8px -8px 16px rgba(255,255,255,0.7);
   }
 
-  /* Inputs */
   input[readonly] {
-    background: rgba(255, 255, 255, 0.25);
-    border: none;
-    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.1),
-      inset -3px -3px 6px rgba(255, 255, 255, 0.7);
-    border-radius: 10px;
+    background: rgba(255,255,255,0.25);
+    border:none;
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1), inset -3px -3px 6px rgba(255,255,255,0.7);
+    border-radius:10px;
   }
 
-  /* Reports List Hover */
-  .list-group-item {
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  /* --- Custom Dropdown --- */
+  .custom-select-wrapper { position: relative; width: 100%; z-index: 1000; }
+  .custom-select { position: relative; background: rgba(255,255,255,0.25); backdrop-filter: blur(12px);
+    border-radius: 18px; padding: 12px 15px; cursor: pointer; color: #1b4332; }
+  .custom-select-trigger::after {
+    content: ''; position: absolute; top: 50%; right: 15px;
+    border-left: 6px solid transparent; border-right: 6px solid transparent;
+    border-top: 6px solid #1b4332; transform: translateY(-50%);
   }
-
-  .list-group-item:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  .custom-options {
+    position: absolute; top: 100%; left: 0; width: 100%;
+    background: rgba(255,255,255,0.95); border-radius: 15px;
+    max-height: 180px; overflow-y: auto; display: none; margin-top: 5px; z-index: 9999;
   }
-
-  #particles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-  }
+  .custom-option { padding: 12px 20px; cursor: pointer; transition: background 0.3s; }
+  .custom-option:hover { background: rgba(76,175,80,0.2); }
+  .custom-options.show { display: block; }
 </style>
 
+<!-- ===== JS ===== -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script>
-  $(document).ready(function () {
+$(document).ready(function () {
+  // --- Profile Picture Upload ---
+  $(".upload-button").click(() => $(".file-upload").click());
+  $(".file-upload").change(function () {
+    const input = this;
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => $('.profile-pic').attr('src', e.target.result);
+      reader.readAsDataURL(input.files[0]);
 
-    // Open file chooser
-    $(".upload-button").on('click', function () {
-      $(".file-upload").click();
-    });
+      const formData = new FormData();
+      formData.append('profile_picture', input.files[0]);
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-    // When file selected
-    $(".file-upload").on('change', function () {
-      const input = this;
-      if (input.files && input.files[0]) {
-        const reader = new FileReader();
-
-        // Show preview immediately
-        reader.onload = function (e) {
-          $('.profile-pic').attr('src', e.target.result);
-        };
-        reader.readAsDataURL(input.files[0]);
-
-        // Prepare AJAX form data
-        const formData = new FormData();
-        formData.append('profile_picture', input.files[0]);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        // Send to backend
-        $.ajax({
-          url: "{% url 'update_profile_picture' %}",
-          type: "POST",
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function (response) {
-            console.log('✅ Profile picture updated successfully');
-          },
-          error: function () {
-            alert("⚠️ Error uploading image. Please try again.");
-          }
-        });
-      }
-    });
+      $.ajax({
+        url: "{% url 'update_profile_picture' %}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+      });
+    }
   });
 
-  // --- Particles ---
-  const canvas = document.getElementById("particles");
-  const ctx = canvas.getContext("2d");
-  let particlesArray = [];
-  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  // --- Custom Dropdown Logic ---
+  const trigger = document.querySelector('.custom-select-trigger');
+  const options = document.querySelector('.custom-options');
+  trigger.addEventListener('click', e => { e.stopPropagation(); options.classList.toggle('show'); });
+  document.addEventListener('click', () => options.classList.remove('show'));
 
-  class Particle {
-    constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 3 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
-    update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width) this.speedX *= -1; if (this.y < 0 || this.y > canvas.height) this.speedY *= -1; }
-    draw() { ctx.fillStyle = "rgba(76,175,80,0.3)"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-  }
-  function initParticles() { particlesArray = []; for (let i = 0; i < 80; i++) { particlesArray.push(new Particle()); } }
-  function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); }
-  window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
-  initParticles(); animateParticles();
+  $('.custom-option').click(function () {
+    const exerciseId = $(this).data('value');
+    const selectedText = $(this).text();
+    trigger.textContent = selectedText;
+    options.classList.remove('show');
+
+    $.ajax({
+      url: "{% url 'filter_reports_ajax' %}",
+      type: 'GET',
+      data: { exercise_id: exerciseId },
+      dataType: 'json',
+      success: function (response) {
+        const container = $('.reports-section ul.list-group');
+        container.empty();
+        if (response.reports && response.reports.length > 0) {
+          response.reports.forEach(r => {
+            container.append(`
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                style="background: rgba(255,255,255,0.3); border-radius: 12px; margin-bottom: 10px;">
+                <div>
+                  <strong>${r.title}</strong><br>
+                  <small class="text-muted">Date: ${r.date}</small>
+                </div>
+                <a href="${r.file_url}" class="btn btn-success fw-semibold px-3 py-1 rounded-pill" download>
+                  <i class="bi bi-download"></i> Download
+                </a>
+              </li>
+            `);
+          });
+        } else {
+          container.append(`
+            <li class="list-group-item text-center fw-semibold"
+              style="background: rgba(255,230,200,0.3); border-radius: 12px;">
+              <i class="bi bi-info-circle"></i> No reports available for <strong>${selectedText}</strong>.
+            </li>
+          `);
+        }
+      },
+      error: function () { alert("⚠️ Failed to fetch reports."); }
+    });
+  });
+});
 </script>
 {% endblock %}

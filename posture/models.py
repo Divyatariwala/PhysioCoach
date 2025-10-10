@@ -101,7 +101,8 @@ class AIModel(models.Model):
     description = models.TextField()
     accuracy = models.FloatField()
     last_updated = models.DateTimeField(auto_now=True)
-
+    is_active = models.BooleanField(default=False)
+    
     def __str__(self):
         return f"AI Model v{self.version}"
 
@@ -127,13 +128,13 @@ class Report(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports")
     session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE, related_name="reports")
     generated_by = models.CharField(max_length=50, choices=[('Admin', 'Admin'), ('AI_Model', 'AI_Model')])
-    report_type = models.CharField(max_length=50, choices=[('Progress', 'Progress'), ('Accuracy', 'Accuracy'), ('Summary', 'Summary')])
-    report_date = models.DateTimeField(auto_now_add=True)
-    file_url = models.URLField(null=True, blank=True)
-    json_data = models.JSONField(null=True, blank=True)
-
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, null=True, blank=True)
+    pdf_file = models.FileField(upload_to='reports/', null=True, blank=True)
+    generated_at = models.DateTimeField(auto_now_add=True)
+    
     def __str__(self):
-        return f"Report {self.report_id} ({self.report_type}) for {self.user.username}"
+        return f"{self.user.username} - {self.exercise.name} ({self.generated_at.strftime('%Y-%m-%d %H:%M')})"
+
 
 
 

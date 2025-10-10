@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Workout Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        h1, h2 { color: #4CAF50; }
+        .section { margin-bottom: 25px; }
+
+        /* Table styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 8px; text-align: center; }
+
+        /* Bar chart container */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .bar {
+            width: 30px;
+            background-color: #4CAF50;
+            text-align: center;
+            color: white;
+            font-size: 10px;
+        }
+
+        /* Heights for xhtml2pdf */
+        .bar-height-1 { height: 10px; }
+        .bar-height-2 { height: 20px; }
+        .bar-height-3 { height: 30px; }
+        .bar-height-4 { height: 40px; }
+        .bar-height-5 { height: 50px; }
+        .bar-height-6 { height: 60px; }
+        .bar-height-7 { height: 70px; }
+        .bar-height-8 { height: 80px; }
+        .bar-height-9 { height: 90px; }
+        .bar-height-10 { height: 100px; }
+    </style>
+</head>
+<body>
+    <h1>Workout Report</h1>
+
+    <!-- Exercise Info -->
+    <div class="section">
+        <h2>Exercise Info</h2>
+        <p><strong>Exercise:</strong> {{ session.exercise.name }}</p>
+        <p><strong>Duration:</strong> {{ minutes }} min {{ seconds }} sec</p>
+        <p><strong>Total Reps:</strong> {{ total_reps }}</p>
+        <p><strong>Average Accuracy:</strong> {{ avg_accuracy|floatformat:0 }}%</p>
+    </div>
+
+    <!-- Repetition Accuracy Bar Chart -->
+    <div class="section">
+        <h2>Repetition Accuracy</h2>
+        <div class="bar-chart">
+            {% for rep in repetitions %}
+                {% with height_level=rep.posture_accuracy|divisibleby:10|add:1 %}
+                <div class="bar bar-height-{{ height_level }}">
+                    {{ rep.posture_accuracy|floatformat:0 }}%
+                </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+        <table>
+            <tr>
+                <th>Rep Number</th>
+                <th>Posture Accuracy (%)</th>
+            </tr>
+            {% for rep in repetitions %}
+            <tr>
+                <td>{{ rep.count_number }}</td>
+                <td>{{ rep.posture_accuracy|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Feedback -->
+    <div class="section">
+        <h2>Feedback</h2>
+        {% for fb in feedbacks %}
+            <p>{{ fb.feedback_text|linebreaksbr }} (Score: {{ fb.accuracy_score|floatformat:0 }}%)</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

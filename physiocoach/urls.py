@@ -28,6 +28,9 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('profile/', views.profile, name='profile'),
+    path('filter-reports/', views.filter_reports_ajax, name='filter_reports_ajax'),
+    path('filter_reports_ajax/', views.filter_reports_ajax, name='filter_reports_ajax'),
+    path('download_report/<int:report_id>/', views.download_report, name='download_report'),
     path('update_profile_picture/', views.update_profile_picture, name='update_profile_picture'),
     path('exercises/', views.exercises, name='exercises'),
     
@@ -39,8 +42,8 @@ urlpatterns = [
 
     # Workout
     path('save_workout_session/', views.save_workout_session, name='save_workout_session'),
-    path('save_repetitions/<uuid:session_id>/', views.save_repetitions, name='save_repetitions'),
-    path('save_feedback/<int:session_id>/', views.save_feedback, name='save_feedback'),
+    path('save_repetitions/', views.save_repetitions, name='save_repetitions'),
+    path('save_feedback/', views.save_feedback, name='save_feedback'),
     
     # Mediapipe Posture Analysis
     path('analyze_pose/', views.analyze_pose, name='analyze_pose'),    

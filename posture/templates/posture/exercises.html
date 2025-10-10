@@ -69,6 +69,9 @@
           <div class="mt-4 glass-card-inner p-3 text-center">
             <video id="demoVideo" width="100%" controls style="border-radius: 12px;"></video>
           </div>
+
+          <!-- Download Report Button -->
+          <div id="downloadReport" class="text-center mt-3"></div>
         </div>
       </div>
 
@@ -77,320 +80,571 @@
 </div>
 
 <style>
-/* Glass Cards */
-.glass-card { 
-  background: rgba(255,255,255,0.2); 
-  backdrop-filter: blur(12px); 
-  border-radius:20px; 
-  border:1px solid rgba(255,255,255,0.3);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-.glass-card-inner { 
-  background: rgba(255,255,255,0.15); 
-  backdrop-filter: blur(8px); 
-  border-radius:15px; 
-  border:1px solid rgba(255,255,255,0.2);
-}
+  /* Glass Cards */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
 
-/* Feedback Box */
-.feedback-box {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(8px);
-  border-radius: 15px;
-  padding: 15px;
-  font-size: 1.2rem;
-  min-height: 80px;
-  text-align: center;
-  transition: all 0.3s;
-  color: #000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+  .glass-card-inner {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
 
-/* Buttons */
-.glass-btn-start, .glass-btn-stop {
-  border-radius:25px; 
-  font-weight:600; 
-  padding:12px 25px; 
-  font-size:1rem; 
-  border:none; 
-  transition:all 0.3s;
-}
-.glass-btn-start { background: rgba(76, 175, 80, 0.6); color:#fff;}
-.glass-btn-stop { background: rgba(233, 76, 60, 0.6); color:#fff;}
-.glass-btn-start:hover { background: rgba(76,175,80,0.9); box-shadow:0 0 15px rgba(76,175,80,0.7);}
-.glass-btn-stop:hover { background: rgba(233,76,60,0.9); box-shadow:0 0 15px rgba(233,76,60,0.7);}
+  /* Feedback Box */
+  .feedback-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 1.2rem;
+    min-height: 80px;
+    text-align: center;
+    transition: all 0.3s;
+    color: #000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 
-/* Video Container */
-.video-container {
-  position: relative;
-  width: 100%;
-  height: 80vh;
-  border-radius:20px;
-  overflow:hidden;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(6px);
-  border:1px solid rgba(255,255,255,0.2);
-}
-video#video { width:100%; height:100%; object-fit: cover; }
-canvas#overlay { position:absolute; top:0; left:0; width:100%; height:100%; }
+  /* Buttons */
+  .glass-btn-start,
+  .glass-btn-stop {
+    border-radius: 25px;
+    font-weight: 600;
+    padding: 12px 25px;
+    font-size: 1rem;
+    border: none;
+    transition: all 0.3s;
+  }
 
-/* Custom Dropdown */
-.custom-select-wrapper { position:relative; user-select:none; width:100%; margin-bottom:1rem; z-index:10;}
-.custom-select { position:relative; background: rgba(255,255,255,0.25); backdrop-filter: blur(12px); border-radius:18px; padding:12px 15px; cursor:pointer; color:#1b4332;}
-.custom-select-trigger::after { content:''; position:absolute; top:50%; right:15px; border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #1b4332; transform:translateY(-50%);}
-.custom-options { position:absolute; top:100%; left:0; width:100%; background: rgba(255,255,255,0.95); border-radius:15px; max-height:180px; overflow-y:auto; display:none; z-index:2000; margin-top:5px;}
-.custom-option { padding:12px 20px; cursor:pointer; transition: background 0.3s;}
-.custom-option:hover { background: rgba(76,175,80,0.2);}
-.custom-options.show { display:block;}
+  .glass-btn-start {
+    background: rgba(76, 175, 80, 0.6);
+    color: #fff;
+  }
 
-/* Responsive */
-@media (max-width:991px){
-  .row { flex-direction: column-reverse; }
-  .video-container { height: 50vh; margin-bottom:20px; }
-  .feedback-box { font-size:1rem; min-height:70px; }
-}
-@media (max-width:575px){
-  .glass-card { padding: 15px; }
-  .glass-btn-start, .glass-btn-stop { font-size:0.9rem; padding:10px; }
-  .reps-time { flex-direction: column; gap:5px; }
-}
+  .glass-btn-stop {
+    background: rgba(233, 76, 60, 0.6);
+    color: #fff;
+  }
+
+  .glass-btn-start:hover {
+    background: rgba(76, 175, 80, 0.9);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+  }
+
+  .glass-btn-stop:hover {
+    background: rgba(233, 76, 60, 0.9);
+    box-shadow: 0 0 15px rgba(233, 76, 60, 0.7);
+  }
+
+  /* Video Container */
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  video#video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  canvas#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Custom Dropdown */
+  .custom-select-wrapper {
+    position: relative;
+    user-select: none;
+    width: 100%;
+    margin-bottom: 1rem;
+    z-index: 10;
+  }
+
+  .custom-select {
+    position: relative;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 12px 15px;
+    cursor: pointer;
+    color: #1b4332;
+  }
+
+  .custom-select-trigger::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #1b4332;
+    transform: translateY(-50%);
+  }
+
+  .custom-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    max-height: 180px;
+    overflow-y: auto;
+    display: none;
+    z-index: 2000;
+    margin-top: 5px;
+  }
+
+  .custom-option {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .custom-option:hover {
+    background: rgba(76, 175, 80, 0.2);
+  }
+
+  .custom-options.show {
+    display: block;
+  }
+
+  /* Responsive */
+  @media (max-width:991px) {
+    .row {
+      flex-direction: column-reverse;
+    }
+
+    .video-container {
+      height: 50vh;
+      margin-bottom: 20px;
+    }
+
+    .feedback-box {
+      font-size: 1rem;
+      min-height: 70px;
+    }
+  }
+
+  @media (max-width:575px) {
+    .glass-card {
+      padding: 15px;
+    }
+
+    .glass-btn-start,
+    .glass-btn-stop {
+      font-size: 0.9rem;
+      padding: 10px;
+    }
+
+    .reps-time {
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
 </style>
 {% endblock %}
-
-
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', async () => {
 
-const video = document.getElementById("video");
-const overlay = document.getElementById("overlay");
-const ctx = overlay.getContext("2d");
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
+    const video = document.getElementById("video");
+    const overlay = document.getElementById("overlay");
+    const ctx = overlay.getContext("2d");
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
 
-const repCountEl = document.getElementById("repCount");
-const sessionTimeEl = document.getElementById("sessionTime");
-const postureFeedback = document.getElementById("postureFeedback");
-const postureAccuracy = document.getElementById("postureAccuracy");
+    const repCountEl = document.getElementById("repCount");
+    const sessionTimeEl = document.getElementById("sessionTime");
+    const postureFeedback = document.getElementById("postureFeedback");
+    const postureAccuracy = document.getElementById("postureAccuracy");
 
-const exerciseTrigger = document.querySelector('#exerciseSelect .custom-select-trigger');
-const exerciseOptions = document.querySelector('#exerciseSelect .custom-options');
-const exerciseValues = document.querySelectorAll('#exerciseSelect .custom-option');
-const exerciseInput = document.getElementById('exerciseInput');
+    const exerciseTrigger = document.querySelector('#exerciseSelect .custom-select-trigger');
+    const exerciseOptions = document.querySelector('#exerciseSelect .custom-options');
+    const exerciseValues = document.querySelectorAll('#exerciseSelect .custom-option');
+    const exerciseInput = document.getElementById('exerciseInput');
 
-const descriptionEl = document.getElementById("exerciseDescription");
-const muscleEl = document.getElementById("exerciseMuscle");
-const difficultyEl = document.getElementById("exerciseDifficulty");
-const demoVideoEl = document.getElementById("demoVideo");
+    const descriptionEl = document.getElementById("exerciseDescription");
+    const muscleEl = document.getElementById("exerciseMuscle");
+    const difficultyEl = document.getElementById("exerciseDifficulty");
+    const demoVideoEl = document.getElementById("demoVideo");
 
-const exerciseData = JSON.parse('{{ exercise_data_json|default:"[]"|escapejs }}');
+    const exerciseData = JSON.parse('{{ exercise_data_json|default:"[]"|escapejs }}');
 
-let detector=null, sessionActive=false, repCount=0, repState="UP", startTime=null, lastRepTime=0, repCooldown=600;
-let keypointHistory=[];
+    let detector = null, sessionActive = false, repCount = 0, repState = "UP", startTime = null, lastRepTime = 0, repCooldown = 600;
+    let keypointHistory = [];
+    let repetitionsData = [];
 
-// --- Helper functions ---
-function getAngle(a,b,c){
-  const ab={x:a.x-b.x, y:a.y-b.y};
-  const cb={x:c.x-b.x, y:c.y-b.y};
-  const dot=ab.x*cb.x + ab.y*cb.y;
-  const magAB=Math.sqrt(ab.x**2+ab.y**2);
-  const magCB=Math.sqrt(cb.x**2+cb.y**2);
-  return Math.acos(dot/(magAB*magCB))*(180/Math.PI);
-}
-
-function smoothKeypoints(keypoints){
-  keypointHistory.push(keypoints);
-  if(keypointHistory.length>5) keypointHistory.shift();
-  return keypoints.map((kp,idx)=>{
-    let avgX=0, avgY=0, avgScore=0;
-    keypointHistory.forEach(frame=>{ avgX+=frame[idx].x; avgY+=frame[idx].y; avgScore+=frame[idx].score; });
-    const n = keypointHistory.length;
-    return {...kp, x:avgX/n, y:avgY/n, score:avgScore/n};
-  });
-}
-
-async function initDetector(){
-  detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
-  startBtn.disabled=false;
-  console.log("✅ Pose detector ready");
-}
-await initDetector();
-
-// --- Dropdown logic ---
-exerciseTrigger.addEventListener('click', e=>{e.stopPropagation(); exerciseOptions.classList.toggle('show');});
-exerciseValues.forEach(option=>{
-  option.addEventListener('click', ()=>{
-    exerciseTrigger.textContent = option.textContent;
-    exerciseInput.value = option.dataset.value;
-    exerciseOptions.classList.remove('show');
-    updateExerciseInfo();
-  });
-});
-document.addEventListener('click', ()=>exerciseOptions.classList.remove('show'));
-if(exerciseValues.length>0) exerciseValues[0].click();
-
-function updateExerciseInfo(){
-  const selectedId = parseInt(exerciseInput.value);
-  const exercise = exerciseData.find(e=>e.id===selectedId);
-  if(exercise){
-    descriptionEl.textContent = exercise.description;
-    muscleEl.textContent = exercise.target_muscle;
-    difficultyEl.textContent = exercise.difficulty_level;
-    demoVideoEl.src = exercise.video_demo_url;
-  } else {
-    descriptionEl.textContent=""; muscleEl.textContent=""; difficultyEl.textContent=""; demoVideoEl.src="";
-  }
-}
-
-// --- Draw keypoints ---
-function drawKeypoints(pose){
-  const scaleX = overlay.width/video.videoWidth;
-  const scaleY = overlay.height/video.videoHeight;
-  const points = pose.keypoints.filter(k=>k.score>0.5);
-  points.forEach(k=>{
-    ctx.beginPath();
-    ctx.arc(k.x*scaleX, k.y*scaleY, 6, 0, 2*Math.PI);
-    ctx.fillStyle="#ff1744";
-    ctx.fill();
-  });
-
-  const connections=[
-    ['left_shoulder','right_shoulder'], ['left_shoulder','left_elbow'], ['left_elbow','left_wrist'],
-    ['right_shoulder','right_elbow'], ['right_elbow','right_wrist'],
-    ['left_shoulder','left_hip'], ['right_shoulder','right_hip'],
-    ['left_hip','right_hip'], ['left_hip','left_knee'], ['left_knee','left_ankle'],
-    ['right_hip','right_knee'], ['right_knee','right_ankle']
-  ];
-  connections.forEach(([a,b])=>{
-    const pa = points.find(p=>p.name===a);
-    const pb = points.find(p=>p.name===b);
-    if(pa && pb){
-      ctx.beginPath();
-      ctx.moveTo(pa.x*scaleX, pa.y*scaleY);
-      ctx.lineTo(pb.x*scaleX, pb.y*scaleY);
-      ctx.strokeStyle="#ff1744"; ctx.lineWidth=3;
-      ctx.stroke();
-    }
-  });
-}
-
-// --- Squat detection ---
-const exerciseRules = {
-  squat: (pose) => {
-    const now = Date.now();
-    const keypoints = smoothKeypoints(pose.keypoints);
-
-    const leftHip = keypoints.find(k => k.name === 'left_hip');
-    const rightHip = keypoints.find(k => k.name === 'right_hip');
-    const leftKnee = keypoints.find(k => k.name === 'left_knee');
-    const rightKnee = keypoints.find(k => k.name === 'right_knee');
-    const leftAnkle = keypoints.find(k => k.name === 'left_ankle');
-    const rightAnkle = keypoints.find(k => k.name === 'right_ankle');
-    const leftShoulder = keypoints.find(k => k.name === 'left_shoulder');
-    const rightShoulder = keypoints.find(k => k.name === 'right_shoulder');
-    const nose = keypoints.find(k => k.name === 'nose');
-
-    // Visibility check (head to knees)
-    const essentialPoints = [nose,leftShoulder,rightShoulder,leftHip,rightHip,leftKnee,rightKnee];
-    const visiblePoints = essentialPoints.filter(p=>p && p.score>0.5);
-    if(visiblePoints.length < essentialPoints.length){
-      postureFeedback.textContent = "📸 Please show your body fully from head to knees!";
-      postureAccuracy.textContent = "Accuracy: 0%";
-      return;
+    // --- Helper functions ---
+    function getAngle(a, b, c) {
+      const ab = { x: a.x - b.x, y: a.y - b.y };
+      const cb = { x: c.x - b.x, y: c.y - b.y };
+      const dot = ab.x * cb.x + ab.y * cb.y;
+      const magAB = Math.sqrt(ab.x ** 2 + ab.y ** 2);
+      const magCB = Math.sqrt(cb.x ** 2 + cb.y ** 2);
+      return Math.acos(dot / (magAB * magCB)) * (180 / Math.PI);
     }
 
-    // Knee angles
-    const leftKneeAngle = (leftHip && leftKnee && leftAnkle) ? getAngle(leftHip,leftKnee,leftAnkle) : 180;
-    const rightKneeAngle = (rightHip && rightKnee && rightAnkle) ? getAngle(rightHip,rightKnee,rightAnkle) : 180;
-
-    // Back angle
-    const leftBack = (leftShoulder && leftHip && leftKnee) ? getAngle(leftShoulder,leftHip,leftKnee) : 180;
-    const rightBack = (rightShoulder && rightHip && rightKnee) ? getAngle(rightShoulder,rightHip,rightKnee) : 180;
-    const backAngle = (leftBack + rightBack)/2;
-
-    const postureScore = backAngle>160 ? 100 : backAngle>140 ? 80 : backAngle>120 ? 60 : 40;
-    postureAccuracy.textContent = `Accuracy: ${postureScore}%`;
-
-    // Squat state
-    let repDown=false, repUp=false;
-    const kneeAngleAvg = (leftKneeAngle + rightKneeAngle)/2;
-    repDown = kneeAngleAvg < 100;
-    repUp = kneeAngleAvg > 160;
-
-    // --- Feedback messages ---
-    if(postureScore < 70){
-      postureFeedback.textContent = "💪 Keep your back nice and straight!";
-    } else if(repState==="UP" && repDown){
-      postureFeedback.textContent = "⬇️ Going down… Feel the burn!";
-    } else if(repState==="DOWN" && repUp){
-      postureFeedback.textContent = "⬆️ Coming up… Almost there!";
-    } else if(postureScore>=85){
-      postureFeedback.textContent = "🌟 Perfect posture! Keep it up!";
-    } else {
-      postureFeedback.textContent = "👍 Nice! Maintain your squat form.";
+    function smoothKeypoints(keypoints) {
+      keypointHistory.push(keypoints);
+      if (keypointHistory.length > 5) keypointHistory.shift();
+      return keypoints.map((kp, idx) => {
+        let avgX = 0, avgY = 0, avgScore = 0;
+        keypointHistory.forEach(frame => { avgX += frame[idx].x; avgY += frame[idx].y; avgScore += frame[idx].score; });
+        const n = keypointHistory.length;
+        return { ...kp, x: avgX / n, y: avgY / n, score: avgScore / n };
+      });
     }
 
-    // --- Rep counting ---
-    if(repDown && repState==="UP" && postureScore>=70) repState="DOWN";
-    if(repUp && repState==="DOWN" && postureScore>=70 && (now-lastRepTime)>repCooldown){
-      repCount++;
-      repState="UP";
-      lastRepTime=now;
-      postureFeedback.textContent = "✅ Rep counted! Keep going!";
-      console.log("✅ Rep counted:", repCount);
+    async function initDetector() {
+      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
+      startBtn.disabled = false;
+      console.log("✅ Pose detector ready");
+    }
+    await initDetector();
+
+    // --- Dropdown logic ---
+    exerciseTrigger.addEventListener('click', e => { e.stopPropagation(); exerciseOptions.classList.toggle('show'); });
+    exerciseValues.forEach(option => {
+      option.addEventListener('click', () => {
+        exerciseTrigger.textContent = option.textContent;
+        exerciseInput.value = option.dataset.value;
+        exerciseOptions.classList.remove('show');
+        updateExerciseInfo();
+      });
+    });
+    document.addEventListener('click', () => exerciseOptions.classList.remove('show'));
+    if (exerciseValues.length > 0) exerciseValues[0].click();
+
+    function updateExerciseInfo() {
+      const selectedId = parseInt(exerciseInput.value);
+      const exercise = exerciseData.find(e => e.id === selectedId);
+      if (exercise) {
+        descriptionEl.textContent = exercise.description;
+        muscleEl.textContent = exercise.target_muscle;
+        difficultyEl.textContent = exercise.difficulty_level;
+        demoVideoEl.src = exercise.video_demo_url;
+      } else {
+        descriptionEl.textContent = "";
+        muscleEl.textContent = "";
+        difficultyEl.textContent = "";
+        demoVideoEl.src = "";
+      }
     }
 
-    repCountEl.textContent=`Reps: ${repCount}`;
-    sessionTimeEl.textContent=`Time: ${Math.floor((now-startTime)/1000)}s`;
-  }
-};
+    // --- Draw keypoints ---
+    function drawKeypoints(pose) {
+      const scaleX = overlay.width / video.videoWidth;
+      const scaleY = overlay.height / video.videoHeight;
+      const points = pose.keypoints.filter(k => k.score > 0.5);
+      points.forEach(k => {
+        ctx.beginPath();
+        ctx.arc(k.x * scaleX, k.y * scaleY, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ff1744";
+        ctx.fill();
+      });
 
-// --- Start session ---
-startBtn.addEventListener('click', async ()=>{
-  if(!detector) return alert("Pose detector not ready");
-  if(sessionActive) return;
+      const connections = [
+        ['left_shoulder', 'right_shoulder'], ['left_shoulder', 'left_elbow'], ['left_elbow', 'left_wrist'],
+        ['right_shoulder', 'right_elbow'], ['right_elbow', 'right_wrist'],
+        ['left_shoulder', 'left_hip'], ['right_shoulder', 'right_hip'],
+        ['left_hip', 'right_hip'], ['left_hip', 'left_knee'], ['left_knee', 'left_ankle'],
+        ['right_hip', 'right_knee'], ['right_knee', 'right_ankle']
+      ];
+      connections.forEach(([a, b]) => {
+        const pa = points.find(p => p.name === a);
+        const pb = points.find(p => p.name === b);
+        if (pa && pb) {
+          ctx.beginPath();
+          ctx.moveTo(pa.x * scaleX, pa.y * scaleY);
+          ctx.lineTo(pb.x * scaleX, pb.y * scaleY);
+          ctx.strokeStyle = "#ff1744"; ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+      });
+    }
 
-  const selectedExercise = exerciseData.find(e=>e.id===parseInt(exerciseInput.value));
-  if(!selectedExercise||!selectedExercise.name) return alert("Select an exercise first");
+    // --- Dynamic feedback ---
+    function getDynamicFeedback(score) {
+      const high = ["🌟 Perfect form! Keep it up!", "💪 Excellent! You're nailing it!", "👍 Spot on! Continue your squat."];
+      const medium = ["⬆️ Coming up… Almost there!", "⬇️ Go down slowly and controlled.", "💡 Keep your back straighter!"];
+      const low = ["⚠️ Watch your posture!", "📸 Make sure you’re visible from head to knees!", "❌ Adjust your squat form!"];
+      if (score >= 85) return high[Math.floor(Math.random() * high.length)];
+      if (score >= 70) return medium[Math.floor(Math.random() * medium.length)];
+      return low[Math.floor(Math.random() * low.length)];
+    }
 
-  const exerciseKey = selectedExercise.name.toLowerCase().replace(/\s+/g,'_');
+    // --- Exercise rule: Squat ---
+    const exerciseRules = {
+      squat: (pose) => {
+        const now = Date.now();
+        const keypoints = smoothKeypoints(pose.keypoints);
 
-  sessionActive=true; repCount=0; repState="UP"; startTime=Date.now();
-  postureFeedback.textContent="📸 Initializing...";
+        const leftHip = keypoints.find(k => k.name === 'left_hip');
+        const rightHip = keypoints.find(k => k.name === 'right_hip');
+        const leftKnee = keypoints.find(k => k.name === 'left_knee');
+        const rightKnee = keypoints.find(k => k.name === 'right_knee');
+        const leftAnkle = keypoints.find(k => k.name === 'left_ankle');
+        const rightAnkle = keypoints.find(k => k.name === 'right_ankle');
+        const leftShoulder = keypoints.find(k => k.name === 'left_shoulder');
+        const rightShoulder = keypoints.find(k => k.name === 'right_shoulder');
+        const nose = keypoints.find(k => k.name === 'nose');
 
-  const stream = await navigator.mediaDevices.getUserMedia({video:true});
-  video.srcObject=stream;
+        const essentialPoints = [nose, leftShoulder, rightShoulder, leftHip, rightHip, leftKnee, rightKnee];
+        const visiblePoints = essentialPoints.filter(p => p && p.score > 0.5);
 
-  video.addEventListener('loadeddata',()=>detectFrame(exerciseKey));
+        // Always update timer, even if pose detection fails
+        sessionTimeEl.textContent = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
+        repCountEl.textContent = `Reps: ${repCount}`;
+
+        if (visiblePoints.length < essentialPoints.length) {
+          postureFeedback.textContent = getDynamicFeedback(50);
+          postureAccuracy.textContent = "Accuracy: 0%";
+          return;
+        }
+
+        const leftKneeAngle = (leftHip && leftKnee && leftAnkle) ? getAngle(leftHip, leftKnee, leftAnkle) : 180;
+        const rightKneeAngle = (rightHip && rightKnee && rightAnkle) ? getAngle(rightHip, rightKnee, rightAnkle) : 180;
+        const leftBack = (leftShoulder && leftHip && leftKnee) ? getAngle(leftShoulder, leftHip, leftKnee) : 180;
+        const rightBack = (rightShoulder && rightHip && rightKnee) ? getAngle(rightShoulder, rightHip, rightKnee) : 180;
+
+        const backAngle = (leftBack + rightBack) / 2;
+        const kneeAngleAvg = (leftKneeAngle + rightKneeAngle) / 2;
+
+        // ✅ Improved posture accuracy calculation (realistic scaling)
+        let kneeScore, backScore;
+
+        // Knee accuracy based on depth (ideal ~90°)
+        if (kneeAngleAvg >= 150) kneeScore = 60; // barely squatting
+        else if (kneeAngleAvg >= 120) kneeScore = 75; // moderate depth
+        else if (kneeAngleAvg >= 90) kneeScore = 90;  // good depth
+        else if (kneeAngleAvg >= 70) kneeScore = 80;  // slightly deep
+        else kneeScore = 65; // too low or unstable
+
+        // Back angle accuracy (ideal upright posture ~170°)
+        if (backAngle >= 170) backScore = 100; // perfect
+        else if (backAngle >= 150) backScore = 85;
+        else if (backAngle >= 130) backScore = 70;
+        else backScore = 55; // leaning too far forward
+
+        // Weighted average
+        const postureScore = Math.round(backScore * 0.5 + kneeScore * 0.5);
+        postureAccuracy.textContent = `Accuracy: ${postureScore}%`;
+
+
+        const repDown = kneeAngleAvg < 100;
+        const repUp = kneeAngleAvg > 160;
+
+        if (repState === "UP" && repDown) postureFeedback.textContent = getDynamicFeedback(postureScore);
+        if (repState === "DOWN" && repUp) postureFeedback.textContent = getDynamicFeedback(postureScore);
+
+        if (repDown && repState === "UP" && postureScore >= 70) repState = "DOWN";
+        if (repUp && repState === "DOWN" && postureScore >= 70 && (now - lastRepTime) > repCooldown) {
+          repetitionsData.push({
+            count_number: repCount + 1,
+            posture_accuracy: postureScore,
+            feedback: postureFeedback.textContent
+          });
+          repCount++;
+          repState = "UP";
+          lastRepTime = now;
+          postureFeedback.textContent = "✅ Rep counted! Keep going!";
+        }
+      }
+    };
+
+    // --- Start session ---
+    startBtn.addEventListener('click', async () => {
+      if (!detector) return alert("Pose detector not ready");
+      if (sessionActive) return;
+
+      const selectedExercise = exerciseData.find(e => e.id === parseInt(exerciseInput.value));
+      if (!selectedExercise || !selectedExercise.name) return alert("Select an exercise first");
+
+      const exerciseKey = selectedExercise.name.toLowerCase().replace(/\s+/g, '_');
+
+      sessionActive = true;
+      repCount = 0;
+      repState = "UP";
+      startTime = Date.now();
+      repetitionsData = [];
+
+      postureFeedback.textContent = "📸 Initializing...";
+
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+
+      video.addEventListener('loadeddata', () => detectFrame(exerciseKey));
+    });
+
+    async function detectFrame(exerciseKey) {
+      if (!sessionActive) return;
+      overlay.width = video.videoWidth;
+      overlay.height = video.videoHeight;
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+      const poses = await detector.estimatePoses(video);
+      poses.forEach(p => {
+        drawKeypoints(p);
+        if (exerciseRules[exerciseKey]) exerciseRules[exerciseKey](p);
+      });
+
+      requestAnimationFrame(() => detectFrame(exerciseKey));
+    }
+
+    // --- Stop session ---
+    stopBtn.addEventListener('click', async () => {
+    if (!sessionActive) return;
+    sessionActive = false;
+
+    // Stop webcam
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+
+    // Clear overlay
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+    const duration_seconds = Math.floor((Date.now() - startTime) / 1000);
+
+    // --- Safe CSRF function ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    try {
+        // --- Save Workout Session ---
+        const sessionResp = await fetch("/save_workout_session/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            body: JSON.stringify({ exercise_id: exerciseInput.value, duration_seconds })
+        });
+
+        let sessionData;
+        try {
+            sessionData = await sessionResp.json();
+        } catch (e) {
+            const text = await sessionResp.text();
+            console.error("Workout session response is not JSON:", text);
+            alert("Error saving session. See console.");
+            return;
+        }
+
+        if (!sessionData.success) {
+            console.error("Workout session failed:", sessionData);
+            alert("Failed to save workout session.");
+            return;
+        }
+
+        const sessionId = sessionData.session_id;
+
+        // --- Save Repetitions ---
+        const repsResp = await fetch("/save_repetitions/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            body: JSON.stringify({ session_id: sessionId, reps: repetitionsData })
+        });
+
+        let repsData;
+        try {
+            repsData = await repsResp.json();
+        } catch (e) {
+            const text = await repsResp.text();
+            console.error("Repetitions response is not JSON:", text);
+            alert("Error saving repetitions. See console.");
+            return;
+        }
+
+        if (!repsData.success) {
+            console.error("Repetitions failed:", repsData);
+            alert("Failed to save repetitions.");
+            return;
+        }
+
+        // --- Save Feedback & Generate Report ---
+        const avgAccuracy = repetitionsData.reduce((sum, r) => sum + r.posture_accuracy, 0) / (repetitionsData.length || 1);
+        const feedbackTexts = repetitionsData.map(r => r.feedback).join("\n");
+
+        const feedbackResp = await fetch("/save_feedback/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            body: JSON.stringify({ session_id: sessionId, feedback_text: feedbackTexts, accuracy_score: avgAccuracy })
+        });
+
+        let feedbackData;
+        try {
+            feedbackData = await feedbackResp.json();
+        } catch (e) {
+            const text = await feedbackResp.text();
+            console.error("Feedback response is not JSON:", text);
+            alert("Error saving feedback. See console.");
+            return;
+        }
+
+        if (!feedbackData.success) {
+            console.error("Feedback saving failed:", feedbackData);
+            alert("Failed to save feedback/report.");
+            return;
+        }
+
+        // --- Show Download Report Button ---
+        if (feedbackData.report_url) {
+            document.getElementById("downloadReport").innerHTML =
+                `<a href="${feedbackData.report_url}" class="btn glass-btn-start mt-3" target="_blank">📄 Download AI Report</a>`;
+        }
+
+        // alert("Session saved successfully! ✅");
+
+    } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("An unexpected error occurred. Check console.");
+    }
 });
 
-// --- Detection loop ---
-async function detectFrame(exerciseKey){
-  if(!sessionActive) return;
-  overlay.width=video.videoWidth; overlay.height=video.videoHeight;
-  ctx.clearRect(0,0,overlay.width,overlay.height);
 
-  const poses = await detector.estimatePoses(video);
-  poses.forEach(p=>{
-    drawKeypoints(p);
-    if(exerciseRules[exerciseKey]) exerciseRules[exerciseKey](p);
   });
-
-  requestAnimationFrame(()=>detectFrame(exerciseKey));
-}
-
-// --- Stop session ---
-stopBtn.addEventListener('click', ()=>{
-  if(!sessionActive) return;
-  sessionActive=false;
-  video.srcObject?.getTracks().forEach(track=>track.stop());
-  postureFeedback.textContent="✅ Session stopped.";
-  postureAccuracy.textContent = "Accuracy: 0%";
-});
-});
 </script>
 {% endblock %}
+
