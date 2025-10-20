@@ -20,7 +20,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.contrib.auth import update_session_auth_hash
-from physiocoach import settings
+from theratrack import settings
 from xhtml2pdf import pisa  # for PDF generation
 from django.template.loader import render_to_string
 
@@ -101,7 +101,7 @@ def exercises(request):
     exercise_data = [
         {
             "id": e.exercise_id,
-            "name": e.name,
+            "exercise_name": e.exercise_name,
             "description": e.description,
             "target_muscle": e.target_muscle,
             "difficulty_level": e.difficulty_level,
@@ -282,78 +282,91 @@ def save_repetitions(request):
 
 @login_required
 def save_feedback(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            session_id = data.get("session_id")
-            feedback_text = data.get("feedback_text")
-            accuracy_score = data.get("accuracy_score")
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
-            session = get_object_or_404(WorkoutSession, pk=session_id, user=request.user)
+    try:
+        data = json.loads(request.body)
+        print("save_feedback input:", data)
 
-            # Active AI model
-            ai_model = AIModel.objects.filter(is_active=True).order_by("-last_updated").first()
+        session_id = data.get("session_id")
+        feedback_text = data.get("feedback_text") or ""
+        accuracy_score = float(data.get("accuracy_score") or 0)
 
-            Feedback.objects.create(
-                user=request.user,
-                session=session,
-                feedback_text=feedback_text,
-                accuracy_score=accuracy_score,
-                ai_model=ai_model
-            )
+        # Validate session
+        session = get_object_or_404(WorkoutSession, pk=session_id, user=request.user)
+        print("WorkoutSession found:", session)
 
-            # --- Generate PDF ---
-            repetitions = list(session.repetitions.all())
-            total_reps = len(repetitions)
-            avg_accuracy = sum([r.posture_accuracy for r in repetitions]) / total_reps if total_reps else 0
-            duration = session.duration.total_seconds() if session.duration else 0
-            minutes = int(duration // 60)
-            seconds = int(duration % 60)
+        # Active AI model (optional)
+        ai_model = AIModel.objects.filter(is_active=True).order_by("-last_updated").first()
+        print("AI Model:", ai_model)
 
-            context = {
-                "session": session,
-                "repetitions": repetitions,
-                "feedbacks": Feedback.objects.filter(session=session),
-                "total_reps": total_reps,
-                "avg_accuracy": avg_accuracy,
-                "minutes": minutes,
-                "seconds": seconds,
-            }
+        # Save feedback entry
+        feedback = Feedback.objects.create(
+            user = request.user,
+            session=session,
+            feedback_text=feedback_text,
+            accuracy_score=accuracy_score,
+            ai_model=ai_model
+        )
+        print("Feedback saved successfully:", feedback)
 
-            html_string = render_to_string("posture/report_template.html", context)
-            pdf_file = BytesIO()
-            pisa.CreatePDF(html_string, dest=pdf_file)
-            pdf_file.seek(0)
+        # Prepare data for PDF
+        repetitions = list(session.repetitions.all())
+        total_reps = len(repetitions)
+        avg_accuracy = sum([r.posture_accuracy for r in repetitions]) / total_reps if total_reps else 0
+        duration_seconds = session.duration.total_seconds() if session.duration else 0
+        minutes, seconds = divmod(int(duration_seconds), 60)
 
-            # Save PDF to MEDIA
-            reports_dir = os.path.join(settings.MEDIA_ROOT, "reports")
-            os.makedirs(reports_dir, exist_ok=True)
-            pdf_filename = f"report_session_{session.session_id}.pdf"
-            pdf_path = os.path.join(reports_dir, pdf_filename)
+        context = {
+            "session": session,
+            "repetitions": repetitions,
+            "feedbacks": Feedback.objects.filter(session=session),
+            "total_reps": total_reps,
+            "avg_accuracy": avg_accuracy,
+            "minutes": minutes,
+            "seconds": seconds,
+        }
 
-            with open(pdf_path, "wb") as f:
-                f.write(pdf_file.read())
+        # Generate PDF safely
+        pdf_file = BytesIO()
+        html_string = render_to_string("posture/report_template.html", context)
+        pdf_result = pisa.CreatePDF(html_string, dest=pdf_file)
+        pdf_file.seek(0)
 
-            # Save Report instance correctly
-            report = Report.objects.create(
-                user=request.user,
-                session=session,
-                exercise=session.exercise,  # Required field
-                generated_by="AI_Model",
-                pdf_file=f"reports/{pdf_filename}"
-            )
+        if pdf_result.err:
+            print("PDF generation failed")
+            return JsonResponse({"success": False, "error": "Failed to generate PDF"}, status=500)
 
-            return JsonResponse({
-                "success": True,
-                "report_id": report.report_id,
-                "report_url": report.pdf_file.url  # Works with FileField
-            })
+        # Save PDF to MEDIA
+        reports_dir = os.path.join(settings.MEDIA_ROOT, "reports")
+        os.makedirs(reports_dir, exist_ok=True)
+        pdf_filename = f"report_session_{session.session_id}.pdf"
+        pdf_path = os.path.join(reports_dir, pdf_filename)
 
-        except Exception as e:
-            print("Error in save_feedback:", e)
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
+        with open(pdf_path, "wb") as f:
+            f.write(pdf_file.read())
+        print("PDF saved:", pdf_path)
 
-    return JsonResponse({"success": False}, status=400)
+        # Save Report instance
+        report = Report.objects.create(
+            session=session,
+            exercise_id=session.exercise.exercise_id,  # use exercise_id for FK
+            generated_by="AI_Model",
+            pdf_file=f"reports/{pdf_filename}"
+        )
+
+        return JsonResponse({
+            "success": True,
+            "report_id": report.report_id,
+            "report_url": report.pdf_file.url
+        })
+
+    except Exception as e:
+        import traceback
+        print("Error in save_feedback:", e)
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 # ---------------------------
 # Mediapipe Pose Analysis

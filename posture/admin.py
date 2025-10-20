@@ -15,12 +15,18 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = 'Profile'
 
+
 class UserAdmin(BaseUserAdmin):
     inlines = (ProfileInline,)
+    list_display = (
+        'id', 'username', 'first_name', 'last_name', 'email', 'is_staff', 'is_superuser', 'date_joined', 'last_login'
+    )
+    list_filter = ('is_active', 'is_staff', 'is_superuser')
 
-# Unregister default User and register extended version
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
 
 # --------------------------
 # Profile Admin
@@ -29,7 +35,7 @@ admin.site.register(User, UserAdmin)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'get_username', 'get_first_name', 'get_last_name', 'get_email',
-        'age', 'gender', 'get_profile_picture_path'
+        'age', 'gender', 'get_profile_picture_path', 'created_at', 'updated_at'
     )
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'user__email')
     list_filter = ('gender',)
@@ -51,19 +57,19 @@ class ProfileAdmin(admin.ModelAdmin):
     get_email.short_description = 'Email'
 
     def get_profile_picture_path(self, obj):
-        if obj.profile_picture:
-            return obj.profile_picture.name
-        return "No picture uploaded"
+        return obj.profile_picture.name if obj.profile_picture else "No picture uploaded"
     get_profile_picture_path.short_description = 'Profile Picture Path'
+
 
 # --------------------------
 # Exercise Admin
 # --------------------------
 @admin.register(Exercise)
 class ExerciseAdmin(admin.ModelAdmin):
-    list_display = ('exercise_id', 'name', 'description', 'target_muscle', 'difficulty_level', 'video_demo_url')
-    search_fields = ('name', 'target_muscle')
+    list_display = ('exercise_id', 'exercise_name', 'description', 'target_muscle', 'difficulty_level', 'video_demo_url')
+    search_fields = ('exercise_name', 'target_muscle')
     list_filter = ('difficulty_level',)
+
 
 # --------------------------
 # AI Model Admin
@@ -71,17 +77,19 @@ class ExerciseAdmin(admin.ModelAdmin):
 @admin.register(AIModel)
 class AIModelAdmin(admin.ModelAdmin):
     list_display = ('model_id', 'version', 'description', 'accuracy', 'is_active', 'last_updated')
-    search_fields = ('version', 'accuracy')
+    search_fields = ('version',)
     list_filter = ('is_active',)
+
 
 # --------------------------
 # Report Admin
 # --------------------------
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('report_id', 'user', 'session', 'exercise', 'generated_by', 'pdf_file', 'generated_at')
-    search_fields = ('user__username', 'session__session_id', 'exercise__name')
+    list_display = ('report_id', 'session', 'exercise', 'generated_by', 'pdf_file', 'generated_at')
+    search_fields = ('session__session_id', 'exercise__exercise_name')
     list_filter = ('generated_by', 'generated_at')
+
 
 # --------------------------
 # Repetition Inline
@@ -91,13 +99,15 @@ class RepetitionInline(admin.TabularInline):
     extra = 0
     readonly_fields = ('rep_id', 'count_number', 'posture_accuracy', 'timestamp')
 
+
 # --------------------------
 # Feedback Inline
 # --------------------------
 class FeedbackInline(admin.TabularInline):
     model = Feedback
     extra = 0
-    readonly_fields = ('feedback_id','feedback_text', 'accuracy_score', 'ai_model', 'session_id', 'user_id', 'date_time')
+    readonly_fields = ('feedback_id', 'feedback_text', 'accuracy_score', 'ai_model', 'session', 'date_time')
+
 
 # --------------------------
 # WorkoutSession Admin
@@ -105,7 +115,6 @@ class FeedbackInline(admin.TabularInline):
 @admin.register(WorkoutSession)
 class WorkoutSessionAdmin(admin.ModelAdmin):
     list_display = ('session_id', 'user', 'exercise', 'start_time', 'end_time', 'duration', 'status', 'device_type')
-    search_fields = ('user__username', 'exercise__name', 'session_id')
+    search_fields = ('user__username', 'exercise__exercise_name', 'session_id')
     list_filter = ('status', 'device_type')
-    inlines = [RepetitionInline, FeedbackInline]  # Show both Reps & Feedback inline
-
+    inlines = [RepetitionInline, FeedbackInline]

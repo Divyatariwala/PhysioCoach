@@ -1,45 +1,34 @@
-# posture/models.py
 from django.db import models
 from django.contrib.auth.models import User
 
+# =========================
+# PROFILE
+# =========================
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.PositiveIntegerField()
-    
+
     GENDER_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
         ('Other', 'Other'),
     ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-    
-    profile_picture = models.ImageField(
-        upload_to='profile_pics/',  # saved inside MEDIA_ROOT/profile_pics/ # default static image
-        blank=True,
-        null=True
-    )
+
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username} Profile"
-
-class Admin(models.Model):
-    admin_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=150)
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=128)
-    role = models.CharField(max_length=100, default="System Admin")
-
-    def __str__(self):
-        return f"{self.name} ({self.role})"
-
 
 # =========================
 # EXERCISE & THERAPY PLAN
 # =========================
 class Exercise(models.Model):
     exercise_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    exercise_name = models.CharField(max_length=100)
     description = models.TextField()
     target_muscle = models.CharField(max_length=100)
     difficulty_level = models.CharField(
@@ -49,7 +38,7 @@ class Exercise(models.Model):
     video_demo_url = models.URLField()
 
     def __str__(self):
-        return self.name
+        return self.exercise_name
 
 
 class TherapyPlan(models.Model):
@@ -62,7 +51,6 @@ class TherapyPlan(models.Model):
 
     def __str__(self):
         return f"Therapy Plan {self.plan_id} for {self.user.username}"
-
 
 # =========================
 # WORKOUT SESSION & REPETITIONS
@@ -102,7 +90,7 @@ class AIModel(models.Model):
     accuracy = models.FloatField()
     last_updated = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=False)
-    
+
     def __str__(self):
         return f"AI Model v{self.version}"
 
@@ -117,7 +105,7 @@ class Feedback(models.Model):
     ai_model = models.ForeignKey(AIModel, on_delete=models.SET_NULL, null=True, related_name="feedbacks")
 
     def __str__(self):
-        return f"Feedback {self.feedback_id} for {self.user.username}"
+        return f"Feedback {self.feedback_id} for {self.session.user.username}"
 
 
 # =========================
@@ -125,17 +113,15 @@ class Feedback(models.Model):
 # =========================
 class Report(models.Model):
     report_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports")
     session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE, related_name="reports")
-    generated_by = models.CharField(max_length=50, choices=[('Admin', 'Admin'), ('AI_Model', 'AI_Model')])
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, null=True, blank=True)
+    generated_by = models.CharField(
+        max_length=50,
+        choices=[('Admin', 'Admin'), ('AI_Model', 'AI_Model')],
+        default='AI_Model'
+    )
     pdf_file = models.FileField(upload_to='reports/', null=True, blank=True)
     generated_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
-        return f"{self.user.username} - {self.exercise.name} ({self.generated_at.strftime('%Y-%m-%d %H:%M')})"
-
-
-
-
-
+        return f"Report for Session {self.session.session_id} - {self.generated_by}"

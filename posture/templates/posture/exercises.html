@@ -28,7 +28,7 @@
                 <div class="custom-options">
                   {% for exercise in exercises %}
                   <div class="custom-option" data-value="{{ exercise.exercise_id }}">
-                    {{ exercise.name }}
+                    {{ exercise.exercise_name }}
                   </div>
                   {% empty %}
                   <div class="custom-option" data-value="">No exercises available</div>
@@ -479,9 +479,9 @@
       if (sessionActive) return;
 
       const selectedExercise = exerciseData.find(e => e.id === parseInt(exerciseInput.value));
-      if (!selectedExercise || !selectedExercise.name) return alert("Select an exercise first");
+      if (!selectedExercise || !selectedExercise.exercise_name) return alert("Select an exercise first");
 
-      const exerciseKey = selectedExercise.name.toLowerCase().replace(/\s+/g, '_');
+      const exerciseKey = selectedExercise.exercise_name.toLowerCase().replace(/\s+/g, '_');
 
       sessionActive = true;
       repCount = 0;
@@ -513,7 +513,7 @@
     }
 
     // --- Stop session ---
-    stopBtn.addEventListener('click', async () => {
+stopBtn.addEventListener('click', async () => {
     if (!sessionActive) return;
     sessionActive = false;
 
@@ -546,6 +546,9 @@
     const csrftoken = getCookie('csrftoken');
 
     try {
+        const selectedExerciseId = exerciseInput.value;
+        if (!selectedExerciseId) return alert("Select an exercise before stopping session.");
+
         // --- Save Workout Session ---
         const sessionResp = await fetch("/save_workout_session/", {
             method: "POST",
@@ -553,28 +556,26 @@
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrftoken
             },
-            body: JSON.stringify({ exercise_id: exerciseInput.value, duration_seconds })
+            body: JSON.stringify({ exercise_id: selectedExerciseId, duration_seconds })
         });
 
-        let sessionData;
-        try {
-            sessionData = await sessionResp.json();
-        } catch (e) {
-            const text = await sessionResp.text();
-            console.error("Workout session response is not JSON:", text);
-            alert("Error saving session. See console.");
-            return;
-        }
-
+        const sessionData = await sessionResp.json();
         if (!sessionData.success) {
             console.error("Workout session failed:", sessionData);
-            alert("Failed to save workout session.");
-            return;
+            return alert("Failed to save workout session. Check console.");
         }
 
         const sessionId = sessionData.session_id;
 
-        // --- Save Repetitions ---
+        // --- Save Repetitions safely ---
+        if (!repetitionsData.length) {
+            repetitionsData.push({
+                count_number: 0,
+                posture_accuracy: 0,
+                feedback: "No reps recorded."
+            });
+        }
+
         const repsResp = await fetch("/save_repetitions/", {
             method: "POST",
             headers: {
@@ -584,25 +585,15 @@
             body: JSON.stringify({ session_id: sessionId, reps: repetitionsData })
         });
 
-        let repsData;
-        try {
-            repsData = await repsResp.json();
-        } catch (e) {
-            const text = await repsResp.text();
-            console.error("Repetitions response is not JSON:", text);
-            alert("Error saving repetitions. See console.");
-            return;
-        }
-
+        const repsData = await repsResp.json();
         if (!repsData.success) {
             console.error("Repetitions failed:", repsData);
-            alert("Failed to save repetitions.");
-            return;
+            return alert("Failed to save repetitions. Check console.");
         }
 
-        // --- Save Feedback & Generate Report ---
-        const avgAccuracy = repetitionsData.reduce((sum, r) => sum + r.posture_accuracy, 0) / (repetitionsData.length || 1);
-        const feedbackTexts = repetitionsData.map(r => r.feedback).join("\n");
+        // --- Save Feedback safely ---
+        const avgAccuracy = repetitionsData.reduce((sum, r) => sum + (r.posture_accuracy || 0), 0) / repetitionsData.length;
+        const feedbackTexts = repetitionsData.map(r => r.feedback || "No feedback").join("\n");
 
         const feedbackResp = await fetch("/save_feedback/", {
             method: "POST",
@@ -610,23 +601,17 @@
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrftoken
             },
-            body: JSON.stringify({ session_id: sessionId, feedback_text: feedbackTexts, accuracy_score: avgAccuracy })
+            body: JSON.stringify({
+                session_id: sessionId,
+                feedback_text: feedbackTexts,
+                accuracy_score: avgAccuracy
+            })
         });
 
-        let feedbackData;
-        try {
-            feedbackData = await feedbackResp.json();
-        } catch (e) {
-            const text = await feedbackResp.text();
-            console.error("Feedback response is not JSON:", text);
-            alert("Error saving feedback. See console.");
-            return;
-        }
-
+        const feedbackData = await feedbackResp.json();
         if (!feedbackData.success) {
             console.error("Feedback saving failed:", feedbackData);
-            alert("Failed to save feedback/report.");
-            return;
+            return alert("Failed to save feedback/report. Check console.");
         }
 
         // --- Show Download Report Button ---
@@ -635,13 +620,12 @@
                 `<a href="${feedbackData.report_url}" class="btn glass-btn-start mt-3" target="_blank">📄 Download AI Report</a>`;
         }
 
-        // alert("Session saved successfully! ✅");
-
     } catch (err) {
         console.error("Unexpected error:", err);
         alert("An unexpected error occurred. Check console.");
     }
 });
+
 
 
   });
