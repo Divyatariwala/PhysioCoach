@@ -1,0 +1,145 @@
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #e6f2f0, #f0f7f0);
+    color: #1b4332;
+    min-height: 90vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.hero-title {
+    font-weight: 700;
+    font-size: 2.8rem;
+}
+
+.hero-subtitle {
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+.hero-text {
+    position: relative;
+    z-index: 2;
+}
+
+/* Glass Card */
+.glass-card {
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 25px;
+    box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 10px 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Buttons */
+.btn-primary,
+.btn-cta {
+    background: #1b4332;
+    color: #fff;
+    border-radius: 12px;
+    padding: 12px 28px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover,
+.btn-cta:hover {
+    background: #40916c;
+}
+
+.btn-outline-primary,
+.btn-cta-outline {
+    border: 2px solid #1b4332;
+    color: #1b4332;
+    background: transparent;
+}
+
+.btn-outline-primary:hover,
+.btn-cta-outline:hover {
+    background: #1b4332;
+    color: #fff;
+}
+
+/* Floating image animation */
+.floating-image {
+    animation: floatY 6s ease-in-out infinite;
+}
+
+@keyframes floatY {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+/* Animated SVG shapes */
+.hero-shape {
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: floatShape 12s ease-in-out infinite alternate;
+    z-index: 1;
+}
+
+.shape1 {
+    top: 10%;
+    left: 5%;
+    width: 250px;
+    height: 250px;
+}
+
+.shape2 {
+    bottom: 10%;
+    right: 15%;
+    width: 300px;
+    height: 300px;
+}
+
+.shape3 {
+    top: 40%;
+    right: 40%;
+    width: 200px;
+    height: 200px;
+}
+
+@keyframes floatShape {
+    0% {
+        transform: translate(0px, 0px) rotate(0deg);
+    }
+
+    25% {
+        transform: translate(20px, -10px) rotate(15deg);
+    }
+
+    50% {
+        transform: translate(-10px, 20px) rotate(-10deg);
+    }
+
+    75% {
+        transform: translate(15px, -15px) rotate(5deg);
+    }
+
+    100% {
+        transform: translate(0px, 0px) rotate(0deg);
+    }
+}
+
+/* Sections */
+section {
+    padding: 4rem 0;
+}
+
+.feature-img {
+    width: 100%;
+    border-radius: 20px;
+}
