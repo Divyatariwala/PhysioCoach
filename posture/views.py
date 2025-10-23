@@ -23,61 +23,75 @@ from django.contrib.auth import update_session_auth_hash
 from theratrack import settings
 from xhtml2pdf import pisa  # for PDF generation
 from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 
 # Import your models
 from .models import Profile, Exercise, WorkoutSession, Repetition, Report, Feedback, AIModel
 
-# ---------------------------
-# Basic Pages
-# ---------------------------
-
-def home(request):
-    return render(request, 'posture/home.html')
-
-def about(request):
-    return render(request, 'posture/about.html')
-
-def contact(request):
-    return render(request, 'posture/contact.html')
-
 @login_required
-def profile(request):
+def profile_api(request):
     user = request.user
     profile = getattr(user, "profile", None)
-    
-    reports = Report.objects.filter(user=user).order_by('-generated_at')
-    exercises = Exercise.objects.all()
 
-    return render(request, "posture/profile.html", {
-        "user": user,
-        "profile": profile,
-        "reports": reports,
-        "exercises": exercises
+    # User profile info
+    profile_data = {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "username": user.username,
+        "email": user.email,
+        "age": profile.age if profile else None,
+        "gender": profile.gender if profile else None,
+        "profile_picture": profile.profile_picture.url if profile and profile.profile_picture else "/static/posture/images/default-avatar.png"
+    }
+
+    # Reports
+    reports = Report.objects.filter(user=user).order_by("-generated_at")
+    reports_data = []
+    for report in reports:
+        reports_data.append({
+            "id": report.id,
+            "title": report.title,
+            "exercise": {"id": report.exercise.id, "name": report.exercise.name} if report.exercise else None,
+            "generated_at": report.generated_at,
+            "pdf_file": report.pdf_file.url if report.pdf_file else None
+        })
+
+    # Exercises
+    exercises = Exercise.objects.all()
+    exercises_data = [{"exercise_id": ex.id, "name": ex.name} for ex in exercises]
+
+    return JsonResponse({
+        "profile": profile_data,
+        "reports": reports_data,
+        "exercises": exercises_data
     })
 
 
 @login_required
-def filter_reports_ajax(request):
-    exercise_id = request.GET.get('exercise_id')
+def filter_reports_api(request):
+    """
+    Return reports filtered by exercise as JSON
+    """
+    exercise_id = request.GET.get("exercise_id")
 
     if exercise_id == "all" or not exercise_id:
-        reports = Report.objects.all()
+        reports = Report.objects.filter(user=request.user).order_by("-generated_at")
     else:
-        reports = Report.objects.filter(exercise_id=exercise_id)
+        reports = Report.objects.filter(user=request.user, exercise_id=exercise_id).order_by("-generated_at")
 
-    data = {
-        "reports": [
-            {
-                "title": r.exercise.name,
-                "date": r.generated_at.strftime("%d %b %Y"),
-                "file_url": r.pdf_file.url
-            } for r in reports
-        ]
-    }
-    return JsonResponse(data)
+    reports_data = [
+        {
+            "title": r.title,
+            "date": r.generated_at.strftime("%d %b %Y"),
+            "file_url": r.pdf_file.url if r.pdf_file else None
+        }
+        for r in reports
+    ]
+
+    return JsonResponse({"reports": reports_data})
 
 @login_required
-def download_report(request, report_id):
+def download_report_api(request, report_id):
     try:
         report = Report.objects.get(id=report_id, user=request.user)
         return FileResponse(report.pdf_file.open(), as_attachment=True, filename=report.pdf_file.name)
@@ -85,7 +99,7 @@ def download_report(request, report_id):
         raise Http404("Report not found")
 
 @login_required
-def update_profile_picture(request):
+def update_profile_picture_api(request):
     if request.method == 'POST' and request.FILES.get('profile_picture'):
         profile = request.user.profile
         profile.profile_picture = request.FILES['profile_picture']
@@ -94,7 +108,7 @@ def update_profile_picture(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 @login_required
-def exercises(request):
+def exercises_api(request):
     exercises = Exercise.objects.all()
 
     # Prepare data for JS
@@ -115,85 +129,80 @@ def exercises(request):
     }
     return render(request, "posture/exercises.html", context)
 
-def demo(request):
-    return render(request, 'posture/demo.html')
-
 # ---------------------------
 # LOGIN VIEW
 # ---------------------------
-@csrf_protect
-def login_view(request):
-    if request.user.is_authenticated:
-        # Redirect logged-in users
-        return redirect('home')  # change 'home' to your dashboard or landing page
+@csrf_exempt  # or use @ensure_csrf_cookie and send CSRF token from frontend
+def login_api(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required"}, status=400)
 
-    if request.method == 'POST':
-        username = request.POST.get('username').strip()
-        password = request.POST.get('password').strip()
+    username = request.POST.get("username", "").strip()
+    password = request.POST.get("password", "").strip()
 
-        # Authenticate user
-        user = authenticate(request, username=username, password=password)
+    user = authenticate(request, username=username, password=password)
 
-        if user is not None:
-            login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
-            return redirect('home')  # redirect after successful login
-        else:
-            messages.error(request, "Invalid username or password")
-            return redirect('login')  # redirect back to login on failure
-
-    return render(request, 'posture/login.html')
+    if user is not None:
+        login(request, user)
+        return JsonResponse({"success": True, "username": user.username})
+    else:
+        return JsonResponse({"success": False, "error": "Invalid username or password"}, status=403)
 
 # ---------------------------
 # REGISTER VIEW
 # ---------------------------
-@csrf_protect
-def register_view(request):
-    if request.method == "POST":
-        # Get form data
-        username = request.POST.get('username', '').strip()
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip()
-        password1 = request.POST.get('password1', '')
-        password2 = request.POST.get('password2', '')
-        age = request.POST.get('age', '').strip()
-        gender = request.POST.get('gender', '').strip()
+@csrf_exempt
+def register_api(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Only POST allowed"}, status=405)
 
-        # Basic validation
-        if password1 != password2:
-            messages.error(request, "Passwords do not match")
-            return redirect('register')
+    try:
+        # Parse JSON safely
+        data = json.loads(request.body.decode("utf-8"))
 
+        username = data.get("username", "").strip()
+        first_name = data.get("firstName", "").strip()
+        last_name = data.get("lastName", "").strip()
+        email = data.get("email", "").strip()
+        password1 = data.get("password1", "")
+        password2 = data.get("password2", "")
+        age = data.get("age")
+        gender = data.get("gender", "").strip()
+
+        # Validations
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists")
-            return redirect('register')
+            return JsonResponse({"success": False, "error": "Username already exists"}, status=400)
 
         # Create user
         user = User.objects.create_user(
             username=username,
-            email=email,
             password=password1,
+            email=email,
             first_name=first_name,
             last_name=last_name
         )
 
-        # Create or update Profile safely
-        profile, created = Profile.objects.get_or_create(
+        # Convert age safely
+        try:
+            age_value = int(age) if age else None
+        except:
+            age_value = None
+
+        # Create profile
+        Profile.objects.get_or_create(
             user=user,
-            defaults={'age': age, 'gender': gender}
+            defaults={"age": age_value, "gender": gender or None}
         )
-        if not created:
-            profile.age = age
-            profile.gender = gender
-            profile.save()
 
-        messages.success(request, "Account successfully registered")
-        return redirect('login')  # redirect to login after registration
+        return JsonResponse({"success": True, "message": "Account successfully registered"})
 
-    return render(request, 'posture/register.html')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-def forgot_password(request):
+
+def forgot_password_api(request):
     context = {}
     if request.method == "POST":
         old_password = request.POST.get("old_password")
@@ -211,7 +220,7 @@ def forgot_password(request):
 
     return render(request, "posture/forgot_password.html", context)
 
-def logout_view(request):
+def logout_view_api(request):
     logout(request)
      # If user logged out from admin panel
     if request.path.startswith('/admin'):
@@ -226,7 +235,7 @@ def logout_view(request):
 # ---------------------------
 
 @login_required
-def save_workout_session(request):
+def save_workout_session_api(request):
     if request.method == "POST":
         data = json.loads(request.body)
         exercise_id = data.get("exercise_id")
@@ -248,7 +257,7 @@ def save_workout_session(request):
     return JsonResponse({"success": False})
 
 @login_required
-def save_repetitions(request):
+def save_repetitions_api(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -281,7 +290,7 @@ def save_repetitions(request):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 @login_required
-def save_feedback(request):
+def save_feedback_api(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
@@ -377,7 +386,7 @@ mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 
 @login_required
-def analyze_pose(request):
+def analyze_pose_api(request):
     body = json.loads(request.body)
     frame_data = body['frame'].split(",")[1]
     frame_bytes = base64.b64decode(frame_data)

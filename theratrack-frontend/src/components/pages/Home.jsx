@@ -6,7 +6,8 @@ import feature2 from "../../assets/images/feature2.png";
 import feature3 from "../../assets/images/feature3.png";
 import "../css/Home.css";
 
-function Home({ isAuthenticated }) {
+function Home() {
+  const isAuthenticated = localStorage.getItem("isLoggedIn") === "true";
   return (
     <>
       {/* Hero Section */}

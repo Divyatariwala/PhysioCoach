@@ -9,20 +9,29 @@ import Profile from "./components/pages/Profile";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
 import ForgotPassword from "./components/pages/ForgotPassword";
- 
+import PrivateRoute from "./components/auth/PrivateRoute"; // 👈 Import
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<BaseLayout />}>
           <Route index element={<Home />} />
+          <Route path="home" element={<Home />} />
+          <Route path="api/about" element={<About />} />
+          <Route path="api/contact" element={<Contact />} />
+          <Route path="api/faq" element={<div>FAQ Page</div>} />
+
+          {/* 🔐 Protected routes go here */}
+          <Route element={<PrivateRoute />}>
+            <Route path="api/profile" element={<Profile />} />
+            <Route path="api/exercises" element={<Exercises />} />
+          </Route>
+
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgotpassword" element={<ForgotPassword />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="exercises" element={<Exercises />} />
-          <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>
     </Router>

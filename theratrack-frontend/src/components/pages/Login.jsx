@@ -1,58 +1,101 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // <-- import useNavigate
 import "../css/Login.css";
 
-const Login = ({ messages = [] }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
-  const [popupMessage, setPopupMessage] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
-  const passwordRef = useRef(null);
+export default function Login() {
   const canvasRef = useRef(null);
+  const popupRef = useRef(null);
+  const navigate = useNavigate(); // <-- hook to navigate programmatically
 
-  // --- Popup helper ---
-  const showPopupMessage = (message) => {
-    setPopupMessage(message);
-    setShowPopup(true);
-    setTimeout(() => setShowPopup(false), 10000);
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+
+  // --- Popup ---
+  const showPopup = (message, redirect = null) => {
+    const popup = popupRef.current;
+    if (!popup) return;
+
+    const popupMsg = popup.querySelector("#popupMessage");
+    const popupBtn = popup.querySelector("#popupButton");
+    const closeBtn = popup.querySelector("#closePopup");
+
+    popupMsg.textContent = message;
+
+    if (redirect) {
+      popupBtn.textContent = "Go to Dashboard";
+      popupBtn.style.display = "inline-block";
+      popupBtn.onclick = () => navigate(redirect); // <-- use navigate
+    } else {
+      popupBtn.style.display = "none";
+    }
+
+    popup.classList.add("show");
+    closeBtn.onclick = () => popup.classList.remove("show");
+    if (!redirect) setTimeout(() => popup.classList.remove("show"), 8000);
   };
 
   // --- Form submit ---
-  const handleSubmit = (e) => {
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const newErrors = {};
-    if (!username.trim()) newErrors.username = "Username is required";
-    if (!password.trim()) newErrors.password = "Password is required";
+    if (!formData.username.trim()) newErrors.username = "Username is required";
+    if (!formData.password.trim()) newErrors.password = "Password is required";
     setErrors(newErrors);
+    if (Object.keys(newErrors).length) return;
 
-    if (Object.keys(newErrors).length === 0) {
-      console.log({ username, password });
-      // Call API here
+    try {
+      const formDataObj = new FormData();
+      formDataObj.append("username", formData.username);
+      formDataObj.append("password", formData.password);
+
+      const response = await fetch("http://localhost:8000/api/login/", {
+        method: "POST",
+        body: formDataObj,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        showPopup("Invalid username or password.");
+        return;
+      }
+
+      const data = await response.json();
+
+      // ✅ Only here, after successful login
+      if (data.success) {
+        localStorage.setItem("isLoggedIn", "true"); // ← save login state
+        localStorage.setItem("username", data.username || formData.username); // optional
+        showPopup("✅ Login successful!", "/home"); // redirect to home
+         // reload page so BaseLayout picks up login
+        window.location.href = "/";
+      } else {
+        showPopup(data.error || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      showPopup("Network error. Please try again.");
     }
   };
 
-  // --- Password toggle ---
-  const togglePassword = () => {
-    if (passwordRef.current) {
-      passwordRef.current.type =
-        passwordRef.current.type === "password" ? "text" : "password";
-    }
-  };
-
-  // --- Messages popup ---
-  useEffect(() => {
-    messages.forEach((msg) => showPopupMessage(msg));
-  }, [messages]);
-
-  // --- Particles ---
+  // --- Particles (same as before) ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    let particlesArray = [];
+    if (!ctx) return;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    let particlesArray = [];
 
     class Particle {
       constructor() {
@@ -108,8 +151,7 @@ const Login = ({ messages = [] }) => {
       className="login-page d-flex justify-content-center align-items-center position-relative"
       style={{ minHeight: "100vh", overflow: "hidden", background: "#e0f1e7" }}
     >
-      <canvas ref={canvasRef} id="particles"></canvas>
-
+      <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }} />
       <div
         className="login-card p-5 rounded-4 glass-card position-relative"
         style={{ width: "95%", maxWidth: "450px", zIndex: 1 }}
@@ -118,88 +160,59 @@ const Login = ({ messages = [] }) => {
           Welcome Back
         </h2>
 
-        {showPopup && (
-          <div className="popup show">
-            <span className="fw-semibold">{popupMessage}</span>
-            <button id="closePopup" onClick={() => setShowPopup(false)}>
-              &times;
-            </button>
-          </div>
-        )}
+        <div className="popup" ref={popupRef}>
+          <span id="popupMessage" className="fw-semibold"></span>
+          <button type="button" id="popupButton" style={{ display: "none" }}></button>
+          <button type="button" id="closePopup">
+            &times;
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="mb-3 text-start">
-            <label
-              htmlFor="username"
-              className="form-label fw-semibold"
-              style={{ color: "#1b4332" }}
-            >
+            <label htmlFor="username" className="form-label fw-semibold" style={{ color: "#1b4332" }}>
               Username
             </label>
             <input
               type="text"
               className="form-control neumorphic-input"
               id="username"
+              name="username"
               placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={formData.username}
+              onChange={handleChange}
             />
-            {errors.username && (
-              <div className="form-error">{errors.username}</div>
-            )}
+            {errors.username && <div className="form-error">{errors.username}</div>}
           </div>
 
           <div className="mb-3 text-start position-relative">
-            <label
-              htmlFor="password"
-              className="form-label fw-semibold"
-              style={{ color: "#1b4332" }}
-            >
+            <label htmlFor="password" className="form-label fw-semibold" style={{ color: "#1b4332" }}>
               Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               className="form-control neumorphic-input"
               id="password"
+              name="password"
               placeholder="Enter your password"
-              ref={passwordRef}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
             />
-            <i
-              className="fa fa-eye password-toggle"
-              onClick={togglePassword}
-            ></i>
-            {errors.password && (
-              <div className="form-error">{errors.password}</div>
-            )}
+            <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"} password-toggle`} onClick={() => setShowPassword(!showPassword)}></i>
+            {errors.password && <div className="form-error">{errors.password}</div>}
           </div>
 
           <button type="submit" className="btn neon-btn w-100 mb-3">
             Login
           </button>
 
-          <p style={{ color: "#1b4332" }}>
-            Don't have an account?{" "}
-            <a
-              href="/register"
-              className="text-success fw-bold text-decoration-underline"
-            >
-              Register
-            </a>
-          </p>
           <p style={{ color: "#1b4332" }} className="text-center">
-            <a
-              href="/forgotpassword"
-              className="text-danger fw-bold text-decoration-underline"
-            >
-              Forgot Password?
+            <a href="/register" className="text-success fw-bold text-decoration-underline">
+              Register
             </a>
           </p>
         </form>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

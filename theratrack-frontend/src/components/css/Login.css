@@ -34,6 +34,7 @@
         transform: translateY(-50%);
         cursor: pointer;
         color: #1b4332;
+        z-index: 2;
     }
 
     .neon-btn {
@@ -80,7 +81,7 @@
     /* Popup - right for desktop */
     .popup {
         position: absolute;
-        top: 50%;
+        top: 25%;
         right: -320px;
         transform: translateY(-50%);
         min-width: 280px;

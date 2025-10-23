@@ -78,19 +78,29 @@ export default function Register() {
   }, []);
 
   // --- Popup ---
-  const showPopup = (message) => {
+  const showPopup = (message, success = false) => {
     const popup = popupRef.current;
     if (!popup) return;
+
     const popupMsg = popup.querySelector("#popupMessage");
+    const popupBtn = popup.querySelector("#popupButton");
     const closeBtn = popup.querySelector("#closePopup");
+
     popupMsg.textContent = message;
+
+    if (success) {
+      popupBtn.textContent = "Go to Login";
+      popupBtn.style.display = "inline-block";
+      popupBtn.onclick = () => window.location.href = "/login";
+    } else {
+      popupBtn.style.display = "none";
+    }
+
     popup.classList.add("show");
 
-    closeBtn.onclick = () => {
-      popup.classList.remove("show");
-    };
+    closeBtn.onclick = () => popup.classList.remove("show");
 
-    setTimeout(() => popup.classList.remove("show"), 10000);
+    if (!success) setTimeout(() => popup.classList.remove("show"), 8000);
   };
 
   // --- Form ---
@@ -116,16 +126,55 @@ export default function Register() {
     if (!formData.password1) newErrors.password1 = "Password required";
     if (formData.password1 !== formData.password2)
       newErrors.password2 = "Passwords do not match";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    showPopup("Form submitted successfully!");
-    console.log(formData);
-    // Call API to submit
+
+    try {
+      const response = await fetch("http://localhost:8000/api/register/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password1: formData.password1,
+          password2: formData.password2,
+          age: formData.age,
+          gender: formData.gender,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showPopup(data.error || "Registration failed");
+      } else {
+        showPopup("✅ Registered successfully!", true);
+        setFormData({
+          firstName: "",
+          lastName: "",
+          username: "",
+          email: "",
+          age: "",
+          gender: "",
+          password1: "",
+          password2: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showPopup("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -139,21 +188,20 @@ export default function Register() {
         className="register-card p-5 rounded-4 glass-card position-relative text-start"
         style={{ width: "100%", maxWidth: "556px", zIndex: 1 }}
       >
-        <h2
-          className="fw-bold mb-4 text-center"
-          style={{ color: "#1b4332" }}
-        >
+        <h2 className="fw-bold mb-4 text-center" style={{ color: "#1b4332" }}>
           Create Your Account
         </h2>
 
-        <div className="popup d-none" ref={popupRef}>
+        <div className="popup" ref={popupRef}>
           <span id="popupMessage" className="fw-semibold"></span>
+          <button type="button" id="popupButton" style={{ display: "none" }}></button>
           <button type="button" id="closePopup">
             &times;
           </button>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
+          {/* FIRST & LAST NAME */}
           <div className="row mb-3">
             <div className="col-12 col-md-6">
               <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
@@ -176,8 +224,8 @@ export default function Register() {
               <input
                 type="text"
                 className="form-control neumorphic-input"
-                name="lastName"
                 placeholder="Last Name"
+                name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
               />
@@ -185,6 +233,7 @@ export default function Register() {
             </div>
           </div>
 
+          {/* USERNAME & EMAIL */}
           <div className="mb-3">
             <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
               Username
@@ -199,7 +248,6 @@ export default function Register() {
             />
             <div className="form-error">{errors.username}</div>
           </div>
-
           <div className="mb-3">
             <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
               Email
@@ -215,6 +263,7 @@ export default function Register() {
             <div className="form-error">{errors.email}</div>
           </div>
 
+          {/* AGE & GENDER */}
           <div className="row mb-3">
             <div className="col-12 col-md-6">
               <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
@@ -227,8 +276,8 @@ export default function Register() {
                 name="age"
                 value={formData.age}
                 onChange={handleChange}
-                min="1"
-                max="120"
+                min="18"
+                max="100"
               />
               <div className="form-error">{errors.age}</div>
             </div>
@@ -252,6 +301,7 @@ export default function Register() {
             </div>
           </div>
 
+          {/* PASSWORDS */}
           <div className="row mb-3">
             <div className="col-12 col-md-6">
               <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
@@ -298,19 +348,3 @@ export default function Register() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-// start with the exercises page
-// profil page,
-// about page,
-// contact page.
-// show only the navbar when login 
-// backend with the frontend

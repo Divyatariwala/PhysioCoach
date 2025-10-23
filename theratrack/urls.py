@@ -24,31 +24,25 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Basic Pages
-    path('', views.home, name='home'),
-    path('about/', views.about, name='about'),
-    path('contact/', views.contact, name='contact'),
-    path('profile/', views.profile, name='profile'),
-    path('filter-reports/', views.filter_reports_ajax, name='filter_reports_ajax'),
-    path('filter_reports_ajax/', views.filter_reports_ajax, name='filter_reports_ajax'),
-    path('download_report/<int:report_id>/', views.download_report, name='download_report'),
-    path('update_profile_picture/', views.update_profile_picture, name='update_profile_picture'),
-    path('exercises/', views.exercises, name='exercises'),
+    path('api/profile/', views.profile_api, name='profile_api'),
+    path('api/filter_reports_api/', views.filter_reports_api, name='filter_reports_api'),
+    path('api/download_report/<int:report_id>/', views.download_report_api, name='download_report_api'),
+    path('api/update_profile_picture/', views.update_profile_picture_api, name='update_profile_picture_api'),
+    path('api/exercises/', views.exercises_api, name='exercises_api'),
     
    # Authentication
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('forgot_password/', views.forgot_password, name='forgot_password'),
-    path('logout/', views.logout_view, name='logout'),
+    path('api/login/', views.login_api, name='login_api'),
+    path('api/register/', views.register_api, name='register_api'),
+    path('api/forgot_password/', views.forgot_password_api, name='forgot_password_api'),
+    path('api/logout/', views.logout_view_api, name='logout_api'),
 
     # Workout
-    path('save_workout_session/', views.save_workout_session, name='save_workout_session'),
-    path('save_repetitions/', views.save_repetitions, name='save_repetitions'),
-    path('save_feedback/', views.save_feedback, name='save_feedback'),
+    path('api/save_workout_session/', views.save_workout_session_api, name='save_workout_session_api'),
+    path('api/save_repetitions/', views.save_repetitions_api, name='save_repetitions_api'),
+    path('api/save_feedback/', views.save_feedback_api, name='save_feedback_api'),
     
     # Mediapipe Posture Analysis
-    path('analyze_pose/', views.analyze_pose, name='analyze_pose'),    
-
-    path('demo/', views.demo, name='demo'),
+    path('api/analyze_pose/', views.analyze_pose_api, name='analyze_pose_api'),    
 ]
 if settings.DEBUG:
     # Serve static & media files during development
