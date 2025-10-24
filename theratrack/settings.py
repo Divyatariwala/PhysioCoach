@@ -53,17 +53,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Allow only your React frontend
+CORS_ALLOW_CREDENTIALS = True
+
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+]
 
-# Allow credentials (cookies, session)
-CORS_ALLOW_CREDENTIALS = True
-
-# ✅ Session cookie must allow cross-site
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True  # If using HTTPS
 
 ROOT_URLCONF = 'theratrack.urls'
 

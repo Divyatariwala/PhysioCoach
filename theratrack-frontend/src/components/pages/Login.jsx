@@ -7,6 +7,17 @@ export default function Login() {
   const popupRef = useRef(null);
   const navigate = useNavigate(); // <-- hook to navigate programmatically
 
+  const getCSRFToken = () => {
+  const name = "csrftoken";
+  const cookies = document.cookie.split(";").map(c => c.trim());
+  for (let cookie of cookies) {
+    if (cookie.startsWith(name + "=")) {
+      return decodeURIComponent(cookie.split("=")[1]);
+    }
+  }
+  return null;
+};
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -61,6 +72,9 @@ export default function Login() {
         method: "POST",
         body: formDataObj,
         credentials: "include",
+        headers: {
+    "X-CSRFToken": getCSRFToken(), // <-- send CSRF token
+  },
       });
 
       if (!response.ok) {
@@ -206,7 +220,7 @@ export default function Login() {
             Login
           </button>
 
-          <p style={{ color: "#1b4332" }} className="text-center">
+          <p style={{ color: "#1b4332" }} className="text-center"> If you don't have an account,
             <a href="/register" className="text-success fw-bold text-decoration-underline">
               Register
             </a>

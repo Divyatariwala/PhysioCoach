@@ -11,6 +11,7 @@
 
 /* Glassmorphism card */
 .profile-card {
+  position: relative;
   width: 95%;
   max-width: 850px;
   padding: 50px;
@@ -178,17 +179,18 @@
   color: #6c757d;
 }
 
-.report-item a {
+.report-item button {
   background-color: #2d6a4f;
   color: white;
   font-weight: 600;
   padding: 8px 16px;
   border-radius: 50px;
-  text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: background 0.3s ease;
 }
 
-.report-item a:hover {
+.report-item button:hover {
   background-color: #40916c;
 }
 
@@ -222,4 +224,38 @@
 .forgot-password a:hover {
   background-color: #d00000;
   color: white;
+}
+
+/* ===== Side Popups (Profile & Report) ===== */
+.side-popup {
+  position: absolute;
+  top: 40px;
+  right: -140px;
+  width: 350px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #1b4332;
+  font-weight: 600;
+  font-size: 17px;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.1),
+    -4px -4px 12px rgba(255, 255, 255, 0.7);
+  border-radius: 25px;
+  z-index: 999;
+  text-align: center;
+  transform: translateX(150px);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* When visible */
+.side-popup.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Adjust report popup inside reports section */
+.reports-section .side-popup {
+  top: 0; /* align with heading */
+  right: -140px; /* same horizontal offset as profile popup */
 }

@@ -18,6 +18,24 @@ export default function Register() {
 
   const [errors, setErrors] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
+
+  // --- Password Strength Checker ---
+  const getPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[@$!%*?&]/.test(password)) strength++;
+
+    if (strength <= 2) return "Weak";
+    if (strength === 3 || strength === 4) return "Medium";
+    if (strength === 5) return "Strong";
+    return "";
+  };
+
+  const isStrongPassword = (password) => getPasswordStrength(password) === "Strong";
 
   // --- Particles ---
   useEffect(() => {
@@ -91,7 +109,7 @@ export default function Register() {
     if (success) {
       popupBtn.textContent = "Go to Login";
       popupBtn.style.display = "inline-block";
-      popupBtn.onclick = () => window.location.href = "/login";
+      popupBtn.onclick = () => (window.location.href = "/login");
     } else {
       popupBtn.style.display = "none";
     }
@@ -104,8 +122,12 @@ export default function Register() {
   };
 
   // --- Form ---
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === "password1") setPasswordStrength(getPasswordStrength(value));
+  };
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
@@ -123,7 +145,12 @@ export default function Register() {
     if (!formData.age || formData.age < 1 || formData.age > 120)
       newErrors.age = "Valid age required";
     if (!formData.gender) newErrors.gender = "Gender required";
+
     if (!formData.password1) newErrors.password1 = "Password required";
+    else if (!isStrongPassword(formData.password1))
+      newErrors.password1 =
+        "Password must be at least 8 characters, include uppercase, lowercase, number & special character";
+
     if (formData.password1 !== formData.password2)
       newErrors.password2 = "Passwords do not match";
 
@@ -170,6 +197,7 @@ export default function Register() {
           password1: "",
           password2: "",
         });
+        setPasswordStrength("");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -315,6 +343,27 @@ export default function Register() {
                 value={formData.password1}
                 onChange={handleChange}
               />
+              {/* Password Strength Indicator */}
+              {formData.password1 && (
+                <>
+                  <div className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}>
+                    {passwordStrength} password
+                  </div>
+                  <div className="password-strength-bar-container mt-1">
+                    <div
+                      className={`password-strength-bar ${passwordStrength.toLowerCase()}`}
+                      style={{
+                        width:
+                          passwordStrength === "Weak"
+                            ? "33%"
+                            : passwordStrength === "Medium"
+                            ? "66%"
+                            : "100%",
+                      }}
+                    ></div>
+                  </div>
+                </>
+              )}
               <div className="form-error">{errors.password1}</div>
             </div>
             <div className="col-12 col-md-6">

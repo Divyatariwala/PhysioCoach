@@ -31,7 +31,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/forgotpassword" element={<ForgotPassword />} />
+          <Route path="api/forgotpassword" element={<ForgotPassword />} />
         </Route>
       </Routes>
     </Router>

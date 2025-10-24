@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 import numpy as np
 import json
 import os
-from django.http import Http404, HttpResponse, JsonResponse, StreamingHttpResponse
+from django.http import Http404, FileResponse, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -24,7 +24,6 @@ from theratrack import settings
 from xhtml2pdf import pisa  # for PDF generation
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
-
 # Import your models
 from .models import Profile, Exercise, WorkoutSession, Repetition, Report, Feedback, AIModel
 
@@ -44,21 +43,21 @@ def profile_api(request):
         "profile_picture": profile.profile_picture.url if profile and profile.profile_picture else "/static/posture/images/default-avatar.png"
     }
 
-    # Reports
-    reports = Report.objects.filter(user=user).order_by("-generated_at")
+    # Reports tied to the user's sessions
+    reports = Report.objects.filter(session__user=user).order_by("-generated_at")
     reports_data = []
     for report in reports:
         reports_data.append({
-            "id": report.id,
-            "title": report.title,
-            "exercise": {"id": report.exercise.id, "name": report.exercise.name} if report.exercise else None,
+            "id": report.report_id,
+            "title": f"Report for Session {report.session.session_id}",
+            "exercise": {"id": report.exercise.exercise_id, "name": report.exercise.exercise_name} if report.exercise else None,
             "generated_at": report.generated_at,
             "pdf_file": report.pdf_file.url if report.pdf_file else None
         })
 
     # Exercises
     exercises = Exercise.objects.all()
-    exercises_data = [{"exercise_id": ex.id, "name": ex.name} for ex in exercises]
+    exercises_data = [{"exercise_id": ex.exercise_id, "name": ex.exercise_name} for ex in exercises]
 
     return JsonResponse({
         "profile": profile_data,
@@ -68,6 +67,18 @@ def profile_api(request):
 
 
 @login_required
+def update_profile_picture_api(request):
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        profile = request.user.profile  # Assuming OneToOne relation to User
+        profile.profile_picture = request.FILES['profile_picture']
+        profile.save()
+        # Return full URL for frontend
+        full_url = request.build_absolute_uri(profile.profile_picture.url)
+        return JsonResponse({'status': 'success', 'image_url': full_url})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+@login_required
 def filter_reports_api(request):
     """
     Return reports filtered by exercise as JSON
@@ -75,15 +86,16 @@ def filter_reports_api(request):
     exercise_id = request.GET.get("exercise_id")
 
     if exercise_id == "all" or not exercise_id:
-        reports = Report.objects.filter(user=request.user).order_by("-generated_at")
+        reports = Report.objects.filter(session__user=request.user).order_by("-generated_at")
     else:
-        reports = Report.objects.filter(user=request.user, exercise_id=exercise_id).order_by("-generated_at")
+        reports = Report.objects.filter(session__user=request.user, exercise_id=exercise_id).order_by("-generated_at")
 
     reports_data = [
         {
-            "title": r.title,
+            "id": r.report_id,
+            "title": f"Report for Session {r.session.session_id}",
             "date": r.generated_at.strftime("%d %b %Y"),
-            "file_url": r.pdf_file.url if r.pdf_file else None
+            "file_url": r.pdf_file.url if r.pdf_file else None,
         }
         for r in reports
     ]
@@ -92,20 +104,21 @@ def filter_reports_api(request):
 
 @login_required
 def download_report_api(request, report_id):
-    try:
-        report = Report.objects.get(id=report_id, user=request.user)
-        return FileResponse(report.pdf_file.open(), as_attachment=True, filename=report.pdf_file.name)
-    except Report.DoesNotExist:
-        raise Http404("Report not found")
+    report = get_object_or_404(Report, report_id=report_id)
 
-@login_required
-def update_profile_picture_api(request):
-    if request.method == 'POST' and request.FILES.get('profile_picture'):
-        profile = request.user.profile
-        profile.profile_picture = request.FILES['profile_picture']
-        profile.save()
-        return JsonResponse({'status': 'success', 'image_url': profile.profile_picture.url})
-    return JsonResponse({'status': 'error'}, status=400)
+    if not report.pdf_file or not os.path.exists(report.pdf_file.path):
+        raise Http404("Report file missing")
+
+    filename = os.path.basename(report.pdf_file.name)
+    
+    # Open file in binary mode
+    file_handle = open(report.pdf_file.path, "rb")
+    response = FileResponse(file_handle)
+    
+    # Force download by setting header manually
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    return response
 
 @login_required
 def exercises_api(request):
@@ -132,7 +145,7 @@ def exercises_api(request):
 # ---------------------------
 # LOGIN VIEW
 # ---------------------------
-@csrf_exempt  # or use @ensure_csrf_cookie and send CSRF token from frontend
+@csrf_exempt
 def login_api(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required"}, status=400)
@@ -201,13 +214,15 @@ def register_api(request):
         traceback.print_exc()
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-
+@login_required
+@csrf_exempt
 def forgot_password_api(request):
     context = {}
     if request.method == "POST":
-        old_password = request.POST.get("old_password")
-        new_password = request.POST.get("new_password")
-        confirm_password = request.POST.get("confirm_password")
+        data = json.loads(request.body)
+        old_password = data.get("old_password")
+        new_password = data.get("new_password")
+        confirm_password = data.get("confirm_password")
         user = request.user
 
         if not user.check_password(old_password):
@@ -218,7 +233,8 @@ def forgot_password_api(request):
             update_session_auth_hash(request, user)
             context["success_message"] = "Password changed successfully"
 
-    return render(request, "posture/forgot_password.html", context)
+    return JsonResponse(context)
+
 
 def logout_view_api(request):
     logout(request)

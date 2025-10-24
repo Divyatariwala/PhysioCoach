@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Download, Upload, Info, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import "../css/Profile.css";
 
 export default function Profile() {
@@ -17,42 +18,74 @@ export default function Profile() {
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState("all");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const fileInputRef = useRef(null);
 
-  // ✅ Fetch profile + exercises + reports
+  // Popups
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [profilePopupMessage, setProfilePopupMessage] = useState("");
+
+  const [showReportPopup, setShowReportPopup] = useState(false);
+  const [reportPopupMessage, setReportPopupMessage] = useState("");
+
+  const fileInputRef = useRef(null);
+  const backendHost = "http://localhost:8000"; // Django host
+
+  // Helper: Get CSRF token
+  const getCSRFToken = () => {
+    const name = "csrftoken";
+    const cookies = document.cookie.split(";").map((c) => c.trim());
+    for (let cookie of cookies) {
+      if (cookie.startsWith(name + "="))
+        return decodeURIComponent(cookie.split("=")[1]);
+    }
+    return null;
+  };
+
+  const mapReports = (apiReports) => {
+    return (apiReports || []).map((r) => {
+      const id = r.report_id || r.id;
+      return {
+        id,
+        title: r.title || "Report",
+        date: r.generated_at?.slice(0, 10) || "N/A",
+        file_url: id ? `${backendHost}/api/download_report/${id}/` : null,
+      };
+    });
+  };
+
+  // Fetch profile + exercises + reports
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/profile_api/", {
+        const res = await fetch(`${backendHost}/api/profile/`, {
           method: "GET",
           credentials: "include",
+          headers: { Accept: "application/json" },
         });
 
-        if (!res.ok) {
-          // Redirected to login -> HTML response
-          throw new Error("Not authenticated");
-        }
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType?.includes("application/json")) {
-          throw new Error("Received non-JSON response (likely login page)");
-        }
+        if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
-        setProfile(data.profile || {});
-        setReports(data.reports || []);
+
+        let profilePic =
+          data.profile?.profile_picture ||
+          "/static/posture/images/default-avatar.png";
+        if (profilePic && !profilePic.startsWith("http"))
+          profilePic = backendHost + profilePic;
+
+        setProfile({ ...data.profile, profile_picture: profilePic });
+        setReports(mapReports(data.reports));
         setExercises(data.exercises || []);
       } catch (err) {
-        console.error("Profile load error:", err);
+        console.error("🚨 Profile load error:", err);
         alert("⚠️ Please log in to view your profile.");
-        window.location.href = "/login"; // ✅ auto redirect
+        window.location.href = "/login";
       }
     };
 
     fetchData();
   }, []);
 
-  // ✅ Upload Profile Picture
+  // Upload Profile Picture
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -61,55 +94,106 @@ export default function Profile() {
     formData.append("profile_picture", file);
 
     try {
-      const res = await fetch("/api/update_profile_picture_api/", {
+      const csrfToken = getCSRFToken();
+
+      const res = await fetch(`${backendHost}/api/update_profile_picture/`, {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: { "X-CSRFToken": csrfToken },
       });
 
-      if (!res.ok) throw new Error("Upload Failed");
+      if (!res.ok) throw new Error("Upload failed");
 
       const data = await res.json();
-      setProfile((prev) => ({
-        ...prev,
-        profile_picture: data.image_url,
-      }));
+
+      let profilePic =
+        data.image_url || "/static/posture/images/default-avatar.png";
+      if (profilePic && !profilePic.startsWith("http"))
+        profilePic = backendHost + profilePic;
+
+      setProfile((prev) => ({ ...prev, profile_picture: profilePic }));
+
+      // Show popup on profile update
+      setProfilePopupMessage("Profile picture updated!");
+      setShowProfilePopup(true);
+      setTimeout(() => setShowProfilePopup(false), 3000); // auto-hide
     } catch (err) {
       console.error(err);
       alert("⚠️ Unable to upload profile picture");
     }
   };
 
-  // ✅ Filter Reports
+  // Filter Reports by Exercise
   const handleExerciseSelect = async (exerciseId) => {
     setSelectedExercise(exerciseId);
     setDropdownOpen(false);
 
     try {
-      const res = await fetch(
-        `/api/filter_reports_api/?exercise_id=${exerciseId}`,
-        { credentials: "include" }
-      );
+      const url =
+        exerciseId === "all"
+          ? `${backendHost}/api/filter_reports/`
+          : `${backendHost}/api/filter_reports/?exercise_id=${exerciseId}`;
+
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
 
       if (!res.ok) throw new Error("Failed to fetch reports");
 
       const data = await res.json();
-      setReports(data.reports || []);
+      setReports(mapReports(data.reports));
     } catch (err) {
       console.error(err);
-      alert("⚠️ Failed to filter reports");
+      alert("⚠️ Failed to fetch reports");
+      setReports([]);
     }
   };
 
-  // ✅ Download
-  const handleDownload = (url) => {
-    if (url) window.open(url, "_blank");
+  // Download report and show popup
+  const handleDownload = async (reportId) => {
+    try {
+      const response = await fetch(
+        `${backendHost}/api/download_report/${reportId}/`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`Failed to download report: ${response.status}`);
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `report_${reportId}.pdf`;
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      // Show download popup
+      setReportPopupMessage("Report downloaded successfully!");
+      setShowReportPopup(true);
+      setTimeout(() => setShowReportPopup(false), 3000);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
   };
 
   return (
-    <div className="profile-page">
-      <div className="profile-card">
-        {/* ✅ Avatar + Upload */}
+    <div className="profile-page position-relative">
+      <div className="profile-card position-relative">
+        {/* Profile picture popup */}
+        {showProfilePopup && (
+          <div className={`side-popup ${showProfilePopup ? "show" : ""}`}>
+            {profilePopupMessage}
+          </div>
+        )}
+
+        {/* Profile Image Upload */}
         <div className="text-center mb-5">
           <div
             className="avatar-wrapper"
@@ -131,13 +215,12 @@ export default function Profile() {
               onChange={handleFileChange}
             />
           </div>
-
           <h2 className="fw-bold" style={{ color: "#1b4332" }}>
             {profile.username}'s Profile
           </h2>
         </div>
 
-        {/* ✅ Personal Info */}
+        {/* Personal Info */}
         <div className="personal-info">
           <h3 className="fw-bold mb-3" style={{ color: "#1b4332" }}>
             Personal Information
@@ -152,7 +235,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* ✅ Dropdown Filter */}
+        {/* Dropdown Filter */}
         <div className="custom-dropdown">
           <label className="fw-semibold mb-2 text-dark">
             Filter Reports by Exercise:
@@ -164,7 +247,6 @@ export default function Profile() {
             {exercises.find((ex) => ex.exercise_id === selectedExercise)?.name ??
               "All Exercises"}
           </div>
-
           {dropdownOpen && (
             <div className="dropdown-options show">
               <div onClick={() => handleExerciseSelect("all")}>All Exercises</div>
@@ -180,27 +262,30 @@ export default function Profile() {
           )}
         </div>
 
-        {/* ✅ Reports Section */}
-        <div className="reports-section">
-          <h3 className="fw-bold mb-3" style={{ color: "#1b4332" }}>
+        {/* Reports */}
+        <div className="reports-section position-relative">
+          <h3 className="fw-bold mb-3" style={{ color: "#1b4332", position: "relative" }}>
             Your Reports
+            {/* Report download popup */}
+            {showReportPopup && (
+              <div className={`side-popup ${showReportPopup ? "show" : ""}`}>
+                {reportPopupMessage}
+              </div>
+            )}
           </h3>
-
           {reports.length > 0 ? (
             <ul>
               {reports.map((report) => (
-                <li key={report.id || report.title} className="report-item">
+                <li key={report.id} className="report-item">
                   <div>
                     <strong>{report.title}</strong>
                     <br />
-                    <small className="text-muted">
-                      Date: {report.date || "N/A"}
-                    </small>
+                    <small className="text-muted">Date: {report.date}</small>
                   </div>
-
                   <button
                     className="btn btn-success"
-                    onClick={() => handleDownload(report.file_url)}
+                    onClick={() => handleDownload(report.id)}
+                    disabled={!report.file_url}
                   >
                     <Download size={18} /> Download
                   </button>
@@ -209,15 +294,15 @@ export default function Profile() {
             </ul>
           ) : (
             <div className="no-reports">
-              <Info size={18} /> No reports available.
+              <Info size={18} /> No reports available for this exercise.
             </div>
           )}
         </div>
 
         <div className="forgot-password">
-          <a href="/forgot_password">
+          <Link to="/api/forgotpassword">
             <Lock size={18} /> Forgot / Change Password
-          </a>
+          </Link>
         </div>
       </div>
     </div>

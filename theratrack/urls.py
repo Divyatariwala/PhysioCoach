@@ -25,7 +25,7 @@ urlpatterns = [
 
     # Basic Pages
     path('api/profile/', views.profile_api, name='profile_api'),
-    path('api/filter_reports_api/', views.filter_reports_api, name='filter_reports_api'),
+    path('api/filter_reports/', views.filter_reports_api, name='filter_reports_api'),
     path('api/download_report/<int:report_id>/', views.download_report_api, name='download_report_api'),
     path('api/update_profile_picture/', views.update_profile_picture_api, name='update_profile_picture_api'),
     path('api/exercises/', views.exercises_api, name='exercises_api'),
@@ -33,7 +33,7 @@ urlpatterns = [
    # Authentication
     path('api/login/', views.login_api, name='login_api'),
     path('api/register/', views.register_api, name='register_api'),
-    path('api/forgot_password/', views.forgot_password_api, name='forgot_password_api'),
+    path('api/forgotpassword/', views.forgot_password_api, name='forgot_password_api'),
     path('api/logout/', views.logout_view_api, name='logout_api'),
 
     # Workout
