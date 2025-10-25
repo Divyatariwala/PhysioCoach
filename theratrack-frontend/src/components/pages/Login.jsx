@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // <-- import useNavigate
+import { useNavigate } from "react-router-dom";
 import "../css/Login.css";
 
 export default function Login() {
   const canvasRef = useRef(null);
   const popupRef = useRef(null);
-  const navigate = useNavigate(); // <-- hook to navigate programmatically
+  const navigate = useNavigate();
 
   const getCSRFToken = () => {
-  const name = "csrftoken";
-  const cookies = document.cookie.split(";").map(c => c.trim());
-  for (let cookie of cookies) {
-    if (cookie.startsWith(name + "=")) {
-      return decodeURIComponent(cookie.split("=")[1]);
+    const name = "csrftoken";
+    const cookies = document.cookie.split(";").map(c => c.trim());
+    for (let cookie of cookies) {
+      if (cookie.startsWith(name + "=")) {
+        return decodeURIComponent(cookie.split("=")[1]);
+      }
     }
-  }
-  return null;
-};
+    return null;
+  };
 
   const [formData, setFormData] = useState({
     username: "",
@@ -26,7 +26,35 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // --- Popup ---
+  // --- Thratrack-themed fun popup messages ---
+  const loginSuccessMessages = [
+    "🏃‍♂️ You’re back on track! Let’s crush those goals!",
+    "🎯 Bullseye! Login successful — time to track like a pro!",
+    "💪 Welcome back, champ! Your progress awaits!",
+    "🚀 Blast off! You’re officially in Thratrack mode!",
+    "✨ All systems go! Your stats are ready to shine!",
+  ];
+
+  const loginErrorMessages = [
+    "⚠️ Hmmm… username or password seems off — check your track!",
+    "🤔 Login failed! Did you forget your Thratrack secret?",
+    "❌ Oops! No entry to the tracking universe without correct creds.",
+    "🛑 Halt! Your credentials need a tune-up.",
+    "💢 Wrong combo! Even Thratrack can’t track you in here!",
+  ];
+
+  const loginWarningMessages = {
+    username: [
+      "⚡ Whoa! Can’t track without a username — who are you?",
+      "🕵️‍♂️ Username missing! Reveal your Thratrack identity.",
+    ],
+    password: [
+      "🔐 Password missing! No progress without the secret code.",
+      "⚡ Keep it secure! Enter your password to continue tracking.",
+    ],
+  };
+
+  // --- Popup function ---
   const showPopup = (message, redirect = null) => {
     const popup = popupRef.current;
     if (!popup) return;
@@ -40,7 +68,7 @@ export default function Login() {
     if (redirect) {
       popupBtn.textContent = "Go to Dashboard";
       popupBtn.style.display = "inline-block";
-      popupBtn.onclick = () => navigate(redirect); // <-- use navigate
+      popupBtn.onclick = () => navigate(redirect);
     } else {
       popupBtn.style.display = "none";
     }
@@ -58,8 +86,10 @@ export default function Login() {
     e.preventDefault();
 
     const newErrors = {};
-    if (!formData.username.trim()) newErrors.username = "Username is required";
-    if (!formData.password.trim()) newErrors.password = "Password is required";
+    if (!formData.username.trim()) newErrors.username =
+      loginWarningMessages.username[Math.floor(Math.random() * loginWarningMessages.username.length)];
+    if (!formData.password.trim()) newErrors.password =
+      loginWarningMessages.password[Math.floor(Math.random() * loginWarningMessages.password.length)];
     setErrors(newErrors);
     if (Object.keys(newErrors).length) return;
 
@@ -73,34 +103,39 @@ export default function Login() {
         body: formDataObj,
         credentials: "include",
         headers: {
-    "X-CSRFToken": getCSRFToken(), // <-- send CSRF token
-  },
+          "X-CSRFToken": getCSRFToken(),
+        },
       });
 
       if (!response.ok) {
-        showPopup("Invalid username or password.");
+        const msg = loginErrorMessages[Math.floor(Math.random() * loginErrorMessages.length)];
+        showPopup(msg);
         return;
       }
 
       const data = await response.json();
 
-      // ✅ Only here, after successful login
       if (data.success) {
-        localStorage.setItem("isLoggedIn", "true"); // ← save login state
-        localStorage.setItem("username", data.username || formData.username); // optional
-        showPopup("✅ Login successful!", "/home"); // redirect to home
-         // reload page so BaseLayout picks up login
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("username", data.username || formData.username);
+
+        const randomSuccess = loginSuccessMessages[Math.floor(Math.random() * loginSuccessMessages.length)];
+        showPopup(randomSuccess, "/home");
+
+        // reload page so BaseLayout picks up login
         window.location.href = "/";
       } else {
-        showPopup(data.error || "Login failed");
+        const msg = loginErrorMessages[Math.floor(Math.random() * loginErrorMessages.length)];
+        showPopup(msg);
       }
     } catch (err) {
       console.error(err);
-      showPopup("Network error. Please try again.");
+      const msg = "🌐 Network error. Check your connection and try again!";
+      showPopup(msg);
     }
   };
 
-  // --- Particles (same as before) ---
+  // --- Particles ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -220,7 +255,8 @@ export default function Login() {
             Login
           </button>
 
-          <p style={{ color: "#1b4332" }} className="text-center"> If you don't have an account,
+          <p style={{ color: "#1b4332" }} className="text-center">
+            If you don't have an account,{" "}
             <a href="/register" className="text-success fw-bold text-decoration-underline">
               Register
             </a>

@@ -231,7 +231,7 @@ def forgot_password_api(request):
             user.set_password(new_password)
             user.save()
             update_session_auth_hash(request, user)
-            context["success_message"] = "Password changed successfully"
+            context["success_message"] = "🎯 Password flawlessly upgraded! You’re now basically unhackable 😎🔐"
 
     return JsonResponse(context)
 

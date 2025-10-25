@@ -2,7 +2,31 @@ import React, { useState, useEffect, useRef } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import "../css/ForgotPassword.css";
 
-// PasswordField moved outside to prevent re-creation on each render
+// Fun Success + Error Messages
+const successMessages = [
+  "🎉 Password Level Up! You're now more secure than ever!",
+  "🛡️ Security boost activated! You're a cyber-ninja now!",
+  "✅ Boom! Password changed quicker than a magician disappearing!",
+  "🔥 Strong password unlocked! Hackers fear you now!",
+  "🚀 Mission accomplished! You're unstoppable!",
+];
+
+const errorMessages = {
+  oldPassword: [
+    "⛔ That old password doesn't ring a bell… try again! 🔑",
+    "🤔 Close, but not correct! Double-check your old one!",
+  ],
+  confirmPassword: [
+    "😬 Oops! Those passwords don’t match — like socks from different worlds!",
+    "🧩 They must match perfectly — try again!",
+  ],
+  strength: [
+    "💪 Make it stronger! Add symbols, numbers & UPPERCASE!",
+    "🔐 Hackers are laughing… give them a challenge!",
+  ],
+};
+
+// Reusable Password Input Component
 const PasswordField = ({
   label,
   name,
@@ -11,7 +35,7 @@ const PasswordField = ({
   showPassword,
   toggleShowPassword,
   handleChange,
-  passwordStrength, // NEW
+  passwordStrength,
 }) => (
   <div className="mb-3 text-start position-relative">
     <label htmlFor={name} className="form-label fw-semibold" style={{ color: "#1b4332" }}>
@@ -42,6 +66,7 @@ const PasswordField = ({
         {showPassword[name] ? <EyeOff size={18} /> : <Eye size={18} />}
       </span>
     </div>
+
     {passwordStrength && name === "newPassword" && (
       <>
         <div className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}>
@@ -62,6 +87,7 @@ const PasswordField = ({
         </div>
       </>
     )}
+
     {error && <div className="form-error">{error}</div>}
   </div>
 );
@@ -80,12 +106,12 @@ const ForgotPassword = () => {
     newPassword: false,
     confirmPassword: false,
   });
-  const [passwordChanged, setPasswordChanged] = useState(false); // Show login button
-  const [passwordStrength, setPasswordStrength] = useState(""); // NEW
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
 
   const canvasRef = useRef(null);
 
-  // --- Password Strength Checker ---
+  // Password Strength Logic
   const getPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -95,16 +121,16 @@ const ForgotPassword = () => {
     if (/[@$!%*?&]/.test(password)) strength++;
 
     if (strength <= 2) return "Weak";
-    if (strength === 3 || strength === 4) return "Medium";
-    if (strength === 5) return "Strong";
-    return "";
+    if (strength <= 4) return "Medium";
+    return "Strong";
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-
-    if (name === "newPassword") setPasswordStrength(getPasswordStrength(value));
+    if (name === "newPassword") {
+      setPasswordStrength(getPasswordStrength(value));
+    }
   };
 
   const toggleShowPassword = (field) => {
@@ -113,14 +139,21 @@ const ForgotPassword = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.oldPassword) newErrors.oldPassword = "Old password is required";
-    if (!formData.newPassword) newErrors.newPassword = "New password is required";
+
+    if (!formData.oldPassword)
+      newErrors.oldPassword = "Hold up! You can’t change the lock without the old key 🔑";
+
+    if (!formData.newPassword)
+      newErrors.newPassword = "A brand-new password needs to be born here 🐣";
     else if (getPasswordStrength(formData.newPassword) !== "Strong")
-      newErrors.newPassword = "Password must be Strong (≥8 chars, uppercase, lowercase, number, special)";
+      newErrors.newPassword =
+        errorMessages.strength[Math.floor(Math.random() * 2)];
+
     if (!formData.confirmPassword)
-      newErrors.confirmPassword = "Please confirm your new password";
+      newErrors.confirmPassword = "Double-check time! Please confirm that password";
     else if (formData.newPassword !== formData.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword =
+        errorMessages.confirmPassword[Math.floor(Math.random() * 2)];
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -132,8 +165,7 @@ const ForgotPassword = () => {
 
     const csrfToken = document.cookie
       .split(";")
-      .map((c) => c.trim())
-      .find((c) => c.startsWith("csrftoken="))
+      .find((c) => c.trim().startsWith("csrftoken="))
       ?.split("=")[1];
 
     fetch("http://localhost:8000/api/forgotpassword/", {
@@ -152,90 +184,43 @@ const ForgotPassword = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.old_password_error) {
-          setErrors({ oldPassword: data.old_password_error });
+          setErrors({
+            oldPassword:
+              errorMessages.oldPassword[Math.floor(Math.random() * 2)],
+          });
         } else if (data.confirm_password_error) {
-          setErrors({ confirmPassword: data.confirm_password_error });
+          setErrors({
+            confirmPassword:
+              errorMessages.confirmPassword[Math.floor(Math.random() * 2)],
+          });
         } else if (data.success_message) {
-          setPopupMessage(data.success_message);
+          const randomSuccess =
+            successMessages[Math.floor(Math.random() * successMessages.length)];
+          setPopupMessage(randomSuccess);
           setShowPopup(true);
+          setPasswordChanged(true);
           setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
           setErrors({});
           setPasswordStrength("");
-          setPasswordChanged(true); // Show login button
+
+          document.body.classList.add("confetti");
+          setTimeout(() => {
+            document.body.classList.remove("confetti");
+          }, 1800);
         }
       })
       .catch(() => {
-        setPopupMessage("Something went wrong");
+        setPopupMessage("Something went wrong.");
         setShowPopup(true);
       });
   };
 
   useEffect(() => {
     if (showPopup) {
-      const timer = setTimeout(() => setShowPopup(false), 3000);
+      const timer = setTimeout(() => setShowPopup(false), 2800);
       return () => clearTimeout(timer);
     }
   }, [showPopup]);
-
-  // --- Particles Effect ---
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    let particlesArray = [];
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() * 1 - 0.5;
-        this.speedY = Math.random() * 1 - 0.5;
-      }
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-      }
-      draw() {
-        ctx.fillStyle = "rgba(76,175,80,0.3)";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function initParticles() {
-      particlesArray = [];
-      for (let i = 0; i < 80; i++) {
-        particlesArray.push(new Particle());
-      }
-    }
-
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-      requestAnimationFrame(animateParticles);
-    }
-
-    initParticles();
-    animateParticles();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initParticles();
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   return (
     <div
@@ -252,9 +237,6 @@ const ForgotPassword = () => {
         {showPopup && (
           <div className="popup show">
             <span className="fw-semibold">{popupMessage}</span>
-            <button id="closePopup" onClick={() => setShowPopup(false)}>
-              &times;
-            </button>
           </div>
         )}
 
@@ -264,35 +246,36 @@ const ForgotPassword = () => {
             name="oldPassword"
             value={formData.oldPassword}
             error={errors.oldPassword}
+            handleChange={handleChange}
             showPassword={showPassword}
             toggleShowPassword={toggleShowPassword}
-            handleChange={handleChange}
           />
+
           <PasswordField
             label="New Password"
             name="newPassword"
             value={formData.newPassword}
             error={errors.newPassword}
+            handleChange={handleChange}
             showPassword={showPassword}
             toggleShowPassword={toggleShowPassword}
-            handleChange={handleChange}
-            passwordStrength={passwordStrength} // NEW
+            passwordStrength={passwordStrength}
           />
+
           <PasswordField
             label="Confirm New Password"
             name="confirmPassword"
             value={formData.confirmPassword}
             error={errors.confirmPassword}
+            handleChange={handleChange}
             showPassword={showPassword}
             toggleShowPassword={toggleShowPassword}
-            handleChange={handleChange}
           />
 
           <button type="submit" className="btn neon-btn w-100 mb-3">
             Change Password
           </button>
 
-          {/* Login button shown after password change */}
           {passwordChanged && (
             <a href="/login" className="neumorphic-btn">
               Login
