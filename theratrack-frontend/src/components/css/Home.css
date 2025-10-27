@@ -143,3 +143,33 @@ section {
     width: 100%;
     border-radius: 20px;
 }
+
+/* Override Bootstrap default focus ring on outline buttons */
+.btn-outline-primary,
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary:focus-visible {
+    border-color: #1b4332 !important;
+    color: #1b4332 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* When hovered or clicked */
+.btn-outline-primary:hover,
+.btn-outline-primary:active {
+    background-color: #1b4332 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+    border-color: #1b4332 !important;
+}
+
+/* Ensures active state doesn't flash blue */
+.btn-outline-primary:active:focus {
+    background-color: #1b4332 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+    border-color: #1b4332 !important;
+}

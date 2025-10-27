@@ -32,13 +32,13 @@ function Home() {
 
               {isAuthenticated ? (
                 <>
-                  <Link to="/exercises" className="btn btn-primary mx-2">Start Exercising</Link>
-                  <Link to="/profile" className="btn btn-outline-primary mx-2">View Profile</Link>
+                  <Link to="api/exercises" className="btn btn-primary mx-2">Start Exercising</Link>
+                  <Link to="api/profile" className="btn btn-outline-primary mx-2">View Profile</Link>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="btn btn-primary mx-2">Login</Link>
-                  <Link to="/register" className="btn btn-outline-primary mx-2">Register Free</Link>
+                  <Link to="api/login" className="btn btn-primary mx-2">Login</Link>
+                  <Link to="api/register" className="btn btn-outline-primary mx-2">Register Free</Link>
                 </>
               )}
             </div>

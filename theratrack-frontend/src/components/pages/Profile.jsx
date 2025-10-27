@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Download, Upload, Info, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import confetti from "canvas-confetti";
 import "../css/Profile.css";
 
 export default function Profile() {
@@ -19,17 +20,14 @@ export default function Profile() {
   const [selectedExercise, setSelectedExercise] = useState("all");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Popups
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [profilePopupMessage, setProfilePopupMessage] = useState("");
-
   const [showReportPopup, setShowReportPopup] = useState(false);
   const [reportPopupMessage, setReportPopupMessage] = useState("");
 
   const fileInputRef = useRef(null);
-  const backendHost = "http://localhost:8000"; // Django host
+  const backendHost = "http://localhost:8000";
 
-  // Helper: Get CSRF token
   const getCSRFToken = () => {
     const name = "csrftoken";
     const cookies = document.cookie.split(";").map((c) => c.trim());
@@ -40,8 +38,8 @@ export default function Profile() {
     return null;
   };
 
-  const mapReports = (apiReports) => {
-    return (apiReports || []).map((r) => {
+  const mapReports = (apiReports) =>
+    (apiReports || []).map((r) => {
       const id = r.report_id || r.id;
       return {
         id,
@@ -50,42 +48,62 @@ export default function Profile() {
         file_url: id ? `${backendHost}/api/download_report/${id}/` : null,
       };
     });
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`${backendHost}/api/profile/`, {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch profile");
+
+      const data = await res.json();
+
+      let profilePic =
+        data.profile?.profile_picture ||
+        "/static/posture/images/default-avatar.png";
+      if (profilePic && !profilePic.startsWith("http"))
+        profilePic = backendHost + profilePic;
+
+      setProfile({ ...data.profile, profile_picture: profilePic });
+      setReports(mapReports(data.reports));
+      setExercises(data.exercises || []);
+    } catch (err) {
+      console.error("🚨 Profile load error:", err);
+      alert("⚠️ Please log in to view your profile.");
+      window.location.href = "/login";
+    }
   };
 
-  // Fetch profile + exercises + reports
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`${backendHost}/api/profile/`, {
-          method: "GET",
-          credentials: "include",
-          headers: { Accept: "application/json" },
-        });
-
-        if (!res.ok) throw new Error("Failed to fetch profile");
-
-        const data = await res.json();
-
-        let profilePic =
-          data.profile?.profile_picture ||
-          "/static/posture/images/default-avatar.png";
-        if (profilePic && !profilePic.startsWith("http"))
-          profilePic = backendHost + profilePic;
-
-        setProfile({ ...data.profile, profile_picture: profilePic });
-        setReports(mapReports(data.reports));
-        setExercises(data.exercises || []);
-      } catch (err) {
-        console.error("🚨 Profile load error:", err);
-        alert("⚠️ Please log in to view your profile.");
-        window.location.href = "/login";
-      }
-    };
-
     fetchData();
   }, []);
 
-  // Upload Profile Picture
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.1, x: 0.5 },
+      colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
+    });
+    confetti({
+      particleCount: 100,
+      angle: 60,
+      spread: 60,
+      origin: { x: 0 },
+      colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
+    });
+    confetti({
+      particleCount: 100,
+      angle: 120,
+      spread: 60,
+      origin: { x: 1 },
+      colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
+    });
+  };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -107,24 +125,22 @@ export default function Profile() {
 
       const data = await res.json();
 
-      let profilePic =
+      let newPic =
         data.image_url || "/static/posture/images/default-avatar.png";
-      if (profilePic && !profilePic.startsWith("http"))
-        profilePic = backendHost + profilePic;
+      if (newPic && !newPic.startsWith("http")) newPic = backendHost + newPic;
 
-      setProfile((prev) => ({ ...prev, profile_picture: profilePic }));
+      setProfile((prev) => ({ ...prev, profile_picture: newPic }));
 
-      // Show popup on profile update
       setProfilePopupMessage("Profile picture updated!");
       setShowProfilePopup(true);
-      setTimeout(() => setShowProfilePopup(false), 3000); // auto-hide
+      triggerConfetti();
+      setTimeout(() => setShowProfilePopup(false), 2000);
     } catch (err) {
       console.error(err);
-      alert("⚠️ Unable to upload profile picture");
+      alert("Unable to upload profile picture");
     }
   };
 
-  // Filter Reports by Exercise
   const handleExerciseSelect = async (exerciseId) => {
     setSelectedExercise(exerciseId);
     setDropdownOpen(false);
@@ -151,15 +167,11 @@ export default function Profile() {
     }
   };
 
-  // Download report and show popup
   const handleDownload = async (reportId) => {
     try {
       const response = await fetch(
         `${backendHost}/api/download_report/${reportId}/`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
+        { method: "GET", credentials: "include" }
       );
 
       if (!response.ok)
@@ -174,10 +186,10 @@ export default function Profile() {
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      // Show download popup
-      setReportPopupMessage("Report downloaded successfully!");
+      setReportPopupMessage("✅ Report downloaded successfully!");
       setShowReportPopup(true);
-      setTimeout(() => setShowReportPopup(false), 3000);
+      triggerConfetti();
+      setTimeout(() => setShowReportPopup(false), 2000);
     } catch (error) {
       console.error("Download failed:", error);
     }
@@ -186,14 +198,15 @@ export default function Profile() {
   return (
     <div className="profile-page position-relative">
       <div className="profile-card position-relative">
-        {/* Profile picture popup */}
         {showProfilePopup && (
-          <div className={`side-popup ${showProfilePopup ? "show" : ""}`}>
+          <div className="side-popup show">
             {profilePopupMessage}
+            <button id="closePopup" onClick={() => setShowProfilePopup(false)}>
+              &times;
+            </button>
           </div>
         )}
 
-        {/* Profile Image Upload */}
         <div className="text-center mb-5">
           <div
             className="avatar-wrapper"
@@ -220,7 +233,6 @@ export default function Profile() {
           </h2>
         </div>
 
-        {/* Personal Info */}
         <div className="personal-info">
           <h3 className="fw-bold mb-3" style={{ color: "#1b4332" }}>
             Personal Information
@@ -235,14 +247,13 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Dropdown Filter */}
         <div className="custom-dropdown">
           <label className="fw-semibold mb-2 text-dark">
             Filter Reports by Exercise:
           </label>
           <div
             className="dropdown-trigger"
-            onClick={() => setDropdownOpen((v) => !v)}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
           >
             {exercises.find((ex) => ex.exercise_id === selectedExercise)?.name ??
               "All Exercises"}
@@ -262,17 +273,20 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Reports */}
         <div className="reports-section position-relative">
-          <h3 className="fw-bold mb-3" style={{ color: "#1b4332", position: "relative" }}>
+          <h3 className="fw-bold mb-3" style={{ color: "#1b4332" }}>
             Your Reports
-            {/* Report download popup */}
-            {showReportPopup && (
-              <div className={`side-popup ${showReportPopup ? "show" : ""}`}>
-                {reportPopupMessage}
-              </div>
-            )}
           </h3>
+
+          {showReportPopup && (
+            <div className="report-popup show">
+              {reportPopupMessage}
+              <button id="closePopup" onClick={() => setShowReportPopup(false)}>
+                &times;
+              </button>
+            </div>
+          )}
+
           {reports.length > 0 ? (
             <ul>
               {reports.map((report) => (

@@ -1,5 +1,21 @@
-/* ===== Profile Page Styles ===== */
+/* ===== Global Smooth Animation ===== */
+@keyframes fadeScaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
+.profile-card,
+.glass-card {
+  animation: fadeScaleUp 0.7s ease forwards;
+}
+
+/* ===== Profile Page Styles ===== */
 .profile-page {
   min-height: 100vh;
   background-color: #e0f1e7;
@@ -9,7 +25,7 @@
   padding: 40px 15px;
 }
 
-/* Glassmorphism card */
+/* Glassmorphism Card */
 .profile-card {
   position: relative;
   width: 95%;
@@ -20,10 +36,10 @@
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05),
-    -8px -8px 16px rgba(255, 255, 255, 0.7);
+              -8px -8px 16px rgba(255, 255, 255, 0.7);
 }
 
-/* ===== Avatar / Upload Section ===== */
+/* ===== Avatar / Upload ===== */
 .avatar-wrapper {
   position: relative;
   height: 180px;
@@ -66,7 +82,7 @@
   color: white;
 }
 
-/* ===== Personal Information Section ===== */
+/* ===== Personal Info ===== */
 .personal-info {
   margin-bottom: 40px;
 }
@@ -97,10 +113,10 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.25);
   box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.1),
-    inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+              inset -3px -3px 6px rgba(255, 255, 255, 0.7);
 }
 
-/* ===== Dropdown Styles ===== */
+/* ===== Dropdown ===== */
 .custom-dropdown {
   position: relative;
   width: 100%;
@@ -159,10 +175,16 @@
 }
 
 /* ===== Reports Section ===== */
+.reports-section {
+  margin-top: 30px;
+}
+
 .reports-section h3 {
   color: #1b4332;
   font-weight: bold;
   margin-bottom: 15px;
+  position: relative;
+  font-size: 1.5rem;
 }
 
 .report-item {
@@ -173,6 +195,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.report-item div {
+  flex: 1 1 60%;
+  margin-bottom: 10px;
 }
 
 .report-item small {
@@ -188,13 +216,14 @@
   border: none;
   cursor: pointer;
   transition: background 0.3s ease;
+  flex: 1 1 35%;
+  text-align: center;
 }
 
 .report-item button:hover {
   background-color: #40916c;
 }
 
-/* ===== Empty Reports Message ===== */
 .no-reports {
   text-align: center;
   background: rgba(255, 230, 200, 0.3);
@@ -202,9 +231,16 @@
   padding: 15px;
   font-weight: 600;
   color: #2b2b2b;
+  font-size: 1rem;
 }
 
-/* ===== Forgot Password Button ===== */
+.reports-section ul {
+  list-style: none; /* removes bullets */
+  padding: 0;       /* removes default padding */
+  margin: 0;        /* removes default margin */
+}
+
+/* ===== Forgot Password ===== */
 .forgot-password {
   display: flex;
   justify-content: center;
@@ -226,9 +262,9 @@
   color: white;
 }
 
-/* ===== Side Popups (Profile & Report) ===== */
+/* ===== Profile Picture Popup ===== */
 .side-popup {
-  position: absolute;
+  position: fixed;
   top: 40px;
   right: -140px;
   width: 350px;
@@ -239,23 +275,264 @@
   font-weight: 600;
   font-size: 17px;
   box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.1),
-    -4px -4px 12px rgba(255, 255, 255, 0.7);
+              -4px -4px 12px rgba(255, 255, 255, 0.7);
   border-radius: 25px;
-  z-index: 999;
-  text-align: center;
-  transform: translateX(150px);
+  transform: translateX(-50%) scale(0.9);
+  z-index: 9999;
   opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  text-align: center;
 }
 
-/* When visible */
 .side-popup.show {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateX(0) scale(1);
+  animation: popup-bounce 0.4s ease forwards;
 }
 
-/* Adjust report popup inside reports section */
-.reports-section .side-popup {
-  top: 0; /* align with heading */
-  right: -140px; /* same horizontal offset as profile popup */
+/* ===== Report Download Popup ===== */
+.report-popup {
+  position: absolute;
+  top: -17px;
+  right: -190px;
+  width: 350px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #1b4332;
+  font-weight: 600;
+  font-size: 17px;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.1),
+              -4px -4px 12px rgba(255, 255, 255, 0.7);
+  border-radius: 25px;
+  transform: translateX(-50%) scale(0.9);
+  z-index: 9999;
+  text-align: center;
+  opacity: 0;
+}
+
+.report-popup.show {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+/* Close Button */
+#closePopup {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.2rem;
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    cursor: pointer;
+}
+
+/* ===== Login Card & Inputs ===== */
+.glass-card {
+  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05),
+              -8px -8px 16px rgba(255, 255, 255, 0.7);
+  border-radius: 25px;
+  padding: 2rem;
+  position: relative;
+}
+
+.neumorphic-input {
+  border-radius: 15px;
+  border: none;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.25);
+  color: #1b4332;
+  width: 100%;
+  font-size: 15px;
+  box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1),
+              inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+}
+
+.neumorphic-input:focus {
+  outline: none;
+  box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15),
+              inset -4px -4px 12px rgba(255, 255, 255, 0.8),
+              0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.password-toggle {
+  position: absolute;
+  top: 71%;
+  right: 15px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.neon-btn {
+  border-radius: 20px;
+  border: 2px solid #4CAF50;
+  background: #fff;
+  color: #4CAF50;
+  font-weight: 700;
+  padding: 12px 0;
+  transition: all 0.3s ease;
+}
+
+.neon-btn:hover {
+  background: #4CAF50;
+  color: #fff;
+  box-shadow: 0 0 7px #4CAF50;
+}
+
+.form-error {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+#particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ===== Responsive Breakpoints ===== */
+@media (max-width:992px) {
+  .profile-card {
+    padding: 35px;
+  }
+
+  .avatar-wrapper {
+    height: 150px;
+    width: 150px;
+  }
+
+  .info-grid {
+    gap: 15px;
+  }
+
+  .dropdown-options {
+    max-height: 150px;
+  }
+
+  .side-popup, .report-popup {
+    right: 5%;
+    transform: translateY(-50%) translateX(30px);
+  }
+
+  .report-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-item div {
+    flex: 1 1 100%;
+    margin-bottom: 10px;
+  }
+
+  .report-item button {
+    flex: 1 1 100%;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width:768px) {
+  .profile-card {
+    padding: 30px;
+  }
+
+  .avatar-wrapper {
+    height: 130px;
+    width: 130px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .side-popup {
+    right: 50%;
+    top: 50px;
+    transform: translateX(50%) translateY(0);
+  }
+  .side-popup.show {
+    transform: translateX(50%) translateY(10px);
+  }
+}
+
+@media (max-width:576px) {
+  .profile-card,
+  .glass-card {
+    padding: 20px;
+    width: 90%;
+  }
+
+  .avatar-wrapper {
+    height: 120px;
+    width: 120px;
+  }
+
+  .dropdown-trigger {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .neumorphic-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .neon-btn {
+    padding: 10px 0;
+    font-size: 0.9rem;
+  }
+
+  .side-popup {
+    left: 90%;
+    right: 0px;
+    top: 25px;
+    width: 200px;
+    transform: translateX(-50%) translateY(0);
+  }
+  .side-popup.show {
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  .report-popup{
+    left: 87%;
+    top: -25px;
+    width: 260px;
+    transform: translateX(-50%) translateY(0);
+  }
+  .report-popup.show {
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  .report-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 8px 10px;
+  }
+
+  .report-item div {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .report-item button {
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 6px 8px;
+  }
+
+  .reports-section h3 {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .no-reports {
+    font-size: 0.95rem;
+    padding: 12px;
+  }
 }

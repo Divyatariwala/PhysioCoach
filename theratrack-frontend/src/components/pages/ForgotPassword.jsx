@@ -38,7 +38,11 @@ const PasswordField = ({
   passwordStrength,
 }) => (
   <div className="mb-3 text-start position-relative">
-    <label htmlFor={name} className="form-label fw-semibold" style={{ color: "#1b4332" }}>
+    <label
+      htmlFor={name}
+      className="form-label fw-semibold"
+      style={{ color: "#1b4332" }}
+    >
       {label}
     </label>
     <div style={{ position: "relative" }}>
@@ -69,7 +73,9 @@ const PasswordField = ({
 
     {passwordStrength && name === "newPassword" && (
       <>
-        <div className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}>
+        <div
+          className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}
+        >
           {passwordStrength} password
         </div>
         <div className="password-strength-bar-container mt-1">
@@ -110,6 +116,7 @@ const ForgotPassword = () => {
   const [passwordStrength, setPasswordStrength] = useState("");
 
   const canvasRef = useRef(null);
+  const popupRef = useRef(null);
 
   // Password Strength Logic
   const getPasswordStrength = (password) => {
@@ -141,7 +148,8 @@ const ForgotPassword = () => {
     const newErrors = {};
 
     if (!formData.oldPassword)
-      newErrors.oldPassword = "Hold up! You can’t change the lock without the old key 🔑";
+      newErrors.oldPassword =
+        "Hold up! You can’t change the lock without the old key 🔑";
 
     if (!formData.newPassword)
       newErrors.newPassword = "A brand-new password needs to be born here 🐣";
@@ -150,7 +158,8 @@ const ForgotPassword = () => {
         errorMessages.strength[Math.floor(Math.random() * 2)];
 
     if (!formData.confirmPassword)
-      newErrors.confirmPassword = "Double-check time! Please confirm that password";
+      newErrors.confirmPassword =
+        "Double-check time! Please confirm that password";
     else if (formData.newPassword !== formData.confirmPassword)
       newErrors.confirmPassword =
         errorMessages.confirmPassword[Math.floor(Math.random() * 2)];
@@ -159,7 +168,7 @@ const ForgotPassword = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
@@ -168,56 +177,69 @@ const ForgotPassword = () => {
       .find((c) => c.trim().startsWith("csrftoken="))
       ?.split("=")[1];
 
-    fetch("http://localhost:8000/api/forgotpassword/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        old_password: formData.oldPassword,
-        new_password: formData.newPassword,
-        confirm_password: formData.confirmPassword,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.old_password_error) {
-          setErrors({
-            oldPassword:
-              errorMessages.oldPassword[Math.floor(Math.random() * 2)],
-          });
-        } else if (data.confirm_password_error) {
-          setErrors({
-            confirmPassword:
-              errorMessages.confirmPassword[Math.floor(Math.random() * 2)],
-          });
-        } else if (data.success_message) {
-          const randomSuccess =
-            successMessages[Math.floor(Math.random() * successMessages.length)];
-          setPopupMessage(randomSuccess);
-          setShowPopup(true);
-          setPasswordChanged(true);
-          setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
-          setErrors({});
-          setPasswordStrength("");
-
-          document.body.classList.add("confetti");
-          setTimeout(() => {
-            document.body.classList.remove("confetti");
-          }, 1800);
-        }
-      })
-      .catch(() => {
-        setPopupMessage("Something went wrong.");
-        setShowPopup(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/forgotpassword/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          old_password: formData.oldPassword,
+          new_password: formData.newPassword,
+          confirm_password: formData.confirmPassword,
+        }),
       });
+
+      const data = await res.json();
+
+      if (data.old_password_error) {
+        setErrors({
+          oldPassword:
+            errorMessages.oldPassword[Math.floor(Math.random() * 2)],
+        });
+      } else if (data.confirm_password_error) {
+        setErrors({
+          confirmPassword:
+            errorMessages.confirmPassword[Math.floor(Math.random() * 2)],
+        });
+      } else if (data.success_message) {
+        setPasswordChanged(true);
+        setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setErrors({});
+        setPasswordStrength("");
+
+        const randomSuccess =
+          successMessages[Math.floor(Math.random() * successMessages.length)];
+        setPopupMessage(randomSuccess);
+
+        // Show popup like Login page
+        const popup = popupRef.current;
+        if (popup) {
+          const popupMsg = popup.querySelector("#popupMessage");
+          const closeBtn = popup.querySelector("#closePopup");
+          const popupBtn = popup.querySelector("#popupButton");
+
+          popupMsg.textContent = randomSuccess;
+          popupBtn.style.display = "none";
+
+          closeBtn.onclick = () => popup.classList.remove("show");
+          popup.classList.add("show");
+        }
+
+        document.body.classList.add("confetti");
+        setTimeout(() => document.body.classList.remove("confetti"), 1800);
+      }
+    } catch (err) {
+      setPopupMessage("Something went wrong.");
+      setShowPopup(true);
+    }
   };
 
   useEffect(() => {
     if (showPopup) {
-      const timer = setTimeout(() => setShowPopup(false), 2800);
+      const timer = setTimeout(() => setShowPopup(false), 8000);
       return () => clearTimeout(timer);
     }
   }, [showPopup]);
@@ -234,11 +256,11 @@ const ForgotPassword = () => {
           Change Password
         </h2>
 
-        {showPopup && (
-          <div className="popup show">
-            <span className="fw-semibold">{popupMessage}</span>
-          </div>
-        )}
+        <div className="popup" ref={popupRef}>
+          <span id="popupMessage" className="fw-semibold"></span>
+          <button type="button" id="popupButton" style={{ display: "none" }}></button>
+          <button type="button" id="closePopup">&times;</button>
+        </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <PasswordField
@@ -277,7 +299,7 @@ const ForgotPassword = () => {
           </button>
 
           {passwordChanged && (
-            <a href="/login" className="neumorphic-btn">
+            <a href="/api/login" className="neumorphic-btn">
               Login
             </a>
           )}

@@ -99,7 +99,7 @@
     font-size: 1.2rem;
     position: absolute;
     top: 8px;
-    right: 12px;
+    right: 3px;
     cursor: pointer;
 }
 
@@ -219,3 +219,24 @@
   background-color: #2a9d8f;
 }
 
+@media (max-width: 768px) {
+  .name-fields {
+    display: flex;
+    flex-direction: column;
+  }
+  .name-fields #lastName {
+    margin-top: 15px;
+  }
+
+  #age{
+    margin-top: 15px;
+  }
+
+  .password-fields {
+    display: flex;
+    flex-direction: column;
+  }
+  .password-fields #confirm-password {
+    margin-top: 15px;
+  }
+}

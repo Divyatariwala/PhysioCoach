@@ -1,5 +1,72 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import "../css/Register.css";
+import confetti from "canvas-confetti";
+
+// Reusable Password Input Component
+const PasswordField = ({
+  label,
+  name,
+  value,
+  error,
+  showPassword,
+  toggleShowPassword,
+  handleChange,
+  passwordStrength,
+}) => (
+  <div className="mb-3 position-relative text-start">
+    <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
+      {label}
+    </label>
+    <div style={{ position: "relative" }}>
+      <input
+        type={showPassword[name] ? "text" : "password"}
+        className="form-control neumorphic-input"
+        placeholder={label}
+        name={name}
+        value={value}
+        onChange={handleChange}
+        style={{ paddingRight: "40px" }}
+      />
+      <span
+        onClick={() => toggleShowPassword(name)}
+        style={{
+          position: "absolute",
+          right: "10px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >
+        {showPassword[name] ? <EyeOff size={18} /> : <Eye size={18} />}
+      </span>
+    </div>
+
+    {passwordStrength && name === "password1" && (
+      <>
+        <div className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}>
+          {passwordStrength} password
+        </div>
+        <div className="password-strength-bar-container mt-1">
+          <div
+            className={`password-strength-bar ${passwordStrength.toLowerCase()}`}
+            style={{
+              width:
+                passwordStrength === "Weak"
+                  ? "33%"
+                  : passwordStrength === "Medium"
+                  ? "66%"
+                  : "100%",
+            }}
+          ></div>
+        </div>
+      </>
+    )}
+
+    {error && <div className="form-error">{error}</div>}
+  </div>
+);
 
 export default function Register() {
   const canvasRef = useRef(null);
@@ -19,6 +86,10 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState("");
+  const [showPassword, setShowPassword] = useState({
+    password1: false,
+    password2: false,
+  });
 
   // --- Password Strength Checker ---
   const getPasswordStrength = (password) => {
@@ -36,6 +107,10 @@ export default function Register() {
   };
 
   const isStrongPassword = (password) => getPasswordStrength(password) === "Strong";
+
+  const toggleShowPassword = (field) => {
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
 
   // --- Particles ---
   useEffect(() => {
@@ -109,15 +184,29 @@ export default function Register() {
     if (success) {
       popupBtn.textContent = "Go to Login";
       popupBtn.style.display = "inline-block";
-      popupBtn.onclick = () => (window.location.href = "/login");
+      popupBtn.onclick = () => (window.location.href = "/api/login");
+
+      // 🎊 Trigger confetti on success
+      confetti({
+        particleCount: 200,
+        angle: 60,
+        spread: 120,
+        origin: { x: 0 },
+        colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
+      });
+      confetti({
+        particleCount: 200,
+        angle: 120,
+        spread: 120,
+        origin: { x: 1 },
+        colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
+      });
     } else {
       popupBtn.style.display = "none";
     }
 
     popup.classList.add("show");
-
     closeBtn.onclick = () => popup.classList.remove("show");
-
     if (!success) setTimeout(() => popup.classList.remove("show"), 8000);
   };
 
@@ -138,21 +227,20 @@ export default function Register() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.firstName) newErrors.firstName = "First Name required";
-    if (!formData.lastName) newErrors.lastName = "Last Name required";
-    if (!formData.username) newErrors.username = "Username required";
-    if (!formData.email) newErrors.email = "Email required";
-    if (!formData.age || formData.age < 1 || formData.age > 120)
-      newErrors.age = "Valid age required";
-    if (!formData.gender) newErrors.gender = "Gender required";
-
-    if (!formData.password1) newErrors.password1 = "Password required";
+    if (!formData.firstName) newErrors.firstName = "Please enter your first name 🌿";
+    if (!formData.lastName) newErrors.lastName = "We’d love to know your last name too ✨";
+    if (!formData.username) newErrors.username = "Pick a cool username for your journey!";
+    if (!formData.email) newErrors.email = "We’ll use this to keep you updated — please enter your email 📬";
+    if (!formData.age || formData.age < 18 || formData.age > 100)
+      newErrors.age = "Your age helps us personalize your wellness plan 🌱";
+    if (!formData.gender) newErrors.gender = "Select your gender so we can tailor your experience 🌼";
+    if (!formData.password1)
+      newErrors.password1 = "Create a secure password to protect your progress 🔒";
     else if (!isStrongPassword(formData.password1))
       newErrors.password1 =
-        "Password must be at least 8 characters, include uppercase, lowercase, number & special character";
-
+        "Make it strong! Use at least 8 characters with uppercase, lowercase, numbers & a symbol 💪";
     if (formData.password1 !== formData.password2)
-      newErrors.password2 = "Passwords do not match";
+      newErrors.password2 = "Oops! Those passwords don’t match — try again 😊";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -169,16 +257,7 @@ export default function Register() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          username: formData.username,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password1: formData.password1,
-          password2: formData.password2,
-          age: formData.age,
-          gender: formData.gender,
-        }),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
@@ -186,7 +265,10 @@ export default function Register() {
       if (!response.ok) {
         showPopup(data.error || "Registration failed");
       } else {
-        showPopup("✅ Registered successfully!", true);
+        showPopup(
+          "🎉 Hooray! You're now registered and ready to track your progress!",
+          true
+        );
         setFormData({
           firstName: "",
           lastName: "",
@@ -229,8 +311,7 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* FIRST & LAST NAME */}
-          <div className="row mb-3">
+          <div className="row mb-3 name-fields">
             <div className="col-12 col-md-6">
               <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
                 First Name
@@ -245,7 +326,7 @@ export default function Register() {
               />
               <div className="form-error">{errors.firstName}</div>
             </div>
-            <div className="col-12 col-md-6">
+            <div className="col-12 col-md-6" id="lastName">
               <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
                 Last Name
               </label>
@@ -261,7 +342,6 @@ export default function Register() {
             </div>
           </div>
 
-          {/* USERNAME & EMAIL */}
           <div className="mb-3">
             <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
               Username
@@ -276,6 +356,7 @@ export default function Register() {
             />
             <div className="form-error">{errors.username}</div>
           </div>
+
           <div className="mb-3">
             <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
               Email
@@ -291,9 +372,8 @@ export default function Register() {
             <div className="form-error">{errors.email}</div>
           </div>
 
-          {/* AGE & GENDER */}
           <div className="row mb-3">
-            <div className="col-12 col-md-6">
+            <div className="col-12 col-md-6" id="age">
               <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
                 Age
               </label>
@@ -329,56 +409,30 @@ export default function Register() {
             </div>
           </div>
 
-          {/* PASSWORDS */}
-          <div className="row mb-3">
+          {/* Passwords */}
+          <div className="row mb-3 password-fields">
             <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-                Password
-              </label>
-              <input
-                type="password"
-                className="form-control neumorphic-input"
-                placeholder="Create a password"
+              <PasswordField
+                label="Password"
                 name="password1"
                 value={formData.password1}
-                onChange={handleChange}
+                error={errors.password1}
+                handleChange={handleChange}
+                showPassword={showPassword}
+                toggleShowPassword={toggleShowPassword}
+                passwordStrength={passwordStrength}
               />
-              {/* Password Strength Indicator */}
-              {formData.password1 && (
-                <>
-                  <div className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}>
-                    {passwordStrength} password
-                  </div>
-                  <div className="password-strength-bar-container mt-1">
-                    <div
-                      className={`password-strength-bar ${passwordStrength.toLowerCase()}`}
-                      style={{
-                        width:
-                          passwordStrength === "Weak"
-                            ? "33%"
-                            : passwordStrength === "Medium"
-                            ? "66%"
-                            : "100%",
-                      }}
-                    ></div>
-                  </div>
-                </>
-              )}
-              <div className="form-error">{errors.password1}</div>
             </div>
             <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                className="form-control neumorphic-input"
+              <PasswordField
+                label="Confirm Password"
                 name="password2"
-                placeholder="Confirm your password"
                 value={formData.password2}
-                onChange={handleChange}
+                error={errors.password2}
+                handleChange={handleChange}
+                showPassword={showPassword}
+                toggleShowPassword={toggleShowPassword}
               />
-              <div className="form-error">{errors.password2}</div>
             </div>
           </div>
 
@@ -388,7 +442,7 @@ export default function Register() {
 
           <p className="text-center" style={{ color: "#1b4332" }}>
             Already have an account?{" "}
-            <a href="/login" className="text-success fw-bold text-decoration-underline">
+            <a href="/api/login" className="text-success fw-bold text-decoration-underline">
               Login
             </a>
           </p>

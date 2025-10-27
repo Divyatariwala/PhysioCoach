@@ -29,8 +29,8 @@ function App() {
           </Route>
 
           {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="api/login" element={<Login />} />
+          <Route path="api/register" element={<Register />} />
           <Route path="api/forgotpassword" element={<ForgotPassword />} />
         </Route>
       </Routes>

@@ -26,7 +26,6 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // --- Thratrack-themed fun popup messages ---
   const loginSuccessMessages = [
     "🏃‍♂️ You’re back on track! Let’s crush those goals!",
     "🎯 Bullseye! Login successful — time to track like a pro!",
@@ -54,8 +53,33 @@ export default function Login() {
     ],
   };
 
+  // --- Confetti Function ---
+  const triggerConfetti = () => {
+    const confettiCount = 30;
+    for (let i = 0; i < confettiCount; i++) {
+      const confetti = document.createElement("div");
+      confetti.innerText = "🎉✨🥳🎊"[Math.floor(Math.random() * 5)];
+      confetti.style.position = "fixed";
+      confetti.style.left = `${Math.random() * 100}vw`;
+      confetti.style.top = `-50px`;
+      confetti.style.fontSize = `${Math.random() * 30 + 20}px`;
+      confetti.style.pointerEvents = "none";
+      confetti.style.zIndex = 9999;
+      confetti.style.transition = "transform 2s linear, opacity 2s linear";
+
+      document.body.appendChild(confetti);
+
+      requestAnimationFrame(() => {
+        confetti.style.transform = `translateY(${window.innerHeight + 50}px) rotate(${Math.random() * 360}deg)`;
+        confetti.style.opacity = "0";
+      });
+
+      setTimeout(() => document.body.removeChild(confetti), 2000);
+    }
+  };
+
   // --- Popup function ---
-  const showPopup = (message, redirect = null) => {
+  const showPopup = (message, redirect = null, success = false) => {
     const popup = popupRef.current;
     if (!popup) return;
 
@@ -73,12 +97,16 @@ export default function Login() {
       popupBtn.style.display = "none";
     }
 
+    if (success) triggerConfetti();
+
     popup.classList.add("show");
+
     closeBtn.onclick = () => popup.classList.remove("show");
-    if (!redirect) setTimeout(() => popup.classList.remove("show"), 8000);
+
+    if (!success && !redirect) setTimeout(() => popup.classList.remove("show"), 8000);
   };
 
-  // --- Form submit ---
+  // --- Form handlers ---
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -86,10 +114,16 @@ export default function Login() {
     e.preventDefault();
 
     const newErrors = {};
-    if (!formData.username.trim()) newErrors.username =
-      loginWarningMessages.username[Math.floor(Math.random() * loginWarningMessages.username.length)];
-    if (!formData.password.trim()) newErrors.password =
-      loginWarningMessages.password[Math.floor(Math.random() * loginWarningMessages.password.length)];
+    if (!formData.username.trim())
+      newErrors.username =
+        loginWarningMessages.username[
+          Math.floor(Math.random() * loginWarningMessages.username.length)
+        ];
+    if (!formData.password.trim())
+      newErrors.password =
+        loginWarningMessages.password[
+          Math.floor(Math.random() * loginWarningMessages.password.length)
+        ];
     setErrors(newErrors);
     if (Object.keys(newErrors).length) return;
 
@@ -108,7 +142,10 @@ export default function Login() {
       });
 
       if (!response.ok) {
-        const msg = loginErrorMessages[Math.floor(Math.random() * loginErrorMessages.length)];
+        const msg =
+          loginErrorMessages[
+            Math.floor(Math.random() * loginErrorMessages.length)
+          ];
         showPopup(msg);
         return;
       }
@@ -119,13 +156,19 @@ export default function Login() {
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("username", data.username || formData.username);
 
-        const randomSuccess = loginSuccessMessages[Math.floor(Math.random() * loginSuccessMessages.length)];
-        showPopup(randomSuccess, "/home");
+        const randomSuccess =
+          loginSuccessMessages[
+            Math.floor(Math.random() * loginSuccessMessages.length)
+          ];
+        showPopup(randomSuccess, "/home", true);
 
         // reload page so BaseLayout picks up login
-        window.location.href = "/";
+        setTimeout(() => window.location.href = "/", 1500);
       } else {
-        const msg = loginErrorMessages[Math.floor(Math.random() * loginErrorMessages.length)];
+        const msg =
+          loginErrorMessages[
+            Math.floor(Math.random() * loginErrorMessages.length)
+          ];
         showPopup(msg);
       }
     } catch (err) {
@@ -135,7 +178,7 @@ export default function Login() {
     }
   };
 
-  // --- Particles ---
+  // --- Particle background ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -191,7 +234,6 @@ export default function Login() {
     initParticles();
     animateParticles();
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -200,7 +242,11 @@ export default function Login() {
       className="login-page d-flex justify-content-center align-items-center position-relative"
       style={{ minHeight: "100vh", overflow: "hidden", background: "#e0f1e7" }}
     >
-      <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }} />
+      <canvas
+        ref={canvasRef}
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }}
+      />
+
       <div
         className="login-card p-5 rounded-4 glass-card position-relative"
         style={{ width: "95%", maxWidth: "450px", zIndex: 1 }}
@@ -212,9 +258,7 @@ export default function Login() {
         <div className="popup" ref={popupRef}>
           <span id="popupMessage" className="fw-semibold"></span>
           <button type="button" id="popupButton" style={{ display: "none" }}></button>
-          <button type="button" id="closePopup">
-            &times;
-          </button>
+          <button type="button" id="closePopup">&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -247,7 +291,10 @@ export default function Login() {
               value={formData.password}
               onChange={handleChange}
             />
-            <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"} password-toggle`} onClick={() => setShowPassword(!showPassword)}></i>
+            <i
+              className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"} password-toggle`}
+              onClick={() => setShowPassword(!showPassword)}
+            ></i>
             {errors.password && <div className="form-error">{errors.password}</div>}
           </div>
 
@@ -257,7 +304,7 @@ export default function Login() {
 
           <p style={{ color: "#1b4332" }} className="text-center">
             If you don't have an account,{" "}
-            <a href="/register" className="text-success fw-bold text-decoration-underline">
+            <a href="/api/register" className="text-success fw-bold text-decoration-underline">
               Register
             </a>
           </p>
