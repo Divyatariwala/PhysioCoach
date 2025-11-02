@@ -286,7 +286,6 @@
 .side-popup.show {
   opacity: 1;
   transform: translateX(0) scale(1);
-  animation: popup-bounce 0.4s ease forwards;
 }
 
 /* ===== Report Download Popup ===== */
@@ -452,11 +451,20 @@
   }
 
   .side-popup {
-    right: 50%;
-    top: 50px;
+    right: 10%;
+    top: 10px;
     transform: translateX(50%) translateY(0);
   }
   .side-popup.show {
+    transform: translateX(50%) translateY(10px);
+  }
+
+  .report-popup {
+    right: 10%;
+    top: -25px;
+    transform: translateX(50%) translateY(0);
+  }
+  .report-popup.show {
     transform: translateX(50%) translateY(10px);
   }
 }
@@ -489,9 +497,9 @@
   }
 
   .side-popup {
-    left: 90%;
+    left: 76%;
     right: 0px;
-    top: 25px;
+    top: 5px;
     width: 200px;
     transform: translateX(-50%) translateY(0);
   }
@@ -501,7 +509,7 @@
 
   .report-popup{
     left: 87%;
-    top: -25px;
+    top: -10px;
     width: 260px;
     transform: translateX(-50%) translateY(0);
   }

@@ -1,6 +1,10 @@
 # posture/views.py
 
 from io import BytesIO
+import logging
+from dotenv import load_dotenv
+import google.genai as genai
+from google.genai import types
 import cv2
 import base64
 from django.forms import ValidationError
@@ -20,6 +24,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.contrib.auth import update_session_auth_hash
+import openai
 from theratrack import settings
 from xhtml2pdf import pisa  # for PDF generation
 from django.template.loader import render_to_string
@@ -235,6 +240,20 @@ def forgot_password_api(request):
 
     return JsonResponse(context)
 
+@login_required
+def get_cookie_consent(request):
+    profile = Profile.objects.get(user=request.user)
+    return JsonResponse({"cookiesAccepted": profile.cookies_accepted})
+
+
+@login_required
+def set_cookie_consent(request):
+    if request.method == "POST":
+        profile = Profile.objects.get(user=request.user)
+        profile.cookies_accepted = True
+        profile.save()
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False})
 
 def logout_view_api(request):
     logout(request)
@@ -421,3 +440,63 @@ def analyze_pose_api(request):
         "landmarks": landmarks_list
     })
 
+# ---------------------------
+# Initialize Gemini client once
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+@csrf_exempt
+def generate_ai_response(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method."}, status=400)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        user_message = data.get("message", "").strip()
+        if not user_message:
+            return JsonResponse({"reply": "Please type something."})
+
+        model = "gemini-2.5-pro"
+
+        contents = [
+            types.Content(
+                role="user",
+                parts=[types.Part.from_text(text=user_message)],
+            )
+        ]
+
+        generate_config = types.GenerateContentConfig(
+            temperature=0.7,
+            system_instruction=[
+                types.Part.from_text(text="""
+You are TheraBot, an AI-powered health assistant for the TheraTrack platform. Your purpose is to help users track their health, understand their progress, and provide guidance or advice about wellness.
+
+Roles & Responsibilities:
+1. User Interaction: Respond to user questions about their health data, progress trends, activity tracking, reminders, and general wellness tips.
+2. Data Awareness: Only provide information available in the TheraTrack system. If a user asks about unavailable data, politely inform them.
+3. Health Guidance: Give general wellness suggestions such as exercise, hydration, sleep habits, and motivation. Do NOT provide medical diagnoses.
+4. Communication Style: Friendly, professional, and supportive. Keep responses concise and clear. Ask polite clarifying questions if the user's request is unclear.
+5. Response Format: Text only, conversational language. Do not include code, links, or unrelated references.
+6. Security & Privacy: Treat all user data as confidential and do not request sensitive information outside of the system.
+7. Use humor, emojis and make the conversation both educational and interesting.
+""")
+            ]
+        )
+
+        # Stream the response
+        reply_text = ""
+        for chunk in client.models.generate_content_stream(
+            model=model,
+            contents=contents,
+            config=generate_config,
+        ):
+            if chunk.candidates and chunk.candidates[0].content.parts:
+                part = chunk.candidates[0].content.parts[0]
+                if part.text:
+                    reply_text += part.text
+
+        return JsonResponse({"reply": reply_text})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

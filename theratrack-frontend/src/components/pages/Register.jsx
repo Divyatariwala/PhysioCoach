@@ -56,8 +56,8 @@ const PasswordField = ({
                 passwordStrength === "Weak"
                   ? "33%"
                   : passwordStrength === "Medium"
-                  ? "66%"
-                  : "100%",
+                    ? "66%"
+                    : "100%",
             }}
           ></div>
         </div>
@@ -231,8 +231,14 @@ export default function Register() {
     if (!formData.lastName) newErrors.lastName = "We’d love to know your last name too ✨";
     if (!formData.username) newErrors.username = "Pick a cool username for your journey!";
     if (!formData.email) newErrors.email = "We’ll use this to keep you updated — please enter your email 📬";
-    if (!formData.age || formData.age < 18 || formData.age > 100)
+
+    if (!formData.age) {
       newErrors.age = "Your age helps us personalize your wellness plan 🌱";
+    } else if (formData.age < 18) {
+      newErrors.age = "🚫 You must be at least 18 years old to register for TheraTrack.";
+    } else if (formData.age > 100) {
+      newErrors.age = "Please enter a valid age (under 120).";
+    }
     if (!formData.gender) newErrors.gender = "Select your gender so we can tailor your experience 🌼";
     if (!formData.password1)
       newErrors.password1 = "Create a secure password to protect your progress 🔒";

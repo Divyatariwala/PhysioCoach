@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Download, Upload, Info, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import confetti from "canvas-confetti";
@@ -49,7 +49,8 @@ export default function Profile() {
       };
     });
 
-  const fetchData = async () => {
+  // --- fetchData wrapped in useCallback ---
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch(`${backendHost}/api/profile/`, {
         method: "GET",
@@ -75,11 +76,11 @@ export default function Profile() {
       alert("⚠️ Please log in to view your profile.");
       window.location.href = "/login";
     }
-  };
+  }, [backendHost]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const triggerConfetti = () => {
     confetti({
@@ -134,7 +135,7 @@ export default function Profile() {
       setProfilePopupMessage("Profile picture updated!");
       setShowProfilePopup(true);
       triggerConfetti();
-      setTimeout(() => setShowProfilePopup(false), 2000);
+      setTimeout(() => setShowProfilePopup(false), 8000);
     } catch (err) {
       console.error(err);
       alert("Unable to upload profile picture");
@@ -189,7 +190,7 @@ export default function Profile() {
       setReportPopupMessage("✅ Report downloaded successfully!");
       setShowReportPopup(true);
       triggerConfetti();
-      setTimeout(() => setShowReportPopup(false), 2000);
+      setTimeout(() => setShowReportPopup(false), 8000);
     } catch (error) {
       console.error("Download failed:", error);
     }

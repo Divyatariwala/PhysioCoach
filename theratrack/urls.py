@@ -35,6 +35,9 @@ urlpatterns = [
     path('api/register/', views.register_api, name='register_api'),
     path('api/forgotpassword/', views.forgot_password_api, name='forgot_password_api'),
     path('api/logout/', views.logout_view_api, name='logout_api'),
+    path("api/get-cookie-consent/", views.get_cookie_consent, name="get_cookie_consent"),
+    path("api/set-cookie-consent/", views.set_cookie_consent, name="set_cookie_consent"),
+
 
     # Workout
     path('api/save_workout_session/', views.save_workout_session_api, name='save_workout_session_api'),
@@ -43,6 +46,9 @@ urlpatterns = [
     
     # Mediapipe Posture Analysis
     path('api/analyze_pose/', views.analyze_pose_api, name='analyze_pose_api'),    
+
+    # Chatbot
+    path("api/chat/", views.generate_ai_response, name="generate_ai_response"),
 ]
 if settings.DEBUG:
     # Serve static & media files during development

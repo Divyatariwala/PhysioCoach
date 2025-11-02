@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,6 +55,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 SESSION_COOKIE_SAMESITE = "None"
@@ -60,12 +69,9 @@ CSRF_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-]
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 
 
 ROOT_URLCONF = 'theratrack.urls'
@@ -131,8 +137,8 @@ USE_TZ = True
 
 MEDIA_URL = '/media/'
 
-import os
 MEDIA_ROOT = os.path.join(BASE_DIR, 'theratrack', 'media')
+
 
 # Redirect URLs for authentication
 LOGIN_URL = 'login'  # When @login_required is used, go here if not logged in

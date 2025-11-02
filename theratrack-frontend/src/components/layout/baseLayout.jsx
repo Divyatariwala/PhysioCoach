@@ -6,17 +6,18 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../../style.css";
 import "../css/BaseLayout.css";
 
+// Import Chatbot
+import ChatbotPopup from "../pages/ChatbotPopup";
+
 function BaseLayout() {
   const [showScroll, setShowScroll] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check login status from localStorage
   useEffect(() => {
     const token = localStorage.getItem("isLoggedIn");
     if (token === "true") setIsLoggedIn(true);
   }, []);
 
-  // Show scroll-to-top button after scrolling
   useEffect(() => {
     const handleScroll = () => setShowScroll(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
@@ -32,17 +33,16 @@ function BaseLayout() {
     { path: "api/faq", label: "FAQ" },
   ];
 
-  // Logout function
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
     setIsLoggedIn(false);
-    window.location.href = "/"; // redirect to home after logout
+    window.location.href = "/";
   };
 
   return (
     <>
-      {/* ===== Navbar ===== */}
+      {/* Navbar */}
       <nav className="navbar navbar-expand-lg neu sticky-top">
         <div className="container">
           <NavLink className="navbar-brand" to="/">
@@ -54,9 +54,6 @@ function BaseLayout() {
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
           >
             <i className="fa-solid fa-bars"></i>
           </button>
@@ -79,7 +76,6 @@ function BaseLayout() {
                   </li>
                 ))}
 
-              {/* Logout button if logged in */}
               {isLoggedIn && (
                 <li className="nav-item">
                   <button
@@ -95,12 +91,12 @@ function BaseLayout() {
         </div>
       </nav>
 
-      {/* ===== Main Content ===== */}
+      {/* Main */}
       <main className="container">
         <Outlet />
       </main>
 
-      {/* ===== Footer ===== */}
+      {/* Footer */}
       <footer>
         <div>
           {[
@@ -108,6 +104,7 @@ function BaseLayout() {
             { path: "api/about", label: "About" },
             { path: "api/contact", label: "Contact" },
             { path: "api/faq", label: "FAQ" },
+            { path: "api/privacy", label: "Privacy Policy" },
           ].map((link) => (
             <NavLink
               to={link.path}
@@ -140,23 +137,23 @@ function BaseLayout() {
         </div>
 
         <div className="footer-bottom mt-3">
-          &copy; {new Date().getFullYear()} PhysioCoach — Your AI-powered
-          physiotherapy companion.
+          © {new Date().getFullYear()} PhysioCoach — Your AI-powered physiotherapy companion.
         </div>
       </footer>
 
-      {/* ===== Scroll to Top Button ===== */}
+      {/* Scroll Button */}
       {showScroll && (
         <button
           id="scrollTopBtn"
           className={`scroll-top-btn animate-float ${showScroll ? "show" : ""}`}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label="Scroll to top"
         >
           <i className="fa-solid fa-arrow-up-from-bracket"></i>
         </button>
       )}
 
+      {/* Chatbot */}
+      <ChatbotPopup />
     </>
   );
 }
