@@ -1,0 +1,397 @@
+{% extends "posture/base.html" %}
+{% load static %}
+
+{% block content %}
+<div id="register-container"
+    data-messages='[{% for message in messages %}"{{ message|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+    class="register-page d-flex justify-content-center align-items-center position-relative"
+    style="min-height: 100vh; overflow: hidden; background: #e0f1e7;">
+
+    <!-- Particles Background -->
+    <canvas id="particles"></canvas>
+
+    <!-- Register Card -->
+    <div class="register-card p-5 rounded-4 glass-card position-relative text-start"
+        style="width: 100%; max-width: 556px; z-index:1;">
+
+        <h2 class="fw-bold mb-4 text-center" style="color:#1b4332;">Create Your Account</h2>
+
+        <!-- Popup -->
+        <div id="formPopup" class="popup d-none">
+            <span id="popupMessage" class="fw-semibold"></span>
+            <button type="button" id="closePopup">&times;</button>
+        </div>
+
+        <!-- Register Form -->
+        <form id="registerForm" method="POST" action="{% url 'register' %}" novalidate>
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="firstname" class="form-label fw-semibold" style="color:#1b4332;">First Name</label>
+                    <input type="text" class="form-control neumorphic-input" name="first_name" id="firstname"
+                        placeholder="First Name">
+                    <div id="firstnameError" class="form-error"></div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="lastname" class="form-label fw-semibold" style="color:#1b4332;">Last Name</label>
+                    <input type="text" class="form-control neumorphic-input" name="last_name" id="lastname"
+                        placeholder="Last Name">
+                    <div id="lastnameError" class="form-error"></div>
+                </div>
+            </div>
+
+            <div class="mb-3 text-start">
+                <label for="username" class="form-label fw-semibold" style="color:#1b4332;">Username</label>
+                <input type="text" class="form-control neumorphic-input" name="username" id="username"
+                    placeholder="Username">
+                <div id="usernameError" class="form-error"></div>
+            </div>
+
+            <div class="mb-3 text-start">
+                <label for="email" class="form-label fw-semibold" style="color:#1b4332;">Email</label>
+                <input type="email" class="form-control neumorphic-input" name="email" id="email"
+                    placeholder="Enter your email">
+                <div id="emailError" class="form-error"></div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="age" class="form-label fw-semibold" style="color:#1b4332;">Age</label>
+                    <input type="number" class="form-control neumorphic-input" name="age" id="age"
+                        placeholder="Enter your age" min="1" max="120">
+                    <div id="ageError" class="form-error"></div>
+                </div>
+
+                <!-- Fixed Gender Dropdown -->
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" style="color:#1b4332;">Gender</label>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select" id="genderSelect">
+                            <div class="custom-select-trigger">Select your gender</div>
+                            <div class="custom-options">
+                                <div class="custom-option" data-value="Male">Male</div>
+                                <div class="custom-option" data-value="Female">Female</div>
+                                <div class="custom-option" data-value="Other">Other</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="gender" id="genderInput">
+                    </div>
+                    <div id="genderError" class="form-error"></div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="password1" class="form-label fw-semibold" style="color:#1b4332;">Password</label>
+                    <input type="password" class="form-control neumorphic-input" name="password1" id="password1"
+                        placeholder="Create a password">
+                    <div id="password1Error" class="form-error"></div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="password2" class="form-label fw-semibold" style="color:#1b4332;">Confirm
+                        Password</label>
+                    <input type="password" class="form-control neumorphic-input" name="password2" id="password2"
+                        placeholder="Confirm your password">
+                    <div id="password2Error" class="form-error"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn neon-btn w-100 mb-3">Register</button>
+
+            <p class="text-center" style="color:#1b4332;">Already have an account?
+                <a href="{% url 'login' %}" class="text-success fw-bold text-decoration-underline">Login</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Glass Card & Inputs */
+    .glass-card {
+        backdrop-filter: blur(15px);
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.7);
+        border-radius: 25px;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .neumorphic-input {
+        border-radius: 15px;
+        border: none;
+        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.25);
+        color: #1b4332;
+        box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1), inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+        width: 100%;
+    }
+
+    .neumorphic-input:focus {
+        outline: none;
+        box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15), inset -4px -4px 12px rgba(255, 255, 255, 0.8), 0 0 8px rgba(76, 175, 80, 0.6);
+    }
+
+    /* Buttons */
+    .neon-btn {
+        border-radius: 20px;
+        border: 2px solid #4CAF50;
+        background: #fff;
+        color: #4CAF50;
+        font-weight: 700;
+        padding: 12px 0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .neon-btn:hover {
+        background: #4CAF50;
+        color: #fff;
+        box-shadow: 0 0 7px #4CAF50;
+    }
+
+    /* Errors */
+    .form-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-top: 5px;
+        text-align: left;
+    }
+
+    /* Popup */
+    .popup {
+        position: absolute;
+        top: 50%;
+        right: -320px;
+        transform: translateY(-50%) translateX(50px);
+        min-width: 280px;
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.1), -4px -4px 12px rgba(255, 255, 255, 0.7);
+        border-radius: 25px;
+        z-index: 999;
+        text-align: center;
+        color: #1b4332;
+        font-weight: 600;
+        opacity: 0;
+        transition: all 0.5s ease;
+    }
+
+    .popup.show {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    #closePopup {
+        background: none;
+        border: none;
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 1.2rem;
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        cursor: pointer;
+    }
+
+    /* Particles */
+    #particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+
+    /* Custom Gender Dropdown */
+    .custom-select-wrapper {
+        position: relative;
+        user-select: none;
+        width: 100%;
+    }
+
+    .custom-select {
+        position: relative;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border-radius: 18px;
+        padding: 12px 15px;
+        box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1), inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+        color: #1b4332;
+        cursor: pointer;
+        width: 100%;
+        font-size: 1.05rem;
+    }
+
+    .custom-select-trigger {
+        position: relative;
+    }
+
+    .custom-select::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #1b4332;
+        transform: translateY(-50%);
+    }
+
+    .custom-options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-height: 180px;
+        overflow-y: auto;
+        display: none;
+        z-index: 2000;
+        margin-top: 5px;
+    }
+
+    .custom-option {
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: background 0.3s, color 0.3s;
+    }
+
+    .custom-option:hover {
+        background: rgba(76, 175, 80, 0.2);
+    }
+
+    .custom-options.show {
+        display: block;
+    }
+</style>
+
+<script>
+    /* === Form Validation, Popup, Particles remain same (omit for brevity) === */
+
+    /* === Fixed Gender Dropdown JS === */
+    const genderSelect = document.getElementById('genderSelect');
+    const genderTrigger = genderSelect.querySelector('.custom-select-trigger');
+    const genderOptions = genderSelect.querySelector('.custom-options');
+    const genderValues = genderOptions.querySelectorAll('.custom-option');
+    const genderInput = document.getElementById('genderInput');
+
+    genderTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        genderOptions.classList.toggle('show');
+    });
+
+    genderValues.forEach(option => {
+        option.addEventListener('click', () => {
+            genderTrigger.textContent = option.textContent;
+            genderInput.value = option.dataset.value;
+            genderOptions.classList.remove('show');
+        });
+    });
+
+    // Close dropdown if clicked outside
+    document.addEventListener('click', () => {
+        genderOptions.classList.remove('show');
+    });
+
+    
+// --- Form Validation ---
+    document.getElementById("registerForm").addEventListener("submit", function (event) {
+        let valid = true;
+        ["firstnameError", "lastnameError", "usernameError", "ageError", "genderError", "emailError", "password1Error", "password2Error"].forEach(id => document.getElementById(id).textContent = "");
+
+        const first_name = document.getElementById("firstname").value.trim();
+        const last_name = document.getElementById("lastname").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const age = document.getElementById("age").value.trim();
+        const gender = document.getElementById("gender").value;
+        const email = document.getElementById("email").value.trim();
+        const password1 = document.getElementById("password1").value.trim();
+        const password2 = document.getElementById("password2").value.trim();
+
+        if (!first_name) { document.getElementById("firstnameError").textContent = "First Name is required"; valid = false; }
+        else if (first_name.length < 3) { document.getElementById("firstnameError").textContent = "First Name must be at least 3 characters"; valid = false; }
+
+        if (!last_name) { document.getElementById("lastnameError").textContent = "Last Name is required"; valid = false; }
+        else if (last_name.length < 3) { document.getElementById("lastnameError").textContent = "Last Name must be at least 3 characters"; valid = false; }
+
+        if (!username) { document.getElementById("usernameError").textContent = "Username is required"; valid = false; }
+        else if (username.length < 3) { document.getElementById("usernameError").textContent = "Username must be at least 3 characters"; valid = false; }
+
+        if (!age) { document.getElementById("ageError").textContent = "Age is required"; valid = false; }
+        else if (isNaN(age) || age < 1 || age > 120) { document.getElementById("ageError").textContent = "Enter a valid age between 1 and 120"; valid = false; }
+
+        if (!gender) { document.getElementById("genderError").textContent = "Gender is required"; valid = false; }
+
+        if (!email) { document.getElementById("emailError").textContent = "Email is required"; valid = false; }
+        else { const emailRegex = /^[^@]+@[^@]+\.[^@]+$/; if (!emailRegex.test(email)) { document.getElementById("emailError").textContent = "Enter a valid email"; valid = false; } }
+
+        if (!password1) { document.getElementById("password1Error").textContent = "Password is required"; valid = false; }
+        else if (password1.length < 6) { document.getElementById("password1Error").textContent = "Password must be at least 6 characters"; valid = false; }
+
+        if (!password2) { document.getElementById("password2Error").textContent = "Confirm Password is required"; valid = false; }
+        else if (password1 && password2 !== password1) { document.getElementById("password2Error").textContent = "Passwords do not match"; valid = false; }
+
+        if (!valid) event.preventDefault();
+    });
+
+    // --- Popup ---
+    function showPopup(message) {
+        const popup = document.getElementById("formPopup");
+        const popupMsg = document.getElementById("popupMessage");
+        const closeBtn = document.getElementById("closePopup");
+
+        popupMsg.textContent = message;
+        popup.classList.remove("d-none");
+        popup.classList.remove("show");
+        void popup.offsetWidth;
+        popup.classList.add("show");
+
+        closeBtn.onclick = () => {
+            popup.classList.remove("show");
+            setTimeout(() => popup.classList.add("d-none"), 500);
+        };
+
+        setTimeout(() => {
+            popup.classList.remove("show");
+            setTimeout(() => popup.classList.add("d-none"), 500);
+        }, 10000);
+    }
+
+    // --- Django messages ---
+    const container = document.getElementById("register-container");
+    let djangoMessages = [];
+    try { djangoMessages = JSON.parse(container.dataset.messages); }
+    catch (e) { console.error("Invalid messages JSON", e); }
+    djangoMessages.forEach(msg => showPopup(msg));
+
+    // --- Particles ---
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    let particlesArray = [];
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+    class Particle {
+        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 3 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
+        update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width) this.speedX *= -1; if (this.y < 0 || this.y > canvas.height) this.speedY *= -1; }
+        draw() { ctx.fillStyle = "rgba(76,175,80,0.3)"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+    function initParticles() { particlesArray = []; for (let i = 0; i < 80; i++) { particlesArray.push(new Particle()); } }
+    function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); }
+    window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+    initParticles(); animateParticles();
+
+</script>
+{% endblock %}
+
+
+

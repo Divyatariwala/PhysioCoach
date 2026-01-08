@@ -1,0 +1,180 @@
+{% extends "posture/base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section d-flex align-items-center justify-content-center text-center">
+    <div class="container text-white">
+        <h1 class="display-3 fw-bold">About PhysioCoach</h1>
+        <p class="lead mt-3">Smart AI physiotherapy for posture, exercise tracking, and fitness improvement.</p>
+        <a href="{% url 'exercises' %}" class="btn btn-hero-primary mt-4">Start Exercising</a>
+    </div>
+    <div class="hero-shapes">
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+        <div class="circle circle3"></div>
+    </div>
+</section>
+
+<!-- Mission + Vision -->
+<section class="py-5 section-angle" style="background:#f0fdf4;">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">Our Mission</h2>
+        <p class="lead mb-5">Making physiotherapy accessible and engaging using AI-powered posture correction and exercise tracking.</p>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <img src="{% static 'posture/images/ai.png' %}" class="feature-icon mb-3">
+                    <h5 class="fw-bold">Smart AI Feedback</h5>
+                    <p>Instant posture correction during exercises to prevent injuries.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <img src="{% static 'posture/images/tracking.png' %}" class="feature-icon mb-3">
+                    <h5 class="fw-bold">Progress Tracking</h5>
+                    <p>Visual dashboards track your improvements over time.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <img src="{% static 'posture/images/guidance.png' %}" class="feature-icon mb-3">
+                    <h5 class="fw-bold">Personalized Guidance</h5>
+                    <p>Custom exercise plans adapted to your goals and fitness level.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="py-5 text-center" style="background: linear-gradient(135deg,#40916c,#7ed957); color:white;">
+    <div class="container">
+        <h2 class="fw-bold mb-5">Meet the Team</h2>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-3">
+                <div class="team-card">
+                    <img src="{% static 'posture/images/team1.jpg' %}" class="rounded-circle mb-3" width="120">
+                    <h5 class="fw-bold">Divya</h5>
+                    <p>Founder & Lead Developer</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="team-card">
+                    <img src="{% static 'posture/images/team2.jpg' %}" class="rounded-circle mb-3" width="120">
+                    <h5 class="fw-bold">Alex</h5>
+                    <p>AI Specialist</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="team-card">
+                    <img src="{% static 'posture/images/team3.jpg' %}" class="rounded-circle mb-3" width="120">
+                    <h5 class="fw-bold">Priya</h5>
+                    <p>UX Designer</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Journey Timeline -->
+<section class="py-5 section-angle-reverse" style="background:#e6f4ea;">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-5">Our Journey</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h5>2023 - Concept</h5>
+                <p>Idea born to create AI-powered physiotherapy accessible for everyone.</p>
+            </div>
+            <div class="timeline-item">
+                <h5>2024 - Development</h5>
+                <p>Platform built with real-time posture correction and personalized exercise tracking.</p>
+            </div>
+            <div class="timeline-item">
+                <h5>2025 - Launch</h5>
+                <p>PhysioCoach launched, helping users improve fitness and posture safely worldwide.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 text-center cta-section-modern">
+    <div class="container">
+        <h3 class="fw-bold mb-4">Ready to Improve Your Fitness and Posture?</h3>
+        {% if user.is_authenticated %}
+            <a href="{% url 'exercises' %}" class="btn btn-cta mx-2">Start Exercising</a>
+            <a href="{% url 'profile' %}" class="btn btn-cta-outline mx-2">View Profile</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-cta mx-2">Login Now</a>
+            <a href="{% url 'register' %}" class="btn btn-cta-outline mx-2">Register Free</a>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+/* Hero shapes */
+.hero-section {
+    min-height:70vh;
+    background: linear-gradient(135deg,#7ed957,#2d6a4f);
+    position: relative;
+    overflow: hidden;
+}
+.hero-shapes .circle {
+    position: absolute;
+    border-radius:50%;
+    opacity:0.15;
+    animation: float 6s ease-in-out infinite;
+}
+.circle1 { width:220px; height:220px; top:10%; left:10%; background:#ffffff; }
+.circle2 { width:180px; height:180px; bottom:15%; right:15%; background:#d4f8e8; }
+.circle3 { width:140px; height:140px; top:40%; right:50%; background:#52b788; }
+@keyframes float {
+    0%,100%{transform: translateY(0);}
+    50%{transform: translateY(-15px);}
+}
+
+/* Angled sections */
+.section-angle {
+    clip-path: polygon(0 0,100% 5%,100% 100%,0% 95%);
+}
+.section-angle-reverse {
+    clip-path: polygon(0 5%,100% 0,100% 95%,0% 100%);
+}
+
+/* Cards */
+.feature-card, .team-card {
+    background:white;
+    border-radius:20px;
+    padding:2rem;
+    color:#1b4332;
+    box-shadow:0 12px 35px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+}
+.feature-card:hover, .team-card:hover { transform: translateY(-12px); box-shadow:0 18px 45px rgba(0,0,0,0.18); }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 2rem; border-left: 3px solid #52b788; }
+.timeline-item { margin-bottom:2rem; position:relative; opacity:0; transform: translateY(30px); animation: fadeInUp 1s forwards; animation-delay:0.2s; }
+.timeline-item:nth-child(2){ animation-delay:0.4s; }
+.timeline-item:nth-child(3){ animation-delay:0.6s; }
+.timeline-item::before { content:''; position:absolute; left:-9px; top:5px; width:15px; height:15px; background:#52b788; border-radius:50%; border:3px solid #fff; }
+.timeline-item h5 { font-weight:bold; color:#1b4332; }
+.timeline-item p { color:#2d6a4f; }
+@keyframes fadeInUp {
+    to { opacity:1; transform: translateY(0); }
+}
+
+/* CTA */
+.cta-section-modern {
+    background: linear-gradient(135deg,#52b788,#2d6a4f);
+    color:white;
+    padding:5rem 0;
+}
+.btn-cta { background:#1b4332; color:white; border-radius:12px; padding:12px 28px; font-weight:bold; transition:0.3s; }
+.btn-cta:hover { background:#40916c; }
+.btn-cta-outline { border:2px solid white; color:white; padding:10px 26px; border-radius:12px; }
+.btn-cta-outline:hover { background:white; color:#1b4332; }
+</style>
+
+{% endblock %}

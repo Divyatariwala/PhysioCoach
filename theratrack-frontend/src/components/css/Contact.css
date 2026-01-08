@@ -1,0 +1,116 @@
+/* Hero Section */
+.hero-section.contact-hero {
+  background: linear-gradient(135deg, #e6f2f0, #f0f7f0);
+  min-height: 60vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #1b4332;
+}
+
+
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+/* Hero Floating Shapes */
+.hero-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  animation: floatShape 12s ease-in-out infinite alternate;
+}
+
+.shape1 { top: 10%; left: 5%; width: 250px; height: 250px; background: #52b788; }
+.shape2 { bottom: 10%; right: 15%; width: 300px; height: 300px; background: #d4f8e8; }
+.shape3 { top: 40%; right: 40%; width: 200px; height: 200px; background: #7ed957; }
+
+@keyframes floatShape {
+  0% { transform: translate(0,0) rotate(0deg); }
+  25% { transform: translate(20px,-10px) rotate(15deg); }
+  50% { transform: translate(-10px,20px) rotate(-10deg); }
+  75% { transform: translate(15px,-15px) rotate(5deg); }
+  100% { transform: translate(0,0) rotate(0deg); }
+}
+
+/* Glass Cards */
+.glass-card {
+  backdrop-filter: blur(15px);
+  background: rgba(255,255,255,0.25);
+  border-radius: 25px;
+  box-shadow: 6px 6px 20px rgba(0,0,0,0.1);
+  padding: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 10px 10px 25px rgba(0,0,0,0.15);
+}
+
+/* Form Styling */
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #95d5b2;
+  padding: 12px 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: #52b788;
+  box-shadow: 0 4px 15px rgba(82,183,136,0.25);
+}
+
+/* Buttons */
+.btn-cta {
+  background: linear-gradient(135deg, #1b4332, #40916c);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: bold;
+  transition: all 0.4s ease;
+}
+
+.btn-cta:hover {
+  background: linear-gradient(135deg, #2d6a4f, #52b788);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Contact Info Styling */
+.contact-info {
+  color: #1b4332;
+}
+
+.contact-info i {
+  color: #52b788;
+}
+
+.contact-social {
+  font-size: 1.5rem;
+  color: #52b788;
+  transition: all 0.3s ease;
+}
+
+.contact-social:hover {
+  color: #2d6a4f;
+  transform: scale(1.2);
+}
+
+/* Responsive Adjustments */
+@media(max-width:991px){
+  .contact-info {
+    margin-top: 30px;
+  }
+}

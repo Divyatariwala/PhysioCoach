@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Workout Report</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #e0f1e7;
+      margin: 0;
+      padding: 40px 0;
+      color: #1b4332;
+    }
+
+    .report-container {
+      width: 95%;
+      max-width: 900px;
+      margin: auto;
+      padding: 40px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 25px;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 8px 8px 16px rgba(0,0,0,0.05), -8px -8px 16px rgba(255,255,255,0.6);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #1b4332;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      margin-bottom: 35px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #1b4332;
+      border-left: 5px solid #52b788;
+      padding-left: 10px;
+    }
+
+    p {
+      font-size: 14px;
+      margin: 6px 0;
+    }
+
+    /* Exercise Info */
+    .exercise-info {
+      background: rgba(255,255,255,0.5);
+      padding: 20px;
+      border-radius: 15px;
+    }
+
+    .exercise-header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .exercise-header img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid rgba(27, 67, 50, 0.2);
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: rgba(82,183,136,0.3);
+      color: #1b4332;
+      font-weight: 600;
+    }
+
+    /* Bar Chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .bar {
+      width: 25px;
+      background: linear-gradient(to top, #40916c, #74c69d);
+      text-align: center;
+      color: white;
+      font-size: 10px;
+      border-radius: 6px 6px 0 0;
+      font-weight: 600;
+    }
+
+    .bar-height-1 { height: 10px; }
+    .bar-height-2 { height: 20px; }
+    .bar-height-3 { height: 30px; }
+    .bar-height-4 { height: 40px; }
+    .bar-height-5 { height: 50px; }
+    .bar-height-6 { height: 60px; }
+    .bar-height-7 { height: 70px; }
+    .bar-height-8 { height: 80px; }
+    .bar-height-9 { height: 90px; }
+    .bar-height-10 { height: 100px; }
+
+    /* Feedback Section */
+    .feedback-section {
+      background: rgba(255,255,255,0.5);
+      padding: 20px;
+      border-radius: 15px;
+    }
+
+    .feedback-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 15px;
+      background: rgba(255,255,255,0.7);
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(82,183,136,0.2);
+    }
+
+    .feedback-icon {
+      font-size: 18px;
+      background: #52b788;
+      color: white;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .feedback-text {
+      font-size: 14px;
+      color: #1b4332;
+      line-height: 1.5;
+    }
+
+    .feedback-score {
+      font-size: 12px;
+      color: #40916c;
+      font-weight: bold;
+      margin-top: 3px;
+    }
+
+    .no-feedback {
+      text-align: center;
+      font-style: italic;
+      color: #777;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      padding: 20px;
+      background: linear-gradient(135deg, #52b788, #1b4332);
+      border-radius: 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .footer h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .footer p {
+      font-size: 13px;
+      margin: 5px 0 0;
+    }
+
+    .footer .icons {
+      margin-top: 10px;
+    }
+
+    .footer .icons span {
+      font-size: 16px;
+      margin: 0 6px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="report-container">
+    <h1>Workout Performance Report 🏋️‍♀️</h1>
+
+    <!-- Exercise Info -->
+    <div class="section exercise-info">
+      <div class="exercise-header">
+        <img src="https://cdn-icons-png.flaticon.com/512/2964/2964514.png" alt="Exercise">
+        <h2>{{ session.exercise.name|default:"Exercise" }}</h2>
+      </div>
+      <p><strong>Duration:</strong> {{ minutes|default:0 }} min {{ seconds|default:0 }} sec</p>
+      <p><strong>Total Repetitions:</strong> {{ total_reps|default:0 }}</p>
+      <p><strong>Average Accuracy:</strong> {{ avg_accuracy|default:0|floatformat:0 }}%</p>
+    </div>
+
+    <!-- Repetition Accuracy -->
+    <div class="section">
+      <h2>Repetition Accuracy</h2>
+      <div class="bar-chart">
+        {% for rep in repetitions %}
+          {% with accuracy=rep.posture_accuracy|floatformat:0 %}
+            {% if accuracy|add:"0" >= 90 %}
+              <div class="bar bar-height-10">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 80 %}
+              <div class="bar bar-height-9">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 70 %}
+              <div class="bar bar-height-8">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 60 %}
+              <div class="bar bar-height-7">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 50 %}
+              <div class="bar bar-height-6">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 40 %}
+              <div class="bar bar-height-5">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 30 %}
+              <div class="bar bar-height-4">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 20 %}
+              <div class="bar bar-height-3">{{ accuracy }}%</div>
+            {% elif accuracy|add:"0" >= 10 %}
+              <div class="bar bar-height-2">{{ accuracy }}%</div>
+            {% else %}
+              <div class="bar bar-height-1">{{ accuracy }}%</div>
+            {% endif %}
+          {% endwith %}
+        {% empty %}
+          <p class="no-feedback">No repetition data available.</p>
+        {% endfor %}
+      </div>
+
+      <table>
+        <tr>
+          <th>Rep Number</th>
+          <th>Posture Accuracy (%)</th>
+        </tr>
+        {% for rep in repetitions %}
+          <tr>
+            <td>{{ rep.count_number }}</td>
+            <td>{{ rep.posture_accuracy|floatformat:0 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2">No repetition data available</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Feedback Section -->
+    <div class="section feedback-section">
+      <h2>Session Feedback</h2>
+      {% for fb in feedbacks %}
+        <div class="feedback-item">
+          <div class="feedback-icon">💬</div>
+          <div>
+            <div class="feedback-text">{{ fb.feedback_text|default:"No feedback provided." }}</div>
+            <div class="feedback-score">Score: {{ fb.accuracy_score|default:0|floatformat:0 }}%</div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="no-feedback">No feedback available for this session.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <h3>Keep Pushing Forward 💪</h3>
+      <p>“Every rep counts — every day stronger than yesterday.”</p>
+      <div class="icons">
+        <span>🏋️</span>
+        <span>🧘‍♀️</span>
+        <span>💚</span>
+        <span>🔥</span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,261 @@
+{% extends "posture/base.html" %}
+{% load static %}
+
+{% block content %}
+<div id="login-container"
+    data-messages='[{% for message in messages %}"{{ message|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
+    class="login-page d-flex justify-content-center align-items-center position-relative"
+    style="min-height: 100vh; overflow: hidden; background: #e0f1e7;">
+
+    <!-- Particles Background -->
+    <canvas id="particles"></canvas>
+
+    <!-- Login Card -->
+    <div class="login-card p-5 rounded-4 glass-card position-relative" style="width: 95%; max-width: 450px; z-index:1;">
+
+        <h2 class="fw-bold mb-4 text-center" style="color:#1b4332;">Welcome Back</h2>
+
+        <!-- Popup -->
+        <div id="formPopup" class="popup d-none">
+            <span id="popupMessage" class="fw-semibold"></span>
+            <button type="button" id="closePopup">&times;</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" method="POST" action="{% url 'login' %}" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3 text-start">
+                <label for="username" class="form-label fw-semibold" style="color:#1b4332;">Username</label>
+                <input type="text" class="form-control neumorphic-input" name="username" id="username"
+                    placeholder="Enter your username">
+                <div id="usernameError" class="form-error"></div>
+            </div>
+
+            <div class="mb-3 text-start position-relative">
+                <label for="password" class="form-label fw-semibold" style="color:#1b4332;">Password</label>
+                <input type="password" class="form-control neumorphic-input" name="password" id="password"
+                    placeholder="Enter your password">
+                <i class="fa fa-eye password-toggle" onclick="togglePassword()"></i>
+                <div id="passwordError" class="form-error"></div>
+            </div>
+
+            <button type="submit" class="btn neon-btn w-100 mb-3">Login</button>
+
+            <p style="color:#1b4332;">Don't have an account?
+                <a href="{% url 'register' %}" class="text-success fw-bold text-decoration-underline">Register</a>
+            </p>
+            <p style="color:#1b4332;" class="text-center">
+                <a href="{% url 'forgot_password' %}" class="text-danger fw-bold text-decoration-underline">Forgot
+                    Password?</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Login Card & Inputs */
+    .glass-card {
+        backdrop-filter: blur(15px);
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.7);
+        border-radius: 25px;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .neumorphic-input {
+        border-radius: 15px;
+        border: none;
+        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.25);
+        color: #1b4332;
+        box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.1), inset -6px -6px 12px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .neumorphic-input:focus {
+        outline: none;
+        box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.15), inset -4px -4px 12px rgba(255, 255, 255, 0.8), 0 0 8px rgba(76, 175, 80, 0.6);
+    }
+
+    .password-toggle {
+        position: absolute;
+        top: 71%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #1b4332;
+    }
+
+    .neon-btn {
+        border-radius: 20px;
+        border: 2px solid #4CAF50;
+        background: #fff;
+        color: #4CAF50;
+        font-weight: 700;
+        padding: 12px 0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .neon-btn:hover {
+        background: #4CAF50;
+        color: #fff;
+        box-shadow: 0 0 7px #4CAF50;
+    }
+
+    .form-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-top: 5px;
+        text-align: left;
+    }
+
+    #particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+
+    @media (max-width:576px) {
+        .login-card {
+            width: 90%;
+            padding: 2rem;
+        }
+    }
+
+    /* Popup - right for desktop */
+    .popup {
+        position: absolute;
+        top: 50%;
+        right: -320px;
+        transform: translateY(-50%);
+        min-width: 280px;
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.1), -4px -4px 12px rgba(255, 255, 255, 0.7);
+        border-radius: 25px;
+        z-index: 999;
+        text-align: center;
+        color: #1b4332;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateY(-50%) translateX(50px);
+        transition: all 0.5s ease;
+    }
+
+    #popupMessage {
+        margin-right: 13px;
+    }
+
+    /* Show popup - fade & slide */
+    .popup.show {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    /* Close Button */
+    #closePopup {
+        background: none;
+        border: none;
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 1.2rem;
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        cursor: pointer;
+    }
+
+    /* Responsive - small screens */
+    @media (max-width:576px) {
+        .popup {
+            right: auto;
+            left: 50%;
+            top: -80px;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .popup.show {
+            transform: translateX(-50%) translateY(10px);
+        }
+    }
+</style>
+
+<script>
+    // --- Popup ---
+    function showPopup(message) {
+        const popup = document.getElementById("formPopup");
+        const popupMsg = document.getElementById("popupMessage");
+        const closeBtn = document.getElementById("closePopup");
+
+        popupMsg.textContent = message;
+        popup.classList.remove("d-none");
+        popup.classList.remove("show");
+        void popup.offsetWidth;
+        popup.classList.add("show");
+
+        closeBtn.onclick = () => {
+            popup.classList.remove("show");
+            setTimeout(() => popup.classList.add("d-none"), 500);
+        };
+
+        setTimeout(() => {
+            popup.classList.remove("show");
+            setTimeout(() => popup.classList.add("d-none"), 500);
+        }, 10000);
+    }
+
+    // --- Django messages ---
+    const container = document.getElementById("login-container");
+    let djangoMessages = [];
+    try { djangoMessages = JSON.parse(container.dataset.messages); }
+    catch (e) { console.error("Invalid messages JSON", e); }
+    djangoMessages.forEach(msg => showPopup(msg));
+
+    // --- Form validation ---
+    document.getElementById("loginForm").addEventListener("submit", function (event) {
+        let valid = true;
+        document.getElementById("usernameError").textContent = "";
+        document.getElementById("passwordError").textContent = "";
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        if (!username) { document.getElementById("usernameError").textContent = "Username is required"; valid = false; }
+        if (!password) { document.getElementById("passwordError").textContent = "Password is required"; valid = false; }
+        if (!valid) event.preventDefault();
+    });
+
+    // --- Password toggle ---
+    function togglePassword() {
+        const pw = document.getElementById("password");
+        pw.type = pw.type === "password" ? "text" : "password";
+    }
+
+    // --- Particles ---
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    let particlesArray = [];
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+    class Particle {
+        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 3 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
+        update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > canvas.width) this.speedX *= -1; if (this.y < 0 || this.y > canvas.height) this.speedY *= -1; }
+        draw() { ctx.fillStyle = "rgba(76,175,80,0.3)"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+    function initParticles() { particlesArray = []; for (let i = 0; i < 80; i++) { particlesArray.push(new Particle()); } }
+    function animateParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); }
+    window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
+    initParticles(); animateParticles();
+</script>
+{% endblock %}
