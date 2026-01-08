@@ -1,0 +1,125 @@
+{% extends "posture/base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Contact Us Section -->
+<section class="contact-section py-5">
+    <div class="container">
+        <h1 class="text-center mb-5 display-4 fw-bold contact-title">Get in Touch</h1>
+        <p class="text-center lead mb-5">Have questions or need support? Send us a message and we’ll get back to you as soon as possible.</p>
+        
+        <div class="row justify-content-center">
+            <!-- Contact Form -->
+            <div class="col-lg-6">
+                <form method="POST" class="contact-form p-4 rounded-4 shadow-lg bg-white">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-bold">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Your Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Your Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label fw-bold">Subject</label>
+                        <input type="text" class="form-control" id="subject" name="subject" placeholder="Subject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label fw-bold">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" placeholder="Type your message..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-contact w-100 fw-bold">Send Message</button>
+                </form>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-lg-4 mt-5 mt-lg-0">
+                <div class="contact-info p-4 rounded-4 shadow-lg bg-white">
+                    <h4 class="fw-bold mb-4">Our Office</h4>
+                    <p><i class="bi bi-geo-alt-fill me-2"></i> London, UK</p>
+                    <p><i class="bi bi-telephone-fill me-2"></i> +44 1234 567890</p>
+                    <p><i class="bi bi-envelope-fill me-2"></i> support@physiocoach.com</p>
+                    <h5 class="fw-bold mt-4 mb-3">Follow Us</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="contact-social"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="contact-social"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="contact-social"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="contact-social"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Custom Styles -->
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Section Title */
+.contact-title {
+    font-family: 'Montserrat', sans-serif;
+    color: #1b4332;
+}
+
+/* Form Styling */
+.contact-form input,
+.contact-form textarea {
+    border-radius: 12px;
+    border: 1px solid #95d5b2;
+    padding: 12px 15px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: #52b788;
+    box-shadow: 0 4px 15px rgba(82, 183, 136, 0.25);
+    outline: none;
+}
+.btn-contact {
+    background: linear-gradient(135deg, #52b788, #7ed957);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    transition: all 0.4s ease;
+}
+
+.btn-contact:hover {
+    background: linear-gradient(135deg, #2d6a4f, #40916c);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    color: #ffffff;
+}
+
+/* Contact Info Styling */
+.contact-info {
+    font-family: 'Roboto', sans-serif;
+    color: #1b4332;
+}
+.contact-info i {
+    color: #52b788;
+}
+.contact-social {
+    font-size: 1.5rem;
+    color: #52b788;
+    transition: all 0.3s ease;
+}
+.contact-social:hover {
+    color: #2d6a4f;
+    transform: scale(1.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+    .contact-info {
+        margin-top: 30px;
+    }
+}
+</style>
+
+{% endblock %}

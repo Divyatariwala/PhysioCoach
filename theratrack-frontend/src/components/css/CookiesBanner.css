@@ -1,0 +1,111 @@
+.cookies-banner {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  width: 90%;
+  max-width: 480px;
+  padding: 18px 25px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3), 0 0 15px rgba(76, 175, 80, 0.2);
+  color: #1b4332;
+  font-weight: 500;
+  font-size: 0.95rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 9999;
+}
+
+.cookies-banner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cookies-banner p {
+  flex: 1 1 60%;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cookies-banner a {
+  color: #4CAF50;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.cookies-banner button.accept-btn {
+  flex: 1 1 35%;
+  min-width: 100px;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 50px;
+  background: #4CAF50;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.cookies-banner button.accept-btn:hover {
+  background: #45a049;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+  transform: scale(1.05);
+}
+
+.cookies-banner canvas.cookies-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 30px;
+}
+
+.accept-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.0) 60%);
+  transform: skewX(-25deg);
+  transition: all 0.5s ease;
+}
+
+.accept-btn:hover::after {
+  left: 100%;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 576px) {
+  .cookies-banner {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 18px;
+    bottom: 20px;
+  }
+
+  .cookies-banner p {
+    flex: 1 1 100%;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .cookies-banner button.accept-btn {
+    flex: 1 1 100%;
+    padding: 10px 20px;
+  }
+}
+

@@ -1,0 +1,225 @@
+{% extends "posture/base.html" %}
+{% load static %}
+{% block content %}
+<div class="profile-page d-flex justify-content-center align-items-center"
+  style="min-height: 100vh; padding: 40px 15px; background: #e0f1e7;">
+
+  <div class="profile-card p-5 rounded-4 glass-card"
+    style="width: 95%; max-width: 850px; backdrop-filter: blur(15px); background: rgba(255,255,255,0.25); border-radius: 25px; border: 1px solid rgba(255,255,255,0.3); position: relative;">
+
+    <!-- Header / Avatar -->
+    <div class="text-center mb-5">
+      <form id="profileForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="avatar-wrapper mx-auto mb-3">
+          <img class="profile-pic"
+            src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'posture/images/default-avatar.png' %}{% endif %}"
+            alt="Profile Picture" />
+          <div class="upload-button">
+            <i class="fa fa-arrow-circle-up" aria-hidden="true"></i>
+          </div>
+          <input type="file" name="profile_picture" class="file-upload" style="display:none;" />
+        </div>
+      </form>
+      <h2 class="fw-bold" style="color:#1b4332;">{{ user.username }}'s Profile</h2>
+    </div>
+
+    <!-- Personal Info -->
+    <div class="personal-info mb-5">
+      <h3 class="fw-bold mb-3" style="color:#1b4332;">Personal Information</h3>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label fw-semibold">First Name</label>
+          <input type="text" class="form-control" value="{{ user.first_name }}" readonly>
+        </div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Last Name</label>
+          <input type="text" class="form-control" value="{{ user.last_name }}" readonly>
+        </div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Username</label>
+          <input type="text" class="form-control" value="{{ user.username }}" readonly>
+        </div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Email</label>
+          <input type="text" class="form-control" value="{{ user.email }}" readonly>
+        </div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Age</label>
+          <input type="text" class="form-control" value="{{ profile.age }}" readonly>
+        </div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Gender</label>
+          <input type="text" class="form-control" value="{{ profile.gender }}" readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter by Exercise -->
+    <div class="mb-4">
+      <label class="fw-semibold mb-2 text-dark">Filter Reports by Exercise:</label>
+      <div class="custom-select-wrapper">
+        <div class="custom-select" id="exerciseSelect">
+          <div class="custom-select-trigger">All Exercises</div>
+          <div class="custom-options">
+            <div class="custom-option" data-value="all">All Exercises</div>
+            {% for exercise in exercises %}
+              <div class="custom-option" data-value="{{ exercise.exercise_id }}">{{ exercise.name }}</div>
+            {% empty %}
+              <div class="custom-option" data-value="">No exercises available</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div class="reports-section mb-5">
+      <h3 class="fw-bold mb-3" style="color:#1b4332;">Your Reports</h3>
+      <ul class="list-group shadow-sm rounded-4">
+        {% for report in reports %}
+        <li class="list-group-item d-flex justify-content-between align-items-center"
+          style="background: rgba(255,255,255,0.3); border-radius: 12px; margin-bottom: 10px;">
+          <div>
+            <strong>{{ report.exercise.name }}</strong><br>
+            <small class="text-muted">Date: {{ report.generated_at|date:"d M Y" }}</small>
+          </div>
+          <a href="{{ report.pdf_file.url }}" class="btn btn-success fw-semibold px-3 py-1 rounded-pill" download>
+            <i class="bi bi-download"></i> Download
+          </a>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-center fw-semibold"
+          style="background: rgba(255,230,200,0.3); border-radius: 12px;">
+          <i class="bi bi-info-circle"></i> No reports available.
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Forgot Password -->
+    <div class="text-center mt-4">
+      <a href="{% url 'forgot_password' %}" class="btn btn-outline-danger fw-bold px-4 py-2">
+        <i class="bi bi-lock"></i> Forgot / Change Password
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== CSS ===== -->
+<style>
+  .avatar-wrapper {
+    position: relative; height:180px; width:180px; margin:0 auto 20px; border-radius:50%; overflow:hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+  .avatar-wrapper:hover { transform: scale(1.05); cursor:pointer; }
+  .avatar-wrapper .profile-pic { height:100%; width:100%; transition:0.3s ease; }
+  .upload-button { position:absolute; top:0; left:0; height:100%; width:100%; text-align:center; }
+  .upload-button i { font-size:4.5rem; line-height:180px; color:#1b4332; opacity:0; transition:0.3s ease; }
+  .avatar-wrapper:hover .upload-button i { opacity:0.9; }
+
+  .glass-card {
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.25);
+    border:1px solid rgba(255,255,255,0.3);
+    box-shadow:8px 8px 16px rgba(0,0,0,0.05), -8px -8px 16px rgba(255,255,255,0.7);
+  }
+
+  input[readonly] {
+    background: rgba(255,255,255,0.25);
+    border:none;
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1), inset -3px -3px 6px rgba(255,255,255,0.7);
+    border-radius:10px;
+  }
+
+  /* --- Custom Dropdown --- */
+  .custom-select-wrapper { position: relative; width: 100%; z-index: 1000; }
+  .custom-select { position: relative; background: rgba(255,255,255,0.25); backdrop-filter: blur(12px);
+    border-radius: 18px; padding: 12px 15px; cursor: pointer; color: #1b4332; }
+  .custom-select-trigger::after {
+    content: ''; position: absolute; top: 50%; right: 15px;
+    border-left: 6px solid transparent; border-right: 6px solid transparent;
+    border-top: 6px solid #1b4332; transform: translateY(-50%);
+  }
+  .custom-options {
+    position: absolute; top: 100%; left: 0; width: 100%;
+    background: rgba(255,255,255,0.95); border-radius: 15px;
+    max-height: 180px; overflow-y: auto; display: none; margin-top: 5px; z-index: 9999;
+  }
+  .custom-option { padding: 12px 20px; cursor: pointer; transition: background 0.3s; }
+  .custom-option:hover { background: rgba(76,175,80,0.2); }
+  .custom-options.show { display: block; }
+</style>
+
+<!-- ===== JS ===== -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+$(document).ready(function () {
+  // --- Profile Picture Upload ---
+  $(".upload-button").click(() => $(".file-upload").click());
+  $(".file-upload").change(function () {
+    const input = this;
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => $('.profile-pic').attr('src', e.target.result);
+      reader.readAsDataURL(input.files[0]);
+
+      const formData = new FormData();
+      formData.append('profile_picture', input.files[0]);
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+      $.ajax({
+        url: "{% url 'update_profile_picture' %}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+      });
+    }
+  });
+
+  // --- Custom Dropdown Logic ---
+  const trigger = document.querySelector('.custom-select-trigger');
+  const options = document.querySelector('.custom-options');
+  trigger.addEventListener('click', e => { e.stopPropagation(); options.classList.toggle('show'); });
+  document.addEventListener('click', () => options.classList.remove('show'));
+
+  $('.custom-option').click(function () {
+    const exerciseId = $(this).data('value');
+    const selectedText = $(this).text();
+    trigger.textContent = selectedText;
+    options.classList.remove('show');
+
+    $.ajax({
+      url: "{% url 'filter_reports_ajax' %}",
+      type: 'GET',
+      data: { exercise_id: exerciseId },
+      dataType: 'json',
+      success: function (response) {
+        const container = $('.reports-section ul.list-group');
+        container.empty();
+        if (response.reports && response.reports.length > 0) {
+          response.reports.forEach(r => {
+            container.append(`
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                style="background: rgba(255,255,255,0.3); border-radius: 12px; margin-bottom: 10px;">
+                <div>
+                  <strong>${r.title}</strong><br>
+                  <small class="text-muted">Date: ${r.date}</small>
+                </div>
+                <a href="${r.file_url}" class="btn btn-success fw-semibold px-3 py-1 rounded-pill" download>
+                  <i class="bi bi-download"></i> Download
+                </a>
+              </li>
+            `);
+          });
+        } else {
+          container.append(`
+            <li class="list-group-item text-center fw-semibold"
+              style="background: rgba(255,230,200,0.3); border-radius: 12px;">
+              <i class="bi bi-info-circle"></i> No reports available for <strong>${selectedText}</strong>.
+            </li>
+          `);
+        }
+      },
+      error: function () { alert("⚠️ Failed to fetch reports."); }
+    });
+  });
+});
+</script>
+{% endblock %}
