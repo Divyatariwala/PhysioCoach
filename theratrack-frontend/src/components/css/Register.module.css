@@ -1,0 +1,218 @@
+/* Register.module.css */
+
+/* IMAGE SECTION */
+.loginImageSection {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.loginPicOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.loginIllustration {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.loginImageText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    text-align: center;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    animation: fadeInText 1s ease-out forwards;
+    opacity: 0;
+}
+
+.loginImageText h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+}
+
+.loginImageText p {
+    font-size: 1rem;
+    font-weight: 400;
+    max-width: 250px;
+    margin: 0 auto;
+    color: #fff;
+    font-family: 'Palanquin', sans-serif;
+}
+
+@keyframes fadeInText {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* HEADER ABOVE FORM (RIGHT SIDE) */
+.formHeader {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.backToHomeLink {
+    background: transparent;
+    border: none;
+    color: #2D3436;  /* default color */
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 7px;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+/* Instead of text-decoration, use a pseudo-element for underline */
+.backToHomeLink .backText {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.backToHomeLink .backText::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0%;
+    height: 2px;
+    background-color: #3b8365;
+    transition: width 0.3s ease;
+}
+
+/* On hover, color changes and underline grows */
+.backToHomeLink:hover {
+    color: #3b8365;
+}
+
+.backToHomeLink:hover .backText::after {
+    width: 100%;
+}
+
+/* Icon color transition */
+.backToHomeLink i {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.backToHomeLink:hover i {
+    color: #3b8365;
+    transform: translateX(-2px); /* small subtle movement */
+}
+
+/* COOL POPUP */
+.formPopup {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    animation: slideFade 0.35s ease;
+    transition: all 0.3s ease;
+}
+
+.popupError {
+    background: linear-gradient(135deg, #ffecec, #ffdada);
+    color: #c0392b;
+    border: 1px solid #f5b7b1;
+}
+
+.popupSuccess {
+    background: linear-gradient(135deg, #eafaf1, #d5f5e3);
+    color: #1e8449;
+    border: 1px solid #a9dfbf;
+}
+
+/* LINKS */
+.loginLinks {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loginLinks a {
+    color: #2d3436;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.loginLinks a:hover {
+    color: #3b8365;
+}
+
+/* FORM WRAPPER */
+.loginFormWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+}
+
+.col-md-7.d-flex {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* PASSWORD STRENGTH BAR */
+.weakBar {
+    background-color: red;
+}
+
+.mediumBar {
+    background-color: orange;
+}
+
+.strongBar {
+    background-color: green;
+}
+
+/* MEDIA QUERIES */
+@media (max-width: 991.98px) {
+    .col-md-7.d-flex {
+        min-height: 100vh;
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .loginImageSection {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .loginFormWrapper {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+}

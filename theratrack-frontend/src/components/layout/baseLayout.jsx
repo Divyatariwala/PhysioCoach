@@ -15,16 +15,19 @@ function BaseLayout() {
 
   const location = useLocation();
 
-  // Check login status on mount
+  // 🚫 Routes where navbar & footer should be hidden
+  const hideLayoutRoutes = ["/login"];
+  const hideLayout = hideLayoutRoutes.includes(location.pathname);
+
+  // Check login status
   useEffect(() => {
     setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
 
-    // Listen for login changes from other tabs/windows
     const handleStorage = () => {
       setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
     };
-    window.addEventListener("storage", handleStorage);
 
+    window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
@@ -35,7 +38,7 @@ function BaseLayout() {
     window.location.href = "/";
   };
 
-  // Scroll button
+  // Scroll button logic
   useEffect(() => {
     const handleScroll = () => setShowScroll(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
@@ -71,59 +74,62 @@ function BaseLayout() {
   return (
     <>
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg neu sticky-top">
-        <div className="container">
-          <NavLink className="navbar-brand" to="/">
-            <i className="fa-solid fa-heart-pulse"></i> TheraTrack
-          </NavLink>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-          >
-            <i className="fa-solid fa-bars"></i>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
-              {navLinks
-                .filter(link => !link.auth || isLoggedIn)
-                .map(link => (
-                  <li className="nav-item" key={link.path}>
-                    <NavLink
-                      to={link.path}
-                      className={() => {
-                        // Custom active logic for Home
-                        if (link.path === "/") {
-                          return location.pathname === "/" ||
-                            location.pathname === "/home"
+      {!hideLayout && (
+        <nav className="navbar navbar-expand-lg neu sticky-top">
+          <div className="container">
+            <NavLink className="navbar-brand" to="/">
+              <i className="fa-solid fa-heart-pulse"></i> TheraTrack
+            </NavLink>
+
+            <button
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
+            >
+              <i className="fa-solid fa-bars"></i>
+            </button>
+
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav ms-auto">
+                {navLinks
+                  .filter(link => !link.auth || isLoggedIn)
+                  .map(link => (
+                    <li className="nav-item" key={link.path}>
+                      <NavLink
+                        to={link.path}
+                        className={() => {
+                          if (link.path === "/") {
+                            return location.pathname === "/" ||
+                              location.pathname === "/home"
+                              ? "nav-link active"
+                              : "nav-link";
+                          }
+                          return location.pathname.startsWith(link.path)
                             ? "nav-link active"
                             : "nav-link";
-                        }
-                        // Other links use React Router isActive
-                        return location.pathname.startsWith(link.path)
-                          ? "nav-link active"
-                          : "nav-link";
-                      }}
+                        }}
+                      >
+                        {link.label}
+                      </NavLink>
+                    </li>
+                  ))}
+
+                {isLoggedIn && (
+                  <li className="nav-item">
+                    <button
+                      className="btn btn-primary ms-2"
+                      onClick={handleLogout}
                     >
-                      {link.label}
-                    </NavLink>
+                      Logout
+                    </button>
                   </li>
-                ))}
-              {isLoggedIn && (
-                <li className="nav-item">
-                  <button
-                    className="btn btn-outline-danger ms-2"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </li>
-              )}
-            </ul>
+                )}
+              </ul>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* Main Content */}
       <main className="main-content">
@@ -131,54 +137,55 @@ function BaseLayout() {
       </main>
 
       {/* Footer */}
-      <footer>
-        <div>
-          {footerLinks.map(link => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className="footer-link"
-              end={link.path === "/"}
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </div>
+      {!hideLayout && (
+        <footer>
+          <div>
+            {footerLinks.map(link => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className="footer-link"
+                end={link.path === "/"}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </div>
 
-        <div className="mt-3">
-          {socialLinks.map(social => (
-            <a
-              key={social.href}
-              href={social.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-social"
-            >
-              <i className={social.icon}></i>
-            </a>
-          ))}
-        </div>
+          <div className="mt-3">
+            {socialLinks.map(social => (
+              <a
+                key={social.href}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-social"
+              >
+                <i className={social.icon}></i>
+              </a>
+            ))}
+          </div>
 
-        <div className="footer-bottom mt-3">
-          © {new Date().getFullYear()} PhysioCoach — Your AI-powered physiotherapy companion.
-        </div>
-      </footer>
+          <div className="footer-bottom mt-3">
+            © {new Date().getFullYear()} PhysioCoach — Your AI-powered
+            physiotherapy companion.
+          </div>
+        </footer>
+      )}
 
       {/* Scroll Button */}
-      {showScroll && (
+      {!hideLayout && showScroll && (
         <button
           id="scrollTopBtn"
           className="scroll-top-btn animate-float show"
-          onClick={() =>
-            window.scrollTo({ top: 0, behavior: "smooth" })
-          }
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
           <i className="fa-solid fa-arrow-up-from-bracket"></i>
         </button>
       )}
 
       {/* Chatbot */}
-      <ChatbotPopup />
+      {!hideLayout && <ChatbotPopup />}
     </>
   );
 }

@@ -461,6 +461,12 @@
     display: block;
 }
 
+
+.change-password-section .btn {
+  padding: 10px 20px;
+  font-weight: 600;
+}
+
 /* ===== Responsive Breakpoints ===== */
 @media (max-width:992px) {
   .profile-card {

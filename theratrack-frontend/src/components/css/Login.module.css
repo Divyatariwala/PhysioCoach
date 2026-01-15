@@ -1,0 +1,369 @@
+@import url('https://fonts.googleapis.com/css2?family=Palanquin:wght@400;500;600&display=swap');
+
+/* Apply Palaquine to everything except the main heading */
+* {
+    font-family: 'Palanquin', sans-serif;
+}
+
+/* IMAGE SECTION */
+.loginImageSection {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.loginPicOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.loginIllustration {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.loginImageText {
+    position: absolute;
+    top: 50%;
+    left: 52%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-align: center;
+}
+
+.loginImageText h1 {
+    font-family: 'poppins', sans-serif;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 36px;
+}
+
+.loginImageText p {
+    font-family: 'Palanquin', sans-serif;
+    color: #ffffff;
+    padding-left: 27px;
+    padding-right: 27px;
+}
+
+/* Ensure right column flex works properly */
+.col-md-7.position-relative {
+    display: flex;
+    flex-direction: column;
+    /* column layout so absolute Back button doesn’t affect centering */
+    justify-content: center;
+    /* vertical centering of children */
+    align-items: center;
+    /* horizontal centering */
+    min-height: 100vh;
+    /* full viewport height */
+    position: relative;
+    /* for absolute Back button */
+    padding: 2rem;
+    /* optional for some breathing space */
+}
+
+/* Form wrapper styling */
+.loginFormWrapper {
+    max-width: 550px;
+    width: 100%;
+    background: #ffffff;
+    padding: 2rem 2rem;
+    border-radius: 12px;
+    position: absolute;
+    left: 19%;
+}
+
+/* HEADER ABOVE FORM (RIGHT SIDE) */
+.formHeader {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.backToHomeLink {
+    background: transparent;
+    border: none;
+    color: #2D3436;  /* default color */
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 7px;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+/* Instead of text-decoration, use a pseudo-element for underline */
+.backToHomeLink .backText {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.backToHomeLink .backText::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0%;
+    height: 2px;
+    background-color: #3b8365;
+    transition: width 0.3s ease;
+}
+
+/* On hover, color changes and underline grows */
+.backToHomeLink:hover {
+    color: #3b8365;
+}
+
+.backToHomeLink:hover .backText::after {
+    width: 100%;
+}
+
+/* Icon color transition */
+.backToHomeLink i {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.backToHomeLink:hover i {
+    color: #3b8365;
+    transform: translateX(-2px); /* small subtle movement */
+}
+
+/* LINKS */
+.loginLinks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.loginLinks a {
+    color: #2d3436;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.loginLinks a:hover {
+    color: #3b8365;
+}
+
+/* COOL POPUP */
+.formPopup {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition:
+        opacity 0.4s ease,
+        max-height 0.4s ease,
+        margin 0.4s ease,
+        padding 0.4s ease,
+        transform 0.4s ease;
+}
+
+
+/* Visible */
+.showPopup {
+    opacity: 1;
+    max-height: 200px;
+    margin-bottom: 1rem;
+    /* same as your original */
+    padding: 0.75rem 1rem;
+    /* same as your original */
+    transform: translateY(0);
+}
+
+/* Hidden – collapses space */
+.hidePopup {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transform: translateY(-6px);
+}
+
+.popupError {
+    background: linear-gradient(135deg, #ffecec, #ffdada);
+    color: #c0392b;
+    border: 1px solid #f5b7b1;
+}
+
+.popupSuccess {
+    background: linear-gradient(135deg, #eafaf1, #d5f5e3);
+    color: #1e8449;
+    border: 1px solid #a9dfbf;
+}
+
+
+/* FORGOT PASSWORD MODAL */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.forgotModal {
+    position: relative;
+    width: 490px;
+    /* updated width */
+    height: 486px;
+    /* added fixed height */
+    background: #fff;
+    border-radius: 56px;
+    /* updated border radius */
+    padding: 2.5rem 2.2rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    animation: modalFadeIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* vertically center content */
+    align-items: center;
+    /* horizontally center content */
+}
+
+.modalTitle {
+    font-size: 30.3px;
+    margin-bottom: 1.6rem;
+}
+
+.modalInput {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #dfe6e9;
+    margin-bottom: 1.4rem;
+}
+
+.modalButton {
+    width: 100%;
+    padding: 0.7rem;
+    border-radius: 10px;
+    border: none;
+    background: #7f9f91;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.modalButton:hover {
+    background: #3b8365;
+}
+
+.modalClose {
+    position: absolute;
+    top: 19px;
+    right: 32px;
+    background: none;
+    border: none;
+    font-size: 29.2px;
+    cursor: pointer;
+    color: #6C757D;
+}
+
+.otpBox {
+    width: 50px;
+    height: 55px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 500;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    opacity: 0.7;
+}
+
+.otpBox:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.4);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* PASSWORD STRENGTH BAR */
+.weakBar {
+    background-color: red;
+}
+
+.mediumBar {
+    background-color: orange;
+}
+
+.strongBar {
+    background-color: green;
+}
+
+/* PASSWORD STRENGTH BAR */
+.weakBar,
+.mediumBar,
+.strongBar {
+    transition: width 0.5s ease-in-out, background-color 0.3s ease;
+    /* smooth fill change */
+}
+
+/* Small resend OTP link */
+.resendOtpLink {
+    cursor: pointer;
+    color: #2D3436;
+    /* Bootstrap primary color */
+    text-decoration: underline;
+    font-size: 14.4px;
+    /* slightly smaller than normal text */
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.resendOtpLink:hover {
+    color: #3b8365;
+    /* Darker shade on hover */
+}
+
+.resendOtpLink.disabled {
+    cursor: not-allowed;
+    color: gray;
+    text-decoration: none;
+}
+
+
+
+/* ANIMATIONS */
+@keyframes slideFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

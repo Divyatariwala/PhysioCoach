@@ -1,121 +1,84 @@
-import React, { useEffect, useState } from "react";
-import "../css/About.css";
+import React from "react";
+import picture from "../../assets/images/about&profile.png";
+import grouppic from "../../assets/images/Group 6.png";
+import heartIcon from "../../assets/images/heartIcon.png";
+import styles from "../css/About.module.css";
 import { Link } from "react-router-dom";
 
-const About = ({ user }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
-   // Check login status from localStorage
-    useEffect(() => {
-      const token = localStorage.getItem("isLoggedIn");
-      if (token === "true") setIsLoggedIn(true);
-    }, []);
+const About = () => {
+  const coreValues = [
+    { title: "Passion", text: "We are passionate about fitness and technology, combining both to inspire every user to move, improve, and succeed." },
+    { title: "Integrity", text: "We prioritize honesty, transparency, and trust in every aspect of our platform and interactions." },
+    { title: "Innovation", text: "We continuously innovate, leveraging AI to create cutting-edge, personalized workout experiences." },
+    { title: "Community", text: "We foster a supportive and inclusive environment where every member can thrive and achieve their goals." }
+  ];
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="hero-section about-hero">
-        <div className="container hero-text">
-          <h1 className="hero-title">About PhysioCoach</h1>
-          <p className="hero-subtitle">
-            Smart AI physiotherapy for posture, exercise tracking, and fitness improvement.
-          </p>
-          <Link to="/exercises" className="btn btn-cta mt-3">
-            Start Exercising
-          </Link>
+      {/* About Section */}
+      <section className={styles.aboutSection}>
+        <div className="container-fluid p-0 position-relative">
+          <div className={styles.imageOverlay}></div>
+          <img src={picture} alt="TheraTrack about" className={styles.aboutImage} />
+          <div className={styles.aboutContent}>
+            <h1>About us</h1>
+            <p><Link to="/" className={styles.breadcrumbLink}>Home</Link> / <span>About</span></p>
+          </div>
         </div>
-        <div className="hero-shape shape1"></div>
-        <div className="hero-shape shape2"></div>
-        <div className="hero-shape shape3"></div>
       </section>
 
-      {/* Mission + Features */}
-      <section className="section section-angle features-section">
-        <div className="container text-center">
-          <h2 className="section-title">Our Mission</h2>
-          <p className="section-subtitle">
-            Making physiotherapy accessible and engaging using AI-powered posture correction and exercise tracking.
-          </p>
-          <div className="features-grid">
-            <div className="glass-card hover-lift feature-card">
-              <img src="/images/ai.png" alt="AI Feedback" className="feature-img" />
-              <h5>Smart AI Feedback</h5>
-              <p>Instant posture correction during exercises to prevent injuries.</p>
+      {/* Experience Section */}
+      <section className="experience-section">
+        <div className="container">
+          <div className="row align-items-center g-4">
+            <div className="col-12 col-md-6 text-center">
+              <img src={grouppic} alt="TheraTrack team training" className="img-fluid rounded" />
             </div>
-            <div className="glass-card hover-lift feature-card">
-              <img src="/images/tracking.png" alt="Tracking" className="feature-img" />
-              <h5>Progress Tracking</h5>
-              <p>Visual dashboards track your improvements over time.</p>
-            </div>
-            <div className="glass-card hover-lift feature-card">
-              <img src="/images/guidance.png" alt="Guidance" className="feature-img" />
-              <h5>Personalized Guidance</h5>
-              <p>Custom exercise plans adapted to your goals and fitness level.</p>
+            <div className={`col-12 col-md-6 text-center text-md-start mt-3 mt-md-0 ${styles.textColumn}`}>
+              <span>AI That Moves With You</span>
+              <h2 className="mt-2">Transform Your Fitness Journey with Precision AI</h2>
+              <p>Say goodbye to one-size-fits-all workouts. TheraTrack leverages advanced AI to understand your unique body mechanics, provide instant posture corrections, and design workouts tailored specifically for your strengths and goals. Whether you are aiming for strength, mobility, or overall wellness, TheraTrack adapts to you.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="section team-section">
-        <div className="container text-center">
-          <h2 className="section-title">Meet the Team</h2>
-          <div className="team-grid">
-            <div className="glass-card hover-lift team-card">
-              <img src="/images/team1.jpg" alt="Divya" className="team-img" />
-              <h5>Divya</h5>
-              <p>Founder & Lead Developer</p>
-            </div>
-            <div className="glass-card hover-lift team-card">
-              <img src="/images/team2.jpg" alt="Alex" className="team-img" />
-              <h5>Alex</h5>
-              <p>AI Specialist</p>
-            </div>
-            <div className="glass-card hover-lift team-card">
-              <img src="/images/team3.jpg" alt="Priya" className="team-img" />
-              <h5>Priya</h5>
-              <p>UX Designer</p>
-            </div>
+      {/* Mission & Vision */}
+      <section className={styles.missionSection}>
+        <h1>Our Mission & Vision</h1>
+        <div className={styles.missionCards}>
+          <div className={styles.card}>
+            <h3>Our Mission</h3>
+            <p>To empower individuals to reach their full potential by combining AI technology with expert guidance, creating personalized fitness experiences that are safe, effective, and motivating.</p>
+          </div>
+          <div className={styles.card}>
+            <h3>Our Vision</h3>
+            <p>To revolutionize the way people train, making AI-assisted fitness accessible to everyone and fostering a global community that embraces health, strength, and well-being.</p>
           </div>
         </div>
       </section>
 
-      {/* Timeline / Our Journey */}
-      <section className="section section-angle-reverse journey-section">
-        <div className="container text-center">
-          <h2 className="section-title">Our Journey</h2>
-          <div className="timeline">
-            <div className="timeline-item">
-              <h5>2023 - Concept</h5>
-              <p>Idea born to create AI-powered physiotherapy accessible for everyone.</p>
+      {/* Core Values */}
+      <section className={styles.coreValuesSection}>
+        <h1>Our Core Values</h1>
+        <div className={styles.valuesGrid}>
+          {coreValues.map((val, idx) => (
+            <div key={idx} className={styles.valueCard}>
+              <img src={heartIcon} alt={val.title} />
+              <h4>{val.title}</h4>
+              <p>{val.text}</p>
             </div>
-            <div className="timeline-item">
-              <h5>2024 - Development</h5>
-              <p>Platform built with real-time posture correction and personalized exercise tracking.</p>
-            </div>
-            <div className="timeline-item">
-              <h5>2025 - Launch</h5>
-              <p>PhysioCoach launched, helping users improve fitness and posture safely worldwide.</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="section cta-section-modern">
-        <div className="container text-center">
-          <h3 className="cta-title">Ready to Improve Your Fitness and Posture?</h3>
-          {isLoggedIn ? (
-            <>
-              <Link to="/exercises" className="btn btn-cta mx-2">Start Exercising</Link>
-              <Link to="/profile" className="btn btn-cta-outline mx-2">View Profile</Link>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn btn-cta mx-2">Login Now</Link>
-              <Link to="/register" className="btn btn-cta-outline mx-2">Register Free</Link>
-            </>
-          )}
+      {/* Join Now */}
+      <section className={styles.joinSection}>
+        <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
+          <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
+            Ready to take the first step towards your fitness goals?
+          </h3>
+          <Link to="/signup" className="btn btn-primary">Join Now</Link>
         </div>
       </section>
     </>

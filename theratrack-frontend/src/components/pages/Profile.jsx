@@ -1,11 +1,14 @@
+// Profile.jsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Download, Upload, Info } from "lucide-react";
-import "../css/Profile.css";
+import { useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
+import "../css/Profile.css";
 
 export default function Profile() {
   const backendHost = "http://localhost:8000";
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState({
     first_name: "",
@@ -23,6 +26,7 @@ export default function Profile() {
   const [profilePopupMessage, setProfilePopupMessage] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Get CSRF token from cookie
   const getCSRFToken = () => {
     const name = "csrftoken";
     const cookies = document.cookie.split(";").map(c => c.trim());
@@ -36,7 +40,7 @@ export default function Profile() {
 
   const selectGender = (gender) => {
     setProfile(prev => ({ ...prev, gender }));
-    setErrors(prev => ({ ...prev, gender: "" })); // clear error
+    setErrors(prev => ({ ...prev, gender: "" }));
     setDropdownOpen(false);
   };
 
@@ -57,7 +61,7 @@ export default function Profile() {
 
       if (res.status === 401) {
         alert("⚠️ You must be logged in!");
-        window.location.href = "/login";
+        navigate("/login");
         return;
       }
 
@@ -82,7 +86,7 @@ export default function Profile() {
       console.error(err);
       alert("Unable to fetch profile: " + err.message);
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -125,7 +129,7 @@ export default function Profile() {
 
   const handleProfileChange = (field, value) => {
     setProfile(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: "" })); // clear error on input
+    setErrors(prev => ({ ...prev, [field]: "" }));
   };
 
   const validateProfile = () => {
@@ -139,7 +143,7 @@ export default function Profile() {
   };
 
   const handleSaveProfile = async () => {
-    if (!validateProfile()) return; // stop if validation fails
+    if (!validateProfile()) return;
 
     try {
       const res = await fetch(`${backendHost}/api/update_profile/`, {
@@ -213,31 +217,11 @@ export default function Profile() {
         <div className="personal-info">
           <h3 className="fw-bold mb-3">Personal Information</h3>
           <div className="info-grid">
-            <InputField
-              label="First Name"
-              value={profile.first_name || ""}
-              editable
-              placeholder="Enter your first name"
-              onChange={v => handleProfileChange("first_name", v)}
-            />
-            <InputField
-              label="Last Name"
-              value={profile.last_name || ""}
-              editable
-              placeholder="Enter your last name"
-              onChange={v => handleProfileChange("last_name", v)}
-            />
-            <InputField
-              label="Username"
-              value={profile.username || ""}
-              editable
-              placeholder="Enter your username"
-              error={errors.username}
-              onChange={v => handleProfileChange("username", v)}
-            />
-            <InputField label="Email" value={profile.email || ""} editable={false} />
+            <InputField label="First Name" value={profile.first_name} editable onChange={v => handleProfileChange("first_name", v)} placeholder="Enter your first name" />
+            <InputField label="Last Name" value={profile.last_name} editable onChange={v => handleProfileChange("last_name", v)} placeholder="Enter your last name" />
+            <InputField label="Username" value={profile.username} editable error={errors.username} onChange={v => handleProfileChange("username", v)} placeholder="Enter your username" />
+            <InputField label="Email" value={profile.email} editable={false} />
 
-            {/* Age input */}
             <div className="mb-2">
               <label className="form-label fw-semibold">Age</label>
               <input
@@ -252,14 +236,10 @@ export default function Profile() {
               {errors.age && <div className="invalid-feedback">{errors.age}</div>}
             </div>
 
-            {/* Gender dropdown */}
             <div className="mb-2">
               <label className="form-label fw-semibold">Gender</label>
               <div className="custom-select-wrapper">
-                <div
-                  className={`custom-select ${errors.gender ? "is-invalid" : ""}`}
-                  onClick={toggleDropdown}
-                >
+                <div className={`custom-select ${errors.gender ? "is-invalid" : ""}`} onClick={toggleDropdown}>
                   {profile.gender || "Select your gender"}
                   <div className={`custom-options ${dropdownOpen ? "show" : ""}`}>
                     {["Male", "Female", "Other"].map(opt => (
@@ -289,6 +269,13 @@ export default function Profile() {
           ) : (
             <div className="no-reports"><Info size={18} /> No reports available</div>
           )}
+        </div>
+
+        {/* Change/Forgot Password Button */}
+        <div className="change-password-section mt-4 text-center">
+          <button className="btn btn-warning" onClick={() => navigate("/api/forgotPassword")}>
+            🔒 Change / Forgot Password
+          </button>
         </div>
       </div>
     </div>
