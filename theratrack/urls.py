@@ -33,10 +33,12 @@ urlpatterns = [
     
    # Authentication
     path('api/login/', views.login_api, name='login_api'),
+    path('api/send-otp/', views.send_otp, name='send_otp'),
+    path('api/verify-otp/', views.verify_otp, name='verify_otp'),
     path('auth/', include('social_django.urls', namespace='social')),  # Google login
     path("api/google-login/", views.google_login, name="google-login"),
     path('api/register/', views.register_api, name='register_api'),
-    path('api/forgotpassword/', views.forgot_password_api, name='forgot_password_api'),
+    path('api/reset-password/', views.reset_password, name='reset_password'),
     path('api/logout/', views.logout_view_api, name='logout_api'),
     path("api/get-cookie-consent/", views.get_cookie_consent, name="get_cookie_consent"),
     path("api/set-cookie-consent/", views.set_cookie_consent, name="set_cookie_consent"),

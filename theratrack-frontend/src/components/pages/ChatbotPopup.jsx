@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import chatbot from "../../assets/images/chatbot.png";
 import "../css/chatbot.css";
 
 export default function ChatbotPopup() {
@@ -6,6 +7,18 @@ export default function ChatbotPopup() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [liftUp, setLiftUp] = useState(false);
+
+    // 👇 Detect scroll and lift chatbot button
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollButtonVisible = window.scrollY > 100; // adjust this to match scroll button appearance
+            setLiftUp(scrollButtonVisible);
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     // Default bot greeting with typing effect
     useEffect(() => {
@@ -64,7 +77,15 @@ export default function ChatbotPopup() {
 
     return (
         <>
-            <button className="chatbot-button" onClick={() => setOpen(!open)}>💬</button>
+            {/* 👇 Chatbot Button */}
+            <button
+                className={`btn-background ${liftUp ? "lift-up" : ""}`}
+                onClick={() => setOpen(!open)}
+            >
+                <div className="chatbot-button">
+                    <img src={chatbot} alt="Chatbot" />
+                </div>
+            </button>
 
             {open && (
                 <div className="chatbot-popup">

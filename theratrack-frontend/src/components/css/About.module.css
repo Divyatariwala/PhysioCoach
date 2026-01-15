@@ -1,0 +1,247 @@
+/* ------------------ About Section ------------------ */
+.about-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.aboutImage {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  display: block;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  z-index: 1;
+  height: 350px;
+}
+
+.aboutContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 2;
+}
+
+.aboutContent h1 {
+  font-size: 40px;
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.aboutContent p {
+  font-size: 16px;
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.aboutContent span{
+  font-size: 16px;
+  color: #B9B1B1;
+}
+
+.breadcrumbLink {
+  color: #eaeaea;
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+/* ------------------ Experience Section ------------------ */
+.experience-section {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.experience-section img {
+  width: 100%;
+  max-width: 500px; /* optional, keeps image from being too large */
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.textColumn{
+  max-width: 540px;
+}
+
+.experience-section h2 {
+  font-size: 28px;
+  margin-top: 10px;
+}
+
+.experience-section p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* ------------------ Mission & Vision ------------------ */
+.missionSection {
+  background-color: #F9F4F0;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.missionSection h1 {
+  font-size: 36px;
+  margin-bottom: 50px;
+  font-weight: 500;
+}
+
+.missionCards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.card h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+}
+
+/* ------------------ Core Values ------------------ */
+.coreValuesSection {
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.coreValuesSection h1 {
+  font-size: 36px;
+  margin-bottom: 50px;
+}
+
+.valuesGrid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.valueCard {
+  width: 100%;
+  max-width: 250px;
+  text-align: center;
+}
+
+.valueCard img {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 15px;
+}
+
+.valueCard h4 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.valueCard p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* ------------------ Join Us Section ------------------ */
+.joinSection {
+  background-color: #F9F4F0;
+}
+
+.joinSection h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #6B8778;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.joinSection .btn {
+  padding: 10px 25px;
+  font-size: 16px;
+}
+
+/* ------------------ Responsive Media Queries ------------------ */
+@media (max-width: 992px) {
+  .aboutContent h1 {
+    font-size: 32px;
+  }
+
+  .experience-section h2 {
+    font-size: 24px;
+  }
+
+  .missionSection h1,
+  .coreValuesSection h1 {
+    font-size: 28px;
+  }
+
+  .textColumn{
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .aboutImage,
+  .imageOverlay {
+    height: 280px;
+  }
+
+  .experience-section h2 {
+    font-size: 22px;
+  }
+
+  .missionSection,
+  .coreValuesSection {
+    padding: 50px 15px;
+  }
+
+  .joinSection h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 576px) {
+  .aboutContent h1 {
+    font-size: 26px;
+  }
+
+  .experience-section h2 {
+    font-size: 20px;
+  }
+
+  .missionSection h1,
+  .coreValuesSection h1 {
+    font-size: 24px;
+  }
+
+  .joinSection h3 {
+    font-size: 16px;
+  }
+}

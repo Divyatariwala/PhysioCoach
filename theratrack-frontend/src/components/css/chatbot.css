@@ -227,27 +227,50 @@
   box-shadow: 0 0 10px #52b788;
 }
 
-/* ======================== CHATBOT BUTTON ======================== */
-.chatbot-button {
+.btn-background {
   position: fixed;
-  bottom: 100px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
+  bottom: 30px;
+  right: 25px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: rgba(82, 183, 136, 0.85);
-  box-shadow: 4px 4px 15px rgba(0,0,0,0.2), -4px -4px 15px rgba(255,255,255,0.6);
-  color: #fff;
-  font-size: 1.8rem;
-  cursor: pointer;
+  background-color: rgba(107, 135, 120, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  transition: all 0.3s ease, transform 0.4s ease;
+  cursor: pointer;
+  transition: transform 0.35s ease, bottom 0.35s ease, box-shadow 0.35s ease;
+  z-index: 999;
 }
 
-.chatbot-button:hover {
-  transform: translateY(-5px) scale(1.1);
-  box-shadow: 0 0 20px #38b000;
+.chatbot-button {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #6B8778;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatbot-button img {
+  width: 26px;
+  height: 26px;
+}
+
+/* Lift up when scroll */
+.btn-background.lift-up {
+  transform: translateY(-75px);
+}
+
+/* Hover effect */
+.btn-background:hover {
+  transform: translateY(-6px) scale(1.08);
+  box-shadow: 0 10px 25px rgba(64, 145, 108, 0.6);
+}
+
+/* Hover when lifted */
+.btn-background.lift-up:hover {
+  transform: translateY(-75px) scale(1.08);
 }

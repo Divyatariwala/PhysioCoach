@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import BaseLayout from "./components/layout/baseLayout";
+import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./components/pages/Home";
 import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
@@ -9,7 +10,6 @@ import Profile from "./components/pages/Profile";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
 import PrivacyPolicy from "./components/pages/PrivacyPolicy";
-import ForgotPassword from "./components/pages/ForgotPassword";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import CookiesBanner from "./components/layout/CookiesBanner";
 import ChatbotPopup from "./components/pages/ChatbotPopup";
@@ -22,6 +22,13 @@ function App() {
       <CookiesBanner />
 
       <Routes>
+        {/* AUTH ROUTES (NO NAVBAR / FOOTER) */}
+        <Route element={<AuthLayout />}>
+          <Route path="api/login" element={<Login />} />
+          <Route path="api/register" element={<Register />} />
+        </Route>
+
+        {/* MAIN APP ROUTES */}
         <Route path="/" element={<BaseLayout />}>
           <Route index element={<Home />} />
           <Route path="home" element={<Home />} />
@@ -35,11 +42,6 @@ function App() {
             <Route path="api/profile" element={<Profile />} />
             <Route path="api/exercises" element={<Exercises />} />
           </Route>
-
-          {/* Public Routes */}
-          <Route path="api/login" element={<Login />} />
-          <Route path="api/register" element={<Register />} />
-          <Route path="api/forgotpassword" element={<ForgotPassword />} />
         </Route>
       </Routes>
     </Router>

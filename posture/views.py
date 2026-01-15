@@ -1,6 +1,7 @@
 # posture/views.py
 
 from io import BytesIO
+from random import randint
 import google.genai as genai
 from google.genai import types
 import cv2
@@ -9,6 +10,7 @@ from fastapi.responses import FileResponse
 import numpy as np
 import json
 import os
+import re
 from django.contrib.auth import get_backends
 from google.auth.transport import requests as google_requests
 from django.http import Http404, FileResponse,  JsonResponse
@@ -185,35 +187,177 @@ def exercises_api(request):
 # ---------------------------
 # NORMAL LOGIN
 # ---------------------------
+EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+
 @csrf_exempt
 def login_api(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST request required"})
+
+    try:
+        data = json.loads(request.body)
+        identifier = data.get("identifier", "").strip()
+        password = data.get("password", "").strip()
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"})
+
+    # ---------------- VALIDATION ----------------
+    if not identifier:
+        return JsonResponse({"success": False, "error": "Username or email is required"})
+    if not password:
+        return JsonResponse({"success": False, "error": "Password is required"})
+
+    user = None
+
+    # ---------------- LOGIN LOGIC ----------------
+    if not re.match(EMAIL_REGEX, identifier):
+        # Check username
+        user = authenticate(request, username=identifier, password=password)
+        if not user:
+            return JsonResponse({
+                "success": False,
+                "error": "No account found. Sign up!"
+            })
+    else:
+        # Check email
+        user_obj = User.objects.filter(email__iexact=identifier).first()
+        if not user_obj:
+            return JsonResponse({
+                "success": False,
+                "error": "No account found. Sign up!"
+            })
+        user = authenticate(request, username=user_obj.username, password=password)
+        if not user:
+            return JsonResponse({
+                "success": False,
+                "error": "Incorrect password for this email."
+            })
+
+    if not user.is_active:
+        return JsonResponse({"success": False, "error": "Account is inactive"})
+
+    login(request, user)
+    return JsonResponse({"success": True, "username": user.username})
+
+# Temporary OTP store
+OTP_STORE = {}
+
+@csrf_exempt
+def send_otp(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST request required"}, status=405)
 
     try:
-        data = json.loads(request.body)
-        username = data.get("username", "").strip()
-        password = data.get("password", "").strip()
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+        data = json.loads(request.body.decode("utf-8"))
+        email = data.get("email")
+        if not email:
+            return JsonResponse({"success": False, "error": "Email required"}, status=400)
 
-    if not username or not password:
-        return JsonResponse({"success": False, "error": "Username and password required"}, status=400)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return JsonResponse({"success": False, "error": "Email not registered"}, status=404)
 
-    user = authenticate(request, username=username, password=password)
+        # Generate 4-digit OTP
+        otp = str(randint(1000, 9999))
+        OTP_STORE[email] = otp
+        print(f"[DEBUG] OTP for {email}: {otp}")  # For testing, replace with email service
 
-    if user is not None:
-        backend = get_backends()[0]  
-        login(
-            request,
-            user,
-            backend=backend.__class__.__module__ + "." + backend.__class__.__name__
+        return JsonResponse({"success": True})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+@csrf_exempt
+def verify_otp(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST request required"}, status=405)
+    
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        email = data.get("email")
+        otp = data.get("otp")
+
+        if not email or not otp:
+            return JsonResponse({"success": False, "error": "Email and OTP required"}, status=400)
+        
+        if OTP_STORE.get(email) == otp:
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "error": "Invalid OTP"}, status=400)
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+@csrf_exempt
+def reset_password(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST request required"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        email = data.get('email')
+        otp = data.get('otp')
+        new_password = data.get('newPassword')
+        confirm_password = data.get('confirmPassword')
+
+        if not email or not otp or not new_password or not confirm_password:
+            return JsonResponse(
+                {"success": False, "error": "All fields are required"},
+                status=400
+            )
+
+        # ✅ Check OTP
+        if OTP_STORE.get(email) != otp:
+            return JsonResponse(
+                {"success": False, "error": "Invalid OTP"},
+                status=400
+            )
+
+        if new_password != confirm_password:
+            return JsonResponse(
+                {"success": False, "error": "Passwords do not match"},
+                status=400
+            )
+
+        user = User.objects.get(email=email)
+
+        # 🔒 CRITICAL CHECK: New password must NOT be old password
+        if user.check_password(new_password):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "New password cannot be the same as your old password"
+                },
+                status=400
+            )
+
+        # ✅ Save new password
+        user.set_password(new_password)
+        user.save()
+
+        # 🧹 Remove OTP after success
+        OTP_STORE.pop(email, None)
+
+        return JsonResponse({"success": True})
+
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "User not found"},
+            status=404
         )
 
-        return JsonResponse({"success": True, "username": user.username})
-
-    return JsonResponse({"success": False, "error": "Invalid username or password"}, status=403)
-
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse(
+            {"success": False, "error": "Something went wrong"},
+            status=500
+        )
+    
 # ---------------------------
 # GOOGLE LOGIN
 # ---------------------------
@@ -314,8 +458,14 @@ def register_api(request):
 
         # Validations
         if User.objects.filter(username=username).exists():
-            return JsonResponse({"success": False, "error": "Username already exists"}, status=400)
+            return JsonResponse({"success": False, "error": "Username already exists!"}, status=400)
 
+        if User.objects.filter(email__iexact=email).exists():
+            return JsonResponse(
+                {"success": False, "error": "Email already registered!"},
+                status=400
+            )
+        
         # Create user
         user = User.objects.create_user(
             username=username,
@@ -343,28 +493,7 @@ def register_api(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-@login_required
-@csrf_exempt
-def forgot_password_api(request):
-    context = {}
-    if request.method == "POST":
-        data = json.loads(request.body)
-        old_password = data.get("old_password")
-        new_password = data.get("new_password")
-        confirm_password = data.get("confirm_password")
-        user = request.user
-
-        if not user.check_password(old_password):
-            context["old_password_error"] = "Old password is incorrect"
-        else:
-            user.set_password(new_password)
-            user.save()
-            update_session_auth_hash(request, user)
-            context["success_message"] = "🎯 Password flawlessly upgraded! You’re now basically unhackable 😎🔐"
-
-    return JsonResponse(context)
-
+ 
 @csrf_exempt
 def get_cookie_consent(request):
     return JsonResponse({

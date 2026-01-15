@@ -1,76 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+// Register.jsx
+import React, { useState, useRef } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import "../css/Register.css";
-import confetti from "canvas-confetti";
-
-// Reusable Password Input Component
-const PasswordField = ({
-  label,
-  name,
-  value,
-  error,
-  showPassword,
-  toggleShowPassword,
-  handleChange,
-  passwordStrength,
-}) => (
-  <div className="mb-3 position-relative text-start">
-    <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-      {label}
-    </label>
-    <div style={{ position: "relative" }}>
-      <input
-        type={showPassword[name] ? "text" : "password"}
-        className="form-control neumorphic-input"
-        placeholder={label}
-        name={name}
-        value={value}
-        onChange={handleChange}
-        style={{ paddingRight: "40px" }}
-      />
-      <span
-        onClick={() => toggleShowPassword(name)}
-        style={{
-          position: "absolute",
-          right: "10px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          cursor: "pointer",
-          userSelect: "none",
-        }}
-      >
-        {showPassword[name] ? <EyeOff size={18} /> : <Eye size={18} />}
-      </span>
-    </div>
-
-    {passwordStrength && name === "password1" && (
-      <>
-        <div className={`password-strength-text mt-1 ${passwordStrength.toLowerCase()}`}>
-          {passwordStrength} password
-        </div>
-        <div className="password-strength-bar-container mt-1">
-          <div
-            className={`password-strength-bar ${passwordStrength.toLowerCase()}`}
-            style={{
-              width:
-                passwordStrength === "Weak"
-                  ? "33%"
-                  : passwordStrength === "Medium"
-                    ? "66%"
-                    : "100%",
-            }}
-          ></div>
-        </div>
-      </>
-    )}
-
-    {error && <div className="form-error">{error}</div>}
-  </div>
-);
+import { useNavigate } from "react-router-dom";
+import registerPic from "../../assets/images/Login_pic.png";
+import styles from "../css/Register.module.css";
 
 export default function Register() {
-  const canvasRef = useRef(null);
-  const popupRef = useRef(null);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -84,14 +20,13 @@ export default function Register() {
   });
 
   const [errors, setErrors] = useState({});
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState("");
-  const [showPassword, setShowPassword] = useState({
-    password1: false,
-    password2: false,
-  });
+  const [showPassword, setShowPassword] = useState({ password1: false, password2: false });
 
-  // --- Password Strength Checker ---
+  // ---------------- FORM POPUP (SAME AS LOGIN) ----------------
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState(""); // error | success
+
+  // ---------------- PASSWORD STRENGTH ----------------
   const getPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -112,141 +47,45 @@ export default function Register() {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  // --- Particles ---
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    let particlesArray = [];
+  // ---------------- POPUP HELPER ----------------
+  const showFormPopup = (message, type = "error") => {
+    setPopupMessage(message);
+    setPopupType(type);
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() - 0.5;
-        this.speedY = Math.random() - 0.5;
-      }
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-      }
-      draw() {
-        ctx.fillStyle = "rgba(76,175,80,0.3)";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    if (type === "error") {
+      setTimeout(() => {
+        setPopupMessage("");
+        setPopupType("");
+      }, 4000);
     }
-
-    const initParticles = () => {
-      particlesArray = [];
-      for (let i = 0; i < 80; i++) particlesArray.push(new Particle());
-    };
-
-    const animateParticles = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-      requestAnimationFrame(animateParticles);
-    };
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initParticles();
-    };
-
-    initParticles();
-    animateParticles();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // --- Popup ---
-  const showPopup = (message, success = false) => {
-    const popup = popupRef.current;
-    if (!popup) return;
-
-    const popupMsg = popup.querySelector("#popupMessage");
-    const popupBtn = popup.querySelector("#popupButton");
-    const closeBtn = popup.querySelector("#closePopup");
-
-    popupMsg.textContent = message;
-
-    if (success) {
-      popupBtn.textContent = "Go to Login";
-      popupBtn.style.display = "inline-block";
-      popupBtn.onclick = () => (window.location.href = "/api/login");
-
-      // 🎊 Trigger confetti on success
-      confetti({
-        particleCount: 200,
-        angle: 60,
-        spread: 120,
-        origin: { x: 0 },
-        colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
-      });
-      confetti({
-        particleCount: 200,
-        angle: 120,
-        spread: 120,
-        origin: { x: 1 },
-        colors: ["#4CAF50", "#1b4332", "#e0f1e7", "#FFD700"],
-      });
-    } else {
-      popupBtn.style.display = "none";
-    }
-
-    popup.classList.add("show");
-    closeBtn.onclick = () => popup.classList.remove("show");
-    if (!success) setTimeout(() => popup.classList.remove("show"), 8000);
   };
 
-  // --- Form ---
+  // ---------------- FORM HANDLERS ----------------
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-
-    if (name === "password1") setPasswordStrength(getPasswordStrength(value));
-  };
-
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-
-  const selectGender = (value) => {
-    setFormData({ ...formData, gender: value });
-    setDropdownOpen(false);
   };
 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.firstName) newErrors.firstName = "Please enter your first name 🌿";
-    if (!formData.lastName) newErrors.lastName = "We’d love to know your last name too ✨";
-    if (!formData.username) newErrors.username = "Pick a cool username for your journey!";
-    if (!formData.email) newErrors.email = "We’ll use this to keep you updated — please enter your email 📬";
+    if (!formData.lastName) newErrors.lastName = "Please enter your last name ✨";
+    if (!formData.username) newErrors.username = "Pick a cool username!";
+    if (!formData.email) newErrors.email = "Please enter your email address 📬";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format 📬";
 
-    if (!formData.age) {
-      newErrors.age = "Your age helps us personalize your wellness plan 🌱";
-    } else if (formData.age < 18) {
-      newErrors.age = "🚫 You must be at least 18 years old to register for TheraTrack.";
-    } else if (formData.age > 100) {
-      newErrors.age = "Please enter a valid age (under 120).";
-    }
-    if (!formData.gender) newErrors.gender = "Select your gender so we can tailor your experience 🌼";
-    if (!formData.password1)
-      newErrors.password1 = "Create a secure password to protect your progress 🔒";
+    if (!formData.age) newErrors.age = "Select your age 🌱";
+    else if (formData.age < 18) newErrors.age = "🚫 You must be at least 18 years old.";
+    else if (formData.age > 120) newErrors.age = "Enter a valid age.";
+
+    if (!formData.gender) newErrors.gender = "Select your gender 🌼";
+
+    if (!formData.password1) newErrors.password1 = "Create a secure password 🔒";
     else if (!isStrongPassword(formData.password1))
-      newErrors.password1 =
-        "Make it strong! Use at least 8 characters with uppercase, lowercase, numbers & a symbol 💪";
-    if (formData.password1 !== formData.password2)
-      newErrors.password2 = "Oops! Those passwords don’t match — try again 😊";
+      newErrors.password1 = "Make it strong! Use uppercase, lowercase, numbers & symbols 💪";
+
+    if (!formData.password2) newErrors.password2 = "Please confirm your password 🔐";
+    else if (formData.password1 !== formData.password2) newErrors.password2 = "Passwords don’t match!";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -259,200 +98,245 @@ export default function Register() {
     try {
       const response = await fetch("http://localhost:8000/api/register/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        showPopup(data.error || "Registration failed");
+        showFormPopup(data.error || "Registration failed", "error");
       } else {
-        showPopup(
-          "🎉 Hooray! You're now registered and ready to track your progress!",
-          true
-        );
-        setFormData({
-          firstName: "",
-          lastName: "",
-          username: "",
-          email: "",
-          age: "",
-          gender: "",
-          password1: "",
-          password2: "",
-        });
-        setPasswordStrength("");
+        showFormPopup("🎉 Registered successfully! Redirecting to login.", "success");
+        setTimeout(() => navigate("/api/login"), 1500);
       }
-    } catch (error) {
-      console.error("Error:", error);
-      showPopup("Something went wrong. Please try again.");
+    } catch {
+      showFormPopup("Something went wrong. Please try again.", "error");
     }
   };
 
+  const getStrengthColor = (strength, forText = false) => {
+    switch (strength) {
+      case "Weak":
+        return forText ? "red" : styles.weakBar;
+      case "Medium":
+        return forText ? "orange" : styles.mediumBar;
+      case "Strong":
+        return forText ? "green" : styles.strongBar;
+      default:
+        return forText ? "black" : "";
+    }
+  };
+
+  // ---------------- RENDER ----------------
   return (
-    <div
-      className="register-page d-flex justify-content-center align-items-center position-relative"
-      style={{ minHeight: "100vh", overflow: "hidden", background: "#e0f1e7" }}
-    >
-      <canvas ref={canvasRef} id="particles"></canvas>
-
-      <div
-        className="register-card p-5 rounded-4 glass-card position-relative text-start"
-        style={{ width: "100%", maxWidth: "556px", zIndex: 1 }}
-      >
-        <h2 className="fw-bold mb-4 text-center" style={{ color: "#1b4332" }}>
-          Create Your Account
-        </h2>
-
-        <div className="popup" ref={popupRef}>
-          <span id="popupMessage" className="fw-semibold"></span>
-          <button type="button" id="popupButton" style={{ display: "none" }}></button>
-          <button type="button" id="closePopup">
-            &times;
-          </button>
+    <div className="container-fluid p-0">
+      <div className="row g-0">
+        {/* LEFT IMAGE */}
+        <div className="col-md-5 d-none d-md-block">
+          <div className={styles.loginImageSection}>
+            <div className={styles.loginPicOverlay}></div>
+            <img src={registerPic} alt="Register Illustration" className={styles.loginIllustration} />
+            <div className={styles.loginImageText}>
+              <h1>Welcome to TheraTrack!</h1>
+              <p>Register now to track your therapy sessions and progress.</p>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="row mb-3 name-fields">
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-                First Name
-              </label>
-              <input
-                type="text"
-                className="form-control neumorphic-input"
-                placeholder="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-              />
-              <div className="form-error">{errors.firstName}</div>
-            </div>
-            <div className="col-12 col-md-6" id="lastName">
-              <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-                Last Name
-              </label>
-              <input
-                type="text"
-                className="form-control neumorphic-input"
-                placeholder="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-              />
-              <div className="form-error">{errors.lastName}</div>
-            </div>
+        {/* RIGHT FORM */}
+        <div className="col-md-7 d-flex position-relative justify-content-center align-items-center min-vh-100">
+          {/* BACK TO HOME – ABOVE FORM (LEFT) */}
+          <div className={styles.formHeader}>
+            <button
+              className={styles.backToHomeLink}
+              onClick={() => navigate("/")}
+            >
+              <i className="fa-solid fa-arrow-left"></i>{" "}
+              <span className={styles.backText}>Back to Home</span>
+            </button>
           </div>
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-              Username
-            </label>
-            <input
-              type="text"
-              className="form-control neumorphic-input"
-              placeholder="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-            />
-            <div className="form-error">{errors.username}</div>
-          </div>
+          <div className={`${styles.loginFormWrapper} w-100 px-4 px-md-5`} style={{ maxWidth: "550px" }}>
+            <h2 className="mb-4 text-center">Create Account</h2>
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-              Email
-            </label>
-            <input
-              type="email"
-              className="form-control neumorphic-input"
-              placeholder="Enter your email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-            <div className="form-error">{errors.email}</div>
-          </div>
+            {/* POPUP ABOVE FORM */}
+            {popupMessage && (
+              <div
+                className={`${styles.formPopup} ${popupType === "error"
+                  ? styles.popupError
+                  : styles.popupSuccess
+                  }`}
+              >
+                {popupMessage}
+              </div>
+            )}
 
-          <div className="row mb-3">
-            <div className="col-12 col-md-6" id="age">
-              <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-                Age
-              </label>
-              <input
-                type="number"
-                className="form-control neumorphic-input"
-                placeholder="Enter your age"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                min="18"
-                max="100"
-              />
-              <div className="form-error">{errors.age}</div>
-            </div>
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: "#1b4332" }}>
-                Gender
-              </label>
-              <div className="custom-select-wrapper m-0">
-                <div className="custom-select" onClick={toggleDropdown}>
-                  {formData.gender || "Select your gender"}
-                  <div className={`custom-options ${dropdownOpen ? "show" : ""}`}>
-                    {["Male", "Female", "Other"].map((opt) => (
-                      <div key={opt} className="custom-option" onClick={() => selectGender(opt)}>
-                        {opt}
-                      </div>
-                    ))}
+            <form onSubmit={handleSubmit} noValidate>
+              {/* First & Last Name */}
+              <div className="row mb-3">
+                <div className="col">
+                  <input
+                    type="text"
+                    className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
+                    placeholder="First Name"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                  />
+                  {errors.firstName && <div className="invalid-feedback d-block">{errors.firstName}</div>}
+                </div>
+                <div className="col">
+                  <input
+                    type="text"
+                    className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
+                    placeholder="Last Name"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                  />
+                  {errors.lastName && <div className="invalid-feedback d-block">{errors.lastName}</div>}
+                </div>
+              </div>
+
+              {/* Username & Email */}
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className={`form-control ${errors.username ? "is-invalid" : ""}`}
+                  placeholder="Username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                />
+                {errors.username && <div className="invalid-feedback d-block">{errors.username}</div>}
+              </div>
+
+              <div className="mb-3">
+                <input
+                  type="email"
+                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                  placeholder="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
+              </div>
+
+              {/* Age & Gender */}
+              <div className="row mb-3">
+                <div className="col">
+                  <input
+                    type="number"
+                    className={`form-control ${errors.age ? "is-invalid" : ""}`}
+                    placeholder="Age"
+                    name="age"
+                    min="18"
+                    max="100"
+                    value={formData.age}
+                    onChange={handleChange}
+                  />
+                  {errors.age && <div className="invalid-feedback d-block">{errors.age}</div>}
+                </div>
+                <div className="col">
+                  <select
+                    className={`form-select ${errors.gender ? "is-invalid" : ""}`}
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {errors.gender && <div className="invalid-feedback d-block">{errors.gender}</div>}
+                </div>
+              </div>
+
+              {/* Password & Confirm Password */}
+              <div className="row mb-3">
+                <div className="col">
+                  <div className="input-group flex-column">
+                    <div className="d-flex">
+                      <input
+                        type={showPassword.password1 ? "text" : "password"}
+                        className={`form-control ${errors.password1 ? "is-invalid" : ""}`}
+                        placeholder="Password"
+                        name="password1"
+                        value={formData.password1}
+                        onChange={handleChange}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => toggleShowPassword("password1")}
+                      >
+                        {showPassword.password1 ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    {formData.password1 && (
+                      <>
+                        <small
+                          className="mt-1 fw-semibold"
+                          style={{ color: getStrengthColor(getPasswordStrength(formData.password1), true) }}
+                        >
+                          {getPasswordStrength(formData.password1)} password
+                        </small>
+                        <div className="progress mt-1" style={{ height: "5px", borderRadius: "2px", overflow: "hidden" }}>
+                          <div
+                            className={`progress-bar ${getStrengthColor(getPasswordStrength(formData.password1))}`}
+                            role="progressbar"
+                            style={{
+                              width:
+                                getPasswordStrength(formData.password1) === "Weak"
+                                  ? "33%"
+                                  : getPasswordStrength(formData.password1) === "Medium"
+                                    ? "66%"
+                                    : "100%",
+                              transition: "width 0.5s ease-in-out",
+                            }}
+                          ></div>
+                        </div>
+                      </>
+                    )}
+                    {errors.password1 && <div className="invalid-feedback d-block">{errors.password1}</div>}
+                  </div>
+                </div>
+
+                <div className="col">
+                  <div className="input-group">
+                    <input
+                      type={showPassword.password2 ? "text" : "password"}
+                      className={`form-control ${errors.password2 ? "is-invalid" : ""}`}
+                      placeholder="Confirm Password"
+                      name="password2"
+                      value={formData.password2}
+                      onChange={handleChange}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => toggleShowPassword("password2")}
+                    >
+                      {showPassword.password2 ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                    {errors.password2 && <div className="invalid-feedback d-block">{errors.password2}</div>}
                   </div>
                 </div>
               </div>
-              <div className="form-error">{errors.gender}</div>
+
+              <button type="submit" className="btn btn-primary w-100 mt-2">
+                Register
+              </button>
+            </form>
+
+            <div className={`${styles.loginLinks} mt-3 text-center`}>
+              Already have an account? <a href="/api/login">Login</a>
             </div>
           </div>
-
-          {/* Passwords */}
-          <div className="row mb-3 password-fields">
-            <div className="col-12 col-md-6">
-              <PasswordField
-                label="Password"
-                name="password1"
-                value={formData.password1}
-                error={errors.password1}
-                handleChange={handleChange}
-                showPassword={showPassword}
-                toggleShowPassword={toggleShowPassword}
-                passwordStrength={passwordStrength}
-              />
-            </div>
-            <div className="col-12 col-md-6">
-              <PasswordField
-                label="Confirm Password"
-                name="password2"
-                value={formData.password2}
-                error={errors.password2}
-                handleChange={handleChange}
-                showPassword={showPassword}
-                toggleShowPassword={toggleShowPassword}
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="btn neon-btn w-100 mb-3">
-            Register
-          </button>
-
-          <p className="text-center" style={{ color: "#1b4332" }}>
-            Already have an account?{" "}
-            <a href="/api/login" className="text-success fw-bold text-decoration-underline">
-              Login
-            </a>
-          </p>
-        </form>
+        </div>
       </div>
     </div>
   );
