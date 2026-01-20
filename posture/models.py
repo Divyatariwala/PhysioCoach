@@ -1,3 +1,5 @@
+import uuid
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -41,7 +43,7 @@ class Exercise(models.Model):
         max_length=50,
         choices=[('Beginner', 'Beginner'), ('Intermediate', 'Intermediate'), ('Advanced', 'Advanced')]
     )
-    video_demo_url = models.URLField()
+    video_demo_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.exercise_name
@@ -113,6 +115,26 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback {self.feedback_id} for {self.session.user.username}"
 
+class ChatSession(models.Model):
+    session_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # set as PK
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_active = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.session_id)
+
+class ChatMessage(models.Model):
+    MESSAGE_TYPE = [('user', 'User'), ('bot', 'Bot')]
+
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE)
+    message_text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ai_model = models.ForeignKey(AIModel, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.message_type}: {self.message_text[:30]}"
 
 # =========================
 # REPORTS
@@ -131,3 +153,15 @@ class Report(models.Model):
 
     def __str__(self):
         return f"Report for Session {self.session.session_id} - {self.generated_by}"
+
+# =========================
+# CONTACTS
+# =========================
+class Contact(models.Model):
+    name = models.CharField(max_length=100, blank=True)
+    email = models.EmailField(blank=True)
+    message = models.TextField(blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    def __str__(self):
+        return f"Contact #{self.id}"

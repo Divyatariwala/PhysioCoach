@@ -66,6 +66,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
 ]
 
+# Frontend URL for TheraTrack (used in email links)
+APP_URL = "http://127.0.0.1:3000"  # Use your React frontend URL
+
+
 CORS_ALLOW_CREDENTIALS = True
 
 SESSION_COOKIE_SAMESITE = "Lax"
@@ -74,15 +78,26 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
 
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")   
+# EMAIL CONFIG
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "noreply.theratrack@gmail.com"
+EMAIL_HOST_PASSWORD = "qohc mmln qxks nirx"
+
+DEFAULT_FROM_EMAIL = "TheraTrack <noreply.theratrack@gmail.com>"
+
+
+load_dotenv()  
 
 ROOT_URLCONF = 'theratrack.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / "templates"],
+        'DIRS': [BASE_DIR / 'posture' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

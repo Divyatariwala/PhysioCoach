@@ -1,0 +1,252 @@
+/* ------------------ contact Section ------------------ */
+.contact-section {
+  position: relative;
+  overflow: hidden;
+  margin-top: 100px;
+}
+
+.contactImage {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  display: block;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  z-index: 1;
+  height: 350px;
+}
+
+.contactContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 2;
+}
+
+.contactContent h1 {
+  font-size: 40px;
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.contactContent p {
+  font-size: 16px;
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.contactContent span {
+  font-size: 16px;
+  color: #B9B1B1;
+}
+
+.breadcrumbLink {
+  color: #eaeaea;
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+
+/* ------------------ contact form & info ------------------ */
+.contactDetails{
+  padding-top: 65px;
+  padding-bottom: 65px;
+  width: 100%;
+  max-width: 75%;
+  margin: 0 auto;
+}
+.contactDetails  h3{
+  font-family: 'tittlium Web', sans-serif;
+  font-size: 30px;
+}
+
+.contactDetails p, .address a{
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  color: #2D2D2D;
+}
+
+.address a{
+  color: #2D2D2D;
+  text-decoration: none;
+}
+
+form{
+  font-family: 'open Sans', sans-serif;
+
+}
+
+/* ------------------ Join Us Section ------------------ */
+.joinSection {
+  background-color: #F9F4F0;
+}
+
+.joinSection h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #6B8778;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.joinSection .btn {
+  padding: 10px 25px;
+  font-size: 16px;
+}
+
+/* COOL POPUP */
+.contactPopup {
+  width: 50%;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    animation: slideFade 0.35s ease;
+    transition: all 0.3s ease;
+}
+
+.popupError {
+    background: linear-gradient(135deg, #ffecec, #ffdada);
+    color: #c0392b;
+    border: 1px solid #f5b7b1;
+}
+
+.popupSuccess {
+    background: linear-gradient(135deg, #eafaf1, #d5f5e3);
+    color: #1e8449;
+    border: 1px solid #a9dfbf;
+}
+
+
+/* ------------------ Responsive Contact Page ------------------ */
+
+/* Base already handles desktop. Add media queries for tablets & mobiles */
+
+/* Tablets (768px - 991px) */
+@media (max-width: 991px) {
+  .contactDetails {
+    max-width: 90%;
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+
+  .contactContent h1 {
+    font-size: 32px;
+  }
+
+  .contactContent p,
+  .contactContent span {
+    font-size: 14px;
+  }
+
+  .contactPopup {
+    width: 70%;
+  }
+}
+
+/* Mobile devices (max-width: 767px) */
+@media (max-width: 767px) {
+  .contactImage {
+    height: 250px;
+  }
+
+  .imageOverlay {
+    height: 250px;
+  }
+
+  .contactContent h1 {
+    font-size: 28px;
+  }
+
+  .contactContent p,
+  .contactContent span {
+    font-size: 13px;
+  }
+
+  .contactDetails {
+    max-width: 95%;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .contactDetails h3 {
+    font-size: 24px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 14px;
+  }
+
+  .joinSection {
+    padding: 20px 0;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .joinSection h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .joinSection .btn {
+    width: 100%;
+    max-width: 250px;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .contactPopup {
+    width: 90%;
+    font-size: 0.85rem;
+  }
+
+  .paddingUp{
+    padding-top: 20px;
+  }
+}
+
+/* Extra small devices (max-width: 480px) */
+@media (max-width: 480px) {
+  .contactContent h1 {
+    font-size: 24px;
+  }
+
+  .contactContent p,
+  .contactContent span {
+    font-size: 12px;
+  }
+
+  .contactDetails h3 {
+    font-size: 20px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 13px;
+  }
+
+  .joinSection h3 {
+    font-size: 16px;
+  }
+
+  .joinSection .btn {
+    font-size: 13px;
+    padding: 10px;
+  }
+}

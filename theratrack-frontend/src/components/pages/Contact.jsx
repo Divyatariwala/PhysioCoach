@@ -1,69 +1,177 @@
-import React from "react";
-import "../css/Contact.css";
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import React, { useState } from "react";
+import picture from "../../assets/images/about&profile.png";
+import { Link } from "react-router-dom";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import styles from "../css/Contact.module.css";
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
+
+  // ---------- Popups ----------
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState("success"); // "success" or "error"
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // ---------- Email Validation ----------
+  const isValidEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // ---------- Check required fields ----------
+    if (!formData.name || !formData.email || !formData.message) {
+      showPopupMessage("❌ All fields are required!", "error");
+      return;
+    }
+
+    // ---------- Check email format ----------
+    if (!isValidEmail(formData.email)) {
+      showPopupMessage("❌ Invalid email format!", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8000/api/contact/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        showPopupMessage("✅ Message submitted successfully!", "success");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        showPopupMessage("❌ Failed to submit message.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showPopupMessage("❌ Server error. Please try again later.", "error");
+    }
+  };
+
+  const showPopupMessage = (message, type) => {
+    setPopupMessage(message);
+    setPopupType(type);
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 4000); // hide after 4s
+  };
+
   return (
     <>
-      {/* Hero Section */}
-      <section className="hero-section contact-hero">
-        <div className="container hero-text">
-          <h1 className="hero-title">Get in Touch</h1>
-          <p className="hero-subtitle">
-            Have questions or need support? Send us a message and we’ll get back to you as soon as possible.
-          </p>
+      {/* Banner Section */}
+      <section className={styles.contactSection}>
+        <div className="container-fluid p-0 position-relative">
+          <div className={styles.imageOverlay}></div>
+          <img src={picture} alt="TheraTrack contact" className={styles.contactImage} />
+          <div className={styles.contactContent}>
+            <h1>Contact Us</h1>
+            <p>
+              <Link to="/" className={styles.breadcrumbLink}>Home</Link> / <span>Contact Us</span>
+            </p>
+          </div>
         </div>
-        <div className="hero-shape shape1"></div>
-        <div className="hero-shape shape2"></div>
-        <div className="hero-shape shape3"></div>
       </section>
 
-      {/* Contact Form & Info */}
-      <section className="section contact-section">
+      {/* Contact Details */}
+      <section className={styles.contactDetails}>
         <div className="container">
-          <div className="row justify-content-center">
-            {/* Form */}
-            <div className="col-lg-6">
-              <div className="glass-card hover-lift contact-form">
-                <form>
-                  <div className="mb-3">
-                    <label htmlFor="name" className="form-label fw-bold">Name</label>
-                    <input type="text" id="name" name="name" placeholder="Your Name" required />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="email" className="form-label fw-bold">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Your Email" required />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="subject" className="form-label fw-bold">Subject</label>
-                    <input type="text" id="subject" name="subject" placeholder="Subject" required />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="message" className="form-label fw-bold">Message</label>
-                    <textarea id="message" name="message" rows="5" placeholder="Type your message..." required></textarea>
-                  </div>
-                  <button type="submit" className="btn btn-cta w-100 fw-bold">Send Message</button>
-                </form>
+          <div className="row">
+
+            {/* Left Side */}
+            <div className="col-md-6">
+              <div className="address">
+                <h3>Our Office</h3>
+                <p>TheraTrack is committed to helping you achieve your fitness goals.</p>
+                <p>Reach out to us for support, feedback, or any questions.</p>
+                <p>Our team is always ready to assist you in your health journey.</p>
+              </div>
+
+              <h3 className="pt-4">Branch</h3>
+              <div className={styles.address}>
+                <p>115 New Cavendish St</p>
+                <p>London W1W 6UW</p>
+                <p className="pt-2">Email: <a href="mailto:noreply.theratrack@gmail.com">noreply.theratrack@gmail.com</a></p>
+                <p>Phone: 020 7911 5000</p>
               </div>
             </div>
 
-            {/* Contact Info */}
-            <div className="col-lg-4 mt-5 mt-lg-0">
-              <div className="glass-card hover-lift contact-info text-center p-4">
-                <h4 className="fw-bold mb-4">Our Office</h4>
-                <p><i className="bi bi-geo-alt-fill me-2"></i> London, UK</p>
-                <p><i className="bi bi-telephone-fill me-2"></i> +44 1234 567890</p>
-                <p><i className="bi bi-envelope-fill me-2"></i> support@physiocoach.com</p>
-                <h5 className="fw-bold mt-4 mb-3">Follow Us</h5>
-                <div className="d-flex justify-content-center gap-3">
-                  <a href="#" className="contact-social"><i className="bi bi-facebook"></i></a>
-                  <a href="#" className="contact-social"><i className="bi bi-twitter"></i></a>
-                  <a href="#" className="contact-social"><i className="bi bi-instagram"></i></a>
-                  <a href="#" className="contact-social"><i className="bi bi-linkedin"></i></a>
-                </div>
+            {/* Right Side - Contact Form */}
+            <div className={`col-md-6 ${styles.paddingUp}`}>
+              <div className="d-flex justify-content-center">
+                {/* Popup Notification */}
+                {showPopup && (
+                  <div className={`${styles.contactPopup} ${popupType === "success" ? styles.popupSuccess : styles.popupError}`}>
+                    {popupMessage}
+                  </div>
+                )}
               </div>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group pb-3">
+                  <input
+                    type="text"
+                    name="name"
+                    className="form-control"
+                    placeholder="Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group pb-3">
+                  <input
+                    type="email"
+                    name="email"
+                    className="form-control"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={() => {
+                      if (formData.email && !isValidEmail(formData.email)) {
+                        showPopupMessage("❌ Invalid email format!", "error");
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <textarea
+                    name="message"
+                    className="form-control"
+                    rows="5"
+                    placeholder="Message"
+                    value={formData.message}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+
+                <button type="submit" className="btn btn-primary mt-3">
+                  Submit
+                </button>
+              </form>
             </div>
+
           </div>
+        </div>
+      </section>
+
+      {/* Join Now Section */}
+      <section className={styles.joinSection}>
+        <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
+          <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
+            Ready to take the first step towards your fitness goals?
+          </h3>
+          <Link to="/signup" className="btn btn-primary">Join Now</Link>
         </div>
       </section>
     </>
@@ -71,3 +179,11 @@ const Contact = () => {
 };
 
 export default Contact;
+
+
+
+
+
+
+
+// only logo exercise, privacy policy page left 

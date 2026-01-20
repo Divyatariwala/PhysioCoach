@@ -84,7 +84,7 @@ const CookiesBanner = () => {
   return (
     <div className={`cookies-banner ${showBanner ? "show" : ""}`}>
       <p>
-        🍃 We use cookies to enhance your experience. By continuing, you agree
+        We use cookies to enhance your experience. By continuing, you agree
         to our <a href="/api/privacy">Privacy Policy</a>.
       </p>
       <button className="accept-btn" onClick={handleAccept}>

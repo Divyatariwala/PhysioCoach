@@ -1,7 +1,7 @@
 import React from "react";
-import "../css/ReportTemplate.css";
+import "../css/ReportTemplate.module.css";
 
-const WorkoutReport = ({ session, minutes = 0, seconds = 0, totalReps = 0, avgAccuracy = 0, repetitions = [], feedbacks = [] }) => {
+const ReportTemplate = ({ session, minutes = 0, seconds = 0, totalReps = 0, avgAccuracy = 0, repetitions = [], feedbacks = [] }) => {
   // Helper function to map accuracy to bar height class
   const getBarHeightClass = (accuracy) => {
     if (accuracy >= 90) return "bar-height-10";

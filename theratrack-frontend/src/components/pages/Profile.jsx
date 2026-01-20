@@ -1,9 +1,11 @@
 // Profile.jsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Download, Upload, Info } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Download, Upload, ChevronDown } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import picture from "../../assets/images/about&profile.png";
+import defaultAvatar from "../../assets/images/default-avatar.png";
 import confetti from "canvas-confetti";
-import "../css/Profile.css";
+import styles from "../css/Profile.module.css";
 
 export default function Profile() {
   const backendHost = "http://localhost:8000";
@@ -17,16 +19,28 @@ export default function Profile() {
     email: "",
     age: "",
     gender: "",
-    profile_picture: "/static/posture/images/default-avatar.png",
+    profile_picture: defaultAvatar,
   });
 
   const [errors, setErrors] = useState({ username: "", age: "", gender: "" });
   const [reports, setReports] = useState([]);
+  const [exerciseTypes, setExerciseTypes] = useState([]);
+  const [filterType, setFilterType] = useState("");
+
+  // ---------- Profile Popups ----------
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [profilePopupMessage, setProfilePopupMessage] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profilePopupType, setProfilePopupType] = useState("success");
 
-  // Get CSRF token from cookie
+  // ---------- Report Popups ----------
+  const [showReportPopup, setShowReportPopup] = useState(false);
+  const [reportPopupMessage, setReportPopupMessage] = useState("");
+  const [reportPopupType, setReportPopupType] = useState("success");
+
+  // Dropdown state
+  const [genderOpen, setGenderOpen] = useState(false);
+
+  // ---------------- CSRF ----------------
   const getCSRFToken = () => {
     const name = "csrftoken";
     const cookies = document.cookie.split(";").map(c => c.trim());
@@ -36,22 +50,31 @@ export default function Profile() {
     return null;
   };
 
-  const toggleDropdown = () => setDropdownOpen(prev => !prev);
-
-  const selectGender = (gender) => {
-    setProfile(prev => ({ ...prev, gender }));
-    setErrors(prev => ({ ...prev, gender: "" }));
-    setDropdownOpen(false);
+  // ---------------- Popups ----------------
+  const showProfilePopupMessage = (message, type = "success") => {
+    setProfilePopupMessage(message);
+    setProfilePopupType(type);
+    setShowProfilePopup(true);
+    setTimeout(() => setShowProfilePopup(false), 4000);
   };
 
+  const showReportPopupMessage = (message, type = "success") => {
+    setReportPopupMessage(message);
+    setReportPopupType(type);
+    setShowReportPopup(true);
+    setTimeout(() => setShowReportPopup(false), 4000);
+  };
+
+  // ---------------- Map API reports ----------------
   const mapReports = (apiReports) => (apiReports || []).map(r => ({
     id: r.report_id || r.id,
     title: r.title || "Report",
     date: r.generated_at?.slice(0, 10) || "N/A",
-    file_url: r.report_id ? `${backendHost}/api/download_report/${r.report_id}/` : null,
+    type: r.exercise?.name || "Unknown",
   }));
 
-  const fetchData = useCallback(async () => {
+  // ---------------- Fetch Profile ----------------
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch(`${backendHost}/api/profile/`, {
         method: "GET",
@@ -68,8 +91,11 @@ export default function Profile() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      let profilePic = data.profile?.profile_picture || "/static/posture/images/default-avatar.png";
-      if (profilePic && !profilePic.startsWith("http")) profilePic = backendHost + profilePic;
+      let profilePic = data.profile?.profile_picture
+        ? data.profile.profile_picture.startsWith("http")
+          ? data.profile.profile_picture
+          : backendHost + data.profile.profile_picture
+        : defaultAvatar;
 
       setProfile({
         first_name: data.profile?.first_name || "",
@@ -82,14 +108,18 @@ export default function Profile() {
       });
 
       setReports(mapReports(data.reports));
+      setExerciseTypes((data.exercises || []).map(ex => ex.name).filter(Boolean));
     } catch (err) {
       console.error(err);
       alert("Unable to fetch profile: " + err.message);
     }
   }, [navigate]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
+  // ---------------- Confetti ----------------
   const triggerConfetti = () => {
     confetti({
       particleCount: 150,
@@ -99,10 +129,10 @@ export default function Profile() {
     });
   };
 
+  // ---------------- File Upload ----------------
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const formData = new FormData();
     formData.append("profile_picture", file);
 
@@ -113,38 +143,44 @@ export default function Profile() {
         credentials: "include",
         headers: { "X-CSRFToken": getCSRFToken() },
       });
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+
       setProfile(prev => ({ ...prev, profile_picture: data.image_url || prev.profile_picture }));
-      setProfilePopupMessage("✅ Profile picture updated!");
-      setShowProfilePopup(true);
+      showProfilePopupMessage("✅ Profile picture updated!");
       triggerConfetti();
-      setTimeout(() => setShowProfilePopup(false), 8000);
     } catch (err) {
       console.error(err);
       alert("Unable to upload profile picture: " + err.message);
     }
   };
 
+  // ---------------- Profile Change ----------------
   const handleProfileChange = (field, value) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: "" }));
+    if (field === "age") {
+      let num = parseInt(value, 10);
+      if (isNaN(num)) num = "";
+      else if (num < 18) num = 18;
+      else if (num > 100) num = 100;
+      setProfile(prev => ({ ...prev, age: num }));
+      setErrors(prev => ({ ...prev, age: "" }));
+    } else {
+      setProfile(prev => ({ ...prev, [field]: value }));
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
   const validateProfile = () => {
     const newErrors = {};
-    if (!profile.username || profile.username.trim() === "") newErrors.username = "Username is required";
-    if (!profile.age || profile.age === "") newErrors.age = "Age is required";
-    if (!profile.gender || profile.gender === "") newErrors.gender = "Gender is required";
-
+    if (!profile.username?.trim()) newErrors.username = "Username is required";
+    if (!profile.age) newErrors.age = "Age is required";
+    if (!profile.gender) newErrors.gender = "Gender is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSaveProfile = async () => {
     if (!validateProfile()) return;
-
     try {
       const res = await fetch(`${backendHost}/api/update_profile/`, {
         method: "POST",
@@ -158,15 +194,11 @@ export default function Profile() {
           gender: profile.gender || null,
         }),
       });
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-
       if (data.success) {
-        setProfilePopupMessage("✅ Profile updated successfully!");
-        setShowProfilePopup(true);
+        showProfilePopupMessage("✅ Profile updated successfully!");
         triggerConfetti();
-        setTimeout(() => setShowProfilePopup(false), 8000);
       } else {
         alert("Failed to update profile: " + (data.error || "Unknown error"));
       }
@@ -176,6 +208,7 @@ export default function Profile() {
     }
   };
 
+  // ---------------- Download Report ----------------
   const handleDownload = async (reportId) => {
     try {
       const res = await fetch(`${backendHost}/api/download_report/${reportId}/`, { credentials: "include" });
@@ -188,113 +221,243 @@ export default function Profile() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      setProfilePopupMessage("✅ Report downloaded successfully!");
-      setShowProfilePopup(true);
+      showReportPopupMessage("✅ Report downloaded successfully!");
       triggerConfetti();
-      setTimeout(() => setShowProfilePopup(false), 8000);
     } catch (err) { console.error(err); }
   };
 
+  const filteredReports = reports.filter(r => {
+    if (!filterType) return true;
+    return r.type === filterType;
+  });
+
   return (
-    <div className="profile-page position-relative">
-      {showProfilePopup && (
-        <div className="side-popup show">
-          {profilePopupMessage}
-          <button id="close_Popup" onClick={() => setShowProfilePopup(false)}>&times;</button>
-        </div>
-      )}
-
-      <div className="profile-card position-relative">
-        <div className="text-center mb-5">
-          <div className="avatar-wrapper" onClick={() => fileInputRef.current.click()}>
-            <img src={profile.profile_picture} alt="Profile" className="profile-pic" />
-            <div className="upload-overlay"><Upload size={64} /></div>
-            <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+    <>
+      {/* Banner Section */}
+      <section className={styles.profileSection}>
+        <div className="container-fluid p-0 position-relative">
+          <div className={styles.imageOverlay}></div>
+          <img src={picture} alt="TheraTrack profile" className={styles.profileImage} />
+          <div className={styles.profileContent}>
+            <h1>Profile</h1>
+            <p><Link to="/" className={styles.breadcrumbLink}>Home</Link> / <span>Profile</span></p>
           </div>
-          <h2 className="fw-bold">{profile.username || "Your Profile"}</h2>
         </div>
+      </section>
 
-        <div className="personal-info">
-          <h3 className="fw-bold mb-3">Personal Information</h3>
-          <div className="info-grid">
-            <InputField label="First Name" value={profile.first_name} editable onChange={v => handleProfileChange("first_name", v)} placeholder="Enter your first name" />
-            <InputField label="Last Name" value={profile.last_name} editable onChange={v => handleProfileChange("last_name", v)} placeholder="Enter your last name" />
-            <InputField label="Username" value={profile.username} editable error={errors.username} onChange={v => handleProfileChange("username", v)} placeholder="Enter your username" />
-            <InputField label="Email" value={profile.email} editable={false} />
+      {/* Profile Form Section */}
+      <section className={styles.formSection}>
+        <div className="container my-4">
 
-            <div className="mb-2">
-              <label className="form-label fw-semibold">Age</label>
+          {/* Avatar + Username + Email */}
+          <div className="d-flex align-items-center mb-4 pl-2 position-relative">
+            <div className={styles.avatarWrapper} onClick={() => fileInputRef.current.click()}>
+              <div className={styles.avatarCircle}>
+                <img
+                  src={profile.profile_picture || defaultAvatar}
+                  onError={e => e.currentTarget.src = defaultAvatar}
+                  alt="Profile"
+                  className={styles.avatar}
+                />
+                <div className={styles.uploadOverlay}>
+                  <Upload size={24} color="#fff" />
+                </div>
+              </div>
               <input
-                type="number"
-                value={profile.age || ""}
-                onChange={e => handleProfileChange("age", e.target.value)}
-                min="18"
-                max="100"
-                className={`form-control ${errors.age ? "is-invalid" : ""}`}
-                placeholder="Enter your age"
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                className="d-none"
+                onChange={handleFileChange}
               />
-              {errors.age && <div className="invalid-feedback">{errors.age}</div>}
+            </div>
+            <div className="ms-5">
+              <h2>{profile.username}</h2>
+              <p>{profile.email}</p>
             </div>
 
-            <div className="mb-2">
-              <label className="form-label fw-semibold">Gender</label>
-              <div className="custom-select-wrapper">
-                <div className={`custom-select ${errors.gender ? "is-invalid" : ""}`} onClick={toggleDropdown}>
-                  {profile.gender || "Select your gender"}
-                  <div className={`custom-options ${dropdownOpen ? "show" : ""}`}>
-                    {["Male", "Female", "Other"].map(opt => (
-                      <div key={opt} className="custom-option" onClick={() => selectGender(opt)}>
-                        {opt}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {errors.gender && <div className="invalid-feedback d-block">{errors.gender}</div>}
+            {/* Profile Popup near username/email */}
+            {showProfilePopup && (
+              <div className={`${styles.profilePopup} ${profilePopupType === "success" ? styles.popupSuccess : styles.popupError}`}>
+                {profilePopupMessage}
+              </div>
+            )}
+          </div>
+
+          {/* Personal Info Form */}
+          <div className="d-flex justify-content-between pt-2">
+            <h3 className="mb-4">Personal Information</h3>
+            <button className={`btn btn-primary ${styles.customBtn}`} onClick={handleSaveProfile}>Save Changes</button>
+          </div>
+
+          <div className={styles.profileFormSection}>
+            <div className="row g-3 pl-2">
+              {/* First Name */}
+              <div className="col-md-6">
+                <InputField
+                  label="First Name"
+                  value={profile.first_name}
+                  onChange={v => handleProfileChange("first_name", v)}
+                  className={styles.customInput}
+                />
+              </div>
+
+              {/* Last Name */}
+              <div className="col-md-6">
+                <InputField
+                  label="Last Name"
+                  value={profile.last_name}
+                  onChange={v => handleProfileChange("last_name", v)}
+                  className={styles.customInput}
+                />
+              </div>
+
+              {/* Username */}
+              <div className="col-md-6">
+                <InputField
+                  label="Username"
+                  value={profile.username}
+                  editable
+                  onChange={v => handleProfileChange("username", v)}
+                  error={errors.username}
+                  className={styles.customInput}
+                />
+              </div>
+
+              {/* Email */}
+              <div className="col-md-6">
+                <InputField
+                  label="Email"
+                  value={profile.email}
+                  editable={false}
+                  className={styles.customInput}
+                />
+              </div>
+
+              {/* Age */}
+              <div className="col-md-6">
+                <InputField
+                  label="Age"
+                  value={profile.age}
+                  editable
+                  onChange={v => handleProfileChange("age", v)}
+                  error={errors.age}
+                  type="number"
+                  min={18}
+                  max={100}
+                  className={styles.customInput}
+                />
+              </div>
+
+              {/* Gender Dropdown */}
+              <div className="col-md-6">
+                <InputFieldDropdown
+                  label="Gender"
+                  value={profile.gender}
+                  options={["Male", "Female", "Other"]}
+                  onSelect={v => handleProfileChange("gender", v)}
+                  error={errors.gender}
+                  className={styles.customInput}
+                />
               </div>
             </div>
           </div>
 
-          <button className="btn btn-primary" onClick={handleSaveProfile}>Save Changes</button>
-        </div>
+          {/* Reports Section */}
+          <div className={styles.reportsSection}>
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <h3>Your Reports</h3>
 
-        <div className="reports-section">
-          <h3 className="fw-bold mb-3">Your Reports</h3>
-          {reports.length > 0 ? (
-            <ul>{reports.map(r => (
-              <li key={r.id} className="report-item">
-                <div><strong>{r.title}</strong><br /><small>Date: {r.date}</small></div>
-                <button className="btn btn-success" onClick={() => handleDownload(r.id)}>Download</button>
-              </li>
-            ))}</ul>
-          ) : (
-            <div className="no-reports"><Info size={18} /> No reports available</div>
-          )}
-        </div>
+              {/* Report Popup near heading */}
+              {showReportPopup && (
+                <div className={`${styles.reportPopup} ${reportPopupType === "success" ? styles.popupSuccess : styles.popupError}`}>
+                  {reportPopupMessage}
+                </div>
+              )}
+            </div>
 
-        {/* Change/Forgot Password Button */}
-        <div className="change-password-section mt-4 text-center">
-          <button className="btn btn-warning" onClick={() => navigate("/api/forgotPassword")}>
-            🔒 Change / Forgot Password
-          </button>
+            {/* Exercise Filter */}
+            <div className="d-flex align-items-center gap-3 mt-2">
+              <label className="fw-semibold mb-0">Filter by Exercise:</label>
+              <div style={{ minWidth: "200px" }}>
+                <InputFieldDropdown
+                  label=""
+                  value={filterType || "All Exercises"}
+                  options={["All Exercises", ...exerciseTypes]}
+                  onSelect={v => setFilterType(v === "All Exercises" ? "" : v)}
+                  className="form-control mt-3"
+                />
+              </div>
+            </div>
+
+            {filteredReports.length === 0 ? <p className="p-0">No reports available.</p> : (
+              <div className="list-group">
+                {filteredReports.map(r => (
+                  <div key={r.id} className={`list-group-item d-flex p-0 justify-content-between align-items-center ${styles.reportItem}`}>
+                    <div>
+                      <h5>{r.title}</h5>
+                      <small>Date: {r.date}</small>
+                      <small className="ms-2">Type: {r.type}</small>
+                    </div>
+                    <button className="btn btn-outline-primary" onClick={() => handleDownload(r.id)}>
+                      <Download size={16} className="me-2 icon" /> Download
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
+    </>
+  );
+}
+
+// ---------------- InputField ----------------
+function InputField({ label, value, editable = true, onChange, placeholder = "", error = "", type = "text", min, max, className = "" }) {
+  return (
+    <div className="mb-1">
+      <label className="form-label fw-semibold">{label}</label>
+      <input
+        type={type}
+        value={value || ""}
+        readOnly={!editable}
+        placeholder={placeholder}
+        min={min}
+        max={max}
+        onChange={e => editable && onChange(e.target.value)}
+        className={`form-control ${error ? "is-invalid" : ""} ${className}`}
+      />
+      {error && <div className="invalid-feedback">{error}</div>}
     </div>
   );
 }
 
-function InputField({ label, value, editable = false, onChange, placeholder = "", error = "" }) {
+// ---------------- InputFieldDropdown ----------------
+function InputFieldDropdown({ label, value, options, onSelect, error, className = "" }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="mb-3">
-      <label className="form-label fw-semibold">{label}</label>
-      <input
-        type="text"
-        value={value || ""}
-        readOnly={!editable}
-        placeholder={placeholder}
-        onChange={e => editable && onChange(e.target.value)}
-        className={`form-control ${error ? "is-invalid" : ""}`}
-      />
-      {error && <div className="invalid-feedback">{error}</div>}
+    <div className="mb-3 position-relative">
+      {label && <label className="form-label fw-semibold">{label}</label>}
+      <div className="dropdown">
+        <button
+          type="button"
+          className={`form-control text-start d-flex justify-content-between align-items-center ${error ? "is-invalid" : ""} ${className}`}
+          onClick={() => setOpen(prev => !prev)}
+        >
+          <span>{value || (label ? "Select " + label : "Select")}</span>
+          <ChevronDown size={18} style={{ transition: "transform 0.3s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </button>
+        <div className={`dropdown-menu ${open ? "show" : ""}`}>
+          {options.map((opt, idx) => (
+            <button key={`${opt}-${idx}`} type="button" className="dropdown-item" onClick={() => { onSelect(opt); setOpen(false); }}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+      {error && <div className="invalid-feedback d-block">{error}</div>}
     </div>
   );
 }

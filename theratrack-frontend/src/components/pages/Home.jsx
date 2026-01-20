@@ -106,7 +106,7 @@ function Home() {
               {isAuthenticated ? (
                 <Link to="/api/exercises" className="btn btn-primary">Start Exercising</Link>
               ) : (
-                <Link to="/api/login" className="btn btn-primary">Login</Link>
+                <Link to="/api/login" className="btn btn-primary">Join Now</Link>
               )}
             </div>
           </div>
