@@ -42,18 +42,20 @@ urlpatterns = [
     path('api/logout/', views.logout_view_api, name='logout_api'),
     path("api/get-cookie-consent/", views.get_cookie_consent, name="get_cookie_consent"),
     path("api/set-cookie-consent/", views.set_cookie_consent, name="set_cookie_consent"),
-
+    path("api/contact/", views.contact_api, name='contact_api'),
 
     # Workout
     path('api/save_workout_session/', views.save_workout_session_api, name='save_workout_session_api'),
     path('api/save_repetitions/', views.save_repetitions_api, name='save_repetitions_api'),
-    path('api/save_feedback/', views.save_feedback_api, name='save_feedback_api'),
+    path('api/save_feedback/', views.save_feedback_api, name='save_feedback_api'),      
+    path('api/save_report_file/', views.save_report_file_api, name='save_report_file_api'),
+    
     
     # Mediapipe Posture Analysis
     path('api/analyze_pose/', views.analyze_pose_api, name='analyze_pose_api'),    
 
     # Chatbot
-    path("api/chat/", views.generate_ai_response, name="generate_ai_response"),
+    path("api/chat/", views.chat_api, name="chat_api"),
 ]
 if settings.DEBUG:
     # Serve static & media files during development

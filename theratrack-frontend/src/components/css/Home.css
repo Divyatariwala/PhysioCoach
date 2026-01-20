@@ -123,6 +123,7 @@
   margin: 0 auto;
 }
 
+
 /* ================= ABOUT SECTION ================= */
 .aboutUs {
   background-color: #F9F4F0;
@@ -208,7 +209,18 @@
   margin-bottom: 0px
 }
 
+.experience-section h2, 
+.aboutUs h2{
+  font-size: 40px;
+}
 
+.experience-section span,
+.aboutUs span{
+  font-family: 'poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6B8778;
+}
 
 /* ================= PHOTOS GRID ================= */
 .photos-section {
@@ -262,7 +274,7 @@
   color: #fff;
   border-radius: 7px;
   font-size: 16px;
-  padding: 0.5rem 1.2rem;
+  padding: 5px 30px;
   border: 1px solid #6B8778;
   transition: all 0.3s;
 }

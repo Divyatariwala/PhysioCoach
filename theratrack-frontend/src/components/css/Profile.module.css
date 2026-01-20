@@ -1,0 +1,625 @@
+/* ------------------ profile Section ------------------ */
+.profile-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.profileImage {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  display: block;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  z-index: 1;
+  height: 350px;
+}
+
+.profileContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 2;
+}
+
+.profileContent h1 {
+  font-size: 40px;
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.profileContent p {
+  font-size: 16px;
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.profileContent span {
+  font-size: 16px;
+  color: #B9B1B1;
+}
+
+.breadcrumbLink {
+  color: #eaeaea;
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+/* ------------------ Avatar Upload Section ------------------ */
+.formSection {
+  max-width: 70%;
+  margin: 0 auto;
+}
+
+.formSection label {
+    font-weight: 500!important;
+    font-size: 17px;
+    color: #51645afc;;
+}
+   
+
+.formSection h2 {
+  font-size: 32px;
+  margin-bottom: 0px;
+  padding-left: 8px;
+}
+
+.formSection p {
+  padding-left: 10px;
+  font-size: 16px;
+
+}
+
+
+.avatarWrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatarCircle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background-color: #e0e0e0;
+  /* Grey circle for user icon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  text-indent: -9999px;
+}
+
+.avatarIcon {
+  font-size: 48px;
+  color: #888;
+}
+
+.uploadOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatarWrapper:hover .uploadOverlay {
+  opacity: 1;
+}
+
+h3 {
+  font-size: 40px;
+  margin: 0px;
+}
+
+.customBtn{
+  height: 40px;
+  margin-top: 12px;
+  margin-right: 43px;
+  white-space: nowrap;
+}
+
+.customInput {
+  width: 497px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+.customDropdown {
+  width: 497px;
+  height: 36px;
+  border-radius: 6px;
+  padding: 0 12px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.customDropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+}
+
+.dropdown-menu {
+  width: 497px;
+  /* match the button width */
+  border-radius: 6px;
+}
+
+.dropdown-item {
+  width: 200px;
+}
+
+.reportsSection {
+  margin-top: 30px;
+}
+
+.reportItem {
+  width: 530px;
+  border: none;
+  /* remove border */
+  box-shadow: none;
+  /* optional: remove shadow if any */
+  padding: 0.75rem 1rem;
+  /* adjust padding if needed */
+  margin-top: 20px;
+}
+
+.reportItem h5 {
+  font-family: 'Palanquin', sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  color: #6B8778;
+  margin: 0px;
+}
+
+.reportItem small {
+  font-size: 14px;
+  color: #7A7A7A;
+  font-weight: 500;
+}
+
+.reportItem button {
+  font-size: 14px;
+  padding: 7px 25px;
+  border-radius: 20px;
+  background-color: #6B8778;
+  color: #ffffff;
+  font-weight: 600;
+  border-color: #6B8778;
+  transition: 0.3s ease;
+}
+
+.reportItem button:hover {
+  background-color: #3b8365;
+  color: #ffffff;
+  border-color: #3b8365;
+}
+
+/* Custom hover color for dropdown items in profile */
+:global(.dropdown-menu .dropdown-item:hover) {
+  background-color: rgba(107, 135, 120, 0.1084) !important;
+}
+
+:global(.dropdown-menu .dropdown-item:focus) {
+  color: #212529;
+}
+
+/* Profile popup */
+.profilePopup {
+    position: fixed; /* make it fixed to viewport */
+    top: 50%;       /* distance from top */
+    right: 40%;     /* distance from right for profile popup */
+    z-index: 9999;   /* ensure it's on top */
+    padding: 15px 20px;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    animation: slideFade 0.35s ease;
+    transition: all 0.3s ease;
+}
+
+/* ===== Report popup aligned with "Your Reports" heading ===== */
+.reportPopup {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  margin-top: 0;
+  padding: 15px 20px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* Parent container must be relative */
+.reportsSection {
+  position: relative;
+}
+
+
+/* Make heading row relative so popup aligns correctly */
+.reportsSection > .d-flex {
+  position: relative;
+  align-items: center;
+}
+
+.reportsSection P{
+  font-weight: 400;
+}
+
+/* Popup types */
+.popupError {
+    background: linear-gradient(135deg, #ffecec, #ffdada);
+    color: #c0392b;
+    border: 1px solid #f5b7b1;
+}
+
+.popupSuccess {
+    background: linear-gradient(135deg, #eafaf1, #d5f5e3);
+    color: #1e8449;
+    border: 1px solid #a9dfbf;
+}
+
+/* Slide animation */
+@keyframes slideFade {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------ Responsive Adjustments ------------------ */
+
+/* Large desktops (keep your original design) */
+@media (min-width: 1201px) {
+  .customInput,
+  .customDropdown,
+  .reportItem {
+    width: 470px;
+  }
+  .avatarCircle {
+    width: 180px;
+    height: 180px;
+  }
+  .reportItem button {
+    width: auto;
+  }
+  .customBtn {
+    height: 38px;
+    padding: 6px 18px;
+    font-size: 16px;
+    margin-right: 43px;
+  }
+  /* Center report items for very small screens (≤432px) */
+@media (max-width: 432px) {
+  .reportItem {
+    flex-direction: column;   /* stack title & button */
+    align-items: center;      /* center horizontally */
+    text-align: center;       /* center text */
+    width: 100% !important;   /* make full width */
+  }
+
+  .reportItem h5,
+  .reportItem small {
+    text-align: center;       /* ensure text is centered */
+  }
+
+  .reportItem button {
+    align-self: center;       /* center download button */
+    margin-top: 8px;
+    width: 80%;               /* adjust button width for small screen */
+    max-width: 220px;
+  }
+}
+
+}
+
+/* Desktops / laptops */
+@media (max-width: 1200px) {
+  .formSection {
+    max-width: 80%;
+  }
+  .customInput,
+  .customDropdown {
+    width: 100%;
+  }
+  .avatarCircle {
+    width: 160px;
+    height: 160px;
+  }
+  .reportItem {
+    width: 100%;
+  }
+  .profileSection .profileImage,
+  .imageOverlay {
+    height: 300px;
+  }
+  .profileContent h1 {
+    font-size: 36px;
+  }
+  .profileContent p,
+  .profileContent span {
+    font-size: 14px;
+  }
+  .customBtn {
+    height: 38px;
+    padding: 6px 18px;
+    font-size: 13.5px;
+    margin-right: 20px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+  .formSection {
+    max-width: 90%;
+  }
+  .avatarCircle {
+    width: 140px;
+    height: 140px;
+  }
+  .customInput,
+  .customDropdown {
+    width: 100%;
+    height: 36px;
+  }
+  .reportItem {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .reportItem button {
+    margin-top: 8px;
+  }
+  .profileSection .profileImage,
+  .imageOverlay {
+    height: 250px;
+  }
+  .profileContent h1 {
+    font-size: 30px;
+  }
+  .profileContent p,
+  .profileContent span {
+    font-size: 13px;
+  }
+  .customBtn {
+    height: 38px;
+    padding: 6px 16px;
+    font-size: 13px;
+    margin-right: 0;
+  }
+}
+
+/* Small tablets / large phones */
+@media (max-width: 768px) {
+  .profileContent h1 {
+    font-size: 28px;
+  }
+  .profileContent p {
+    font-size: 14px;
+  }
+  .avatarCircle {
+    width: 120px;
+    height: 120px;
+  }
+  .customInput,
+  .customDropdown {
+    height: 34px;
+    font-size: 14px;
+  }
+  .reportItem h5 {
+    font-size: 18px;
+  }
+  .reportItem small {
+    font-size: 13px;
+  }
+  .reportItem button {
+    padding: 6px 20px;
+    font-size: 13px;
+  }
+  .profileFormSection .row {
+    row-gap: 15px;
+  }
+  .profileSection .profileImage,
+  .imageOverlay {
+    height: 200px;
+  }
+  .profileContent h1 {
+    font-size: 26px;
+  }
+  .profileContent p,
+  .profileContent span {
+    font-size: 12px;
+  }
+  .customBtn {
+    height: 40px;
+    padding: 8px 18px;
+    font-size: 14px;
+    width: auto;
+  }
+}
+
+/* Phones / small screens */
+@media (max-width: 576px) {
+  .profileContent h1 {
+    font-size: 22px;
+  }
+  .profileContent p {
+    font-size: 12px;
+  }
+  .avatarCircle {
+    width: 100px;
+    height: 100px;
+  }
+  .customInput,
+  .customDropdown {
+    height: 35px;
+    font-size: 14px;
+  }
+  .reportItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .reportItem button {
+    align-self: flex-end;
+    width: 100%;
+    max-width: 200px;
+    margin-top: 5px;
+  }
+  .profileSection .profileImage {
+    height: 180px;
+  }
+  .customBtn {
+    width: 100%;               /* full-width button */
+    height: 42px;
+    padding: 10px 0;
+    font-size: 15px;
+    margin-top: 10px;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 375px) {
+  .profileContent h1 {
+    font-size: 20px;
+  }
+  .profileContent p {
+    font-size: 11px;
+  }
+  .avatarCircle {
+    width: 90px;
+    height: 90px;
+  }
+  .customInput,
+  .customDropdown {
+    font-size: 13px;
+    height: 30px;
+  }
+  .reportItem h5 {
+    font-size: 16px;
+  }
+  .reportItem small {
+    font-size: 12px;
+  }
+  .reportItem button {
+    font-size: 12px;
+    padding: 5px 15px;
+  }
+  .customBtn {
+    height: 44px;
+    font-size: 14px;
+    padding: 10px 0;
+  }
+}
+
+/* Responsive popups */
+@media (max-width: 768px) {
+  .profilePopup {
+    top: 80px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+  .reportPopup {
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  .profilePopup {
+    top: 60px;
+    right: 5px;
+    left: 5px;
+    font-size: 0.8rem;
+  }
+  .reportPopup {
+    top: 100px;
+    width: 95%;
+    font-size: 0.8rem;
+  }
+}
+
+/* Center report items for very small screens (≤432px) */
+@media (max-width: 432px) {
+  .reportItem {
+    flex-direction: column;   /* stack title & button */
+    align-items: center;      /* center horizontally */
+    text-align: center;       /* center text */
+    width: 100% !important;   /* make full width */
+  }
+
+  .reportItem h5,
+  .reportItem small {
+    text-align: center;       /* ensure text is centered */
+  }
+
+  .reportItem button {
+    align-self: center;       /* center download button */
+    margin-top: 8px;
+    width: 80%;               /* adjust button width for small screen */
+    max-width: 220px;
+  }
+  .profileSection .profileImage,
+  .imageOverlay {
+    height: 160px; /* shrink banner */
+  }
+  .profileContent h1 {
+    font-size: 20px;
+  }
+  .profileContent p,
+  .profileContent span {
+    font-size: 10px;
+  }
+
+  /* Center banner text */
+  .profileContent {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0 10px;
+  }
+}
+
+/* Extra small phones (320px) */
+@media (max-width: 320px) {
+  .customBtn {
+    height: 46px;
+    font-size: 13px;
+    padding: 10px 0;
+  }
+}

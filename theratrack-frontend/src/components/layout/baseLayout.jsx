@@ -52,7 +52,6 @@ function BaseLayout() {
     { path: "/api/profile", label: "Profile", auth: true },
     { path: "/api/about", label: "About" },
     { path: "/api/contact", label: "Contact" },
-    { path: "/api/faq", label: "FAQ" },
   ];
 
   // Footer links
@@ -60,7 +59,6 @@ function BaseLayout() {
     { path: "/", label: "Home" },
     { path: "/api/about", label: "About" },
     { path: "/api/contact", label: "Contact" },
-    { path: "/api/faq", label: "FAQ" },
     { path: "/api/privacy", label: "Privacy Policy" },
   ];
 

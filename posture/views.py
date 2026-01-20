@@ -2,6 +2,8 @@
 
 from io import BytesIO
 from random import randint
+from django.utils import timezone
+import traceback
 import google.genai as genai
 from google.genai import types
 import cv2
@@ -11,6 +13,10 @@ import numpy as np
 import json
 import os
 import re
+from rest_framework import status
+from rest_framework.decorators import api_view
+from xhtml2pdf import pisa
+from django.core.files.base import ContentFile
 from django.contrib.auth import get_backends
 from google.auth.transport import requests as google_requests
 from django.http import Http404, FileResponse,  JsonResponse
@@ -21,6 +27,7 @@ import mediapipe as mp
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.contrib.auth import update_session_auth_hash
+from requests import session
 from theratrack import settings
 from xhtml2pdf import pisa  # for PDF generation
 from django.template.loader import render_to_string
@@ -28,7 +35,7 @@ from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from rest_framework.response import Response
 # Import your models
-from .models import Profile, Exercise, WorkoutSession, Repetition, Report, Feedback, AIModel
+from .models import ChatMessage, ChatSession, Contact, Profile, Exercise, WorkoutSession, Repetition, Report, Feedback, AIModel
 
 @login_required
 def profile_api(request):
@@ -121,6 +128,7 @@ def update_profile(request):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 @login_required
+@csrf_exempt
 def filter_reports_api(request):
     """
     Return reports filtered by exercise as JSON
@@ -145,6 +153,7 @@ def filter_reports_api(request):
     return JsonResponse({"reports": reports_data})
 
 @login_required
+@csrf_exempt
 def download_report_api(request, report_id):
     report = get_object_or_404(Report, report_id=report_id)
 
@@ -163,11 +172,13 @@ def download_report_api(request, report_id):
     return response
 
 @login_required
+@csrf_exempt
 def exercises_api(request):
-    exercises = Exercise.objects.all()
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
 
-    # Prepare data for JS
-    exercise_data = [
+    exercises = Exercise.objects.all()
+    data = [
         {
             "id": e.exercise_id,
             "exercise_name": e.exercise_name,
@@ -177,12 +188,7 @@ def exercises_api(request):
             "video_demo_url": e.video_demo_url
         } for e in exercises
     ]
-
-    context = {
-        "exercises": exercises,
-        "exercise_data_json": json.dumps(exercise_data)  # ✅ must serialize
-    }
-    return render(request, "posture/exercises.html", context)
+    return JsonResponse(data, safe=False)
 
 # ---------------------------
 # NORMAL LOGIN
@@ -532,147 +538,109 @@ def logout_view_api(request):
 # Workout & Repetitions
 # ---------------------------
 
-@login_required
+@csrf_exempt
 def save_workout_session_api(request):
-    if request.method == "POST":
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=400)
+    try:
         data = json.loads(request.body)
         exercise_id = data.get("exercise_id")
         duration_seconds = data.get("duration_seconds", 0)
 
-        exercise = get_object_or_404(Exercise, pk=exercise_id)
+        start_time = timezone.now()
+        end_time = start_time + timezone.timedelta(seconds=duration_seconds) if duration_seconds else None
+        duration = timezone.timedelta(seconds=duration_seconds) if duration_seconds else None
+
         session = WorkoutSession.objects.create(
             user=request.user,
-            exercise=exercise,
-            start_time=datetime.now() - timedelta(seconds=duration_seconds),
-            end_time=datetime.now(),
-            duration=timedelta(seconds=duration_seconds),
+            exercise_id=exercise_id,
+            start_time=start_time,
+            end_time=end_time,
+            duration=duration,
             device_type="Webcam",
             status="Completed"
         )
 
         return JsonResponse({"success": True, "session_id": session.session_id})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-    return JsonResponse({"success": False})
 
-@login_required
+# ------------------- Save Repetitions -------------------
+@csrf_exempt
 def save_repetitions_api(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            session_id = data.get("session_id")
-            reps = data.get("reps", [])
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=400)
+    try:
+        data = json.loads(request.body)
+        session_id = data.get("session_id")
+        reps = data.get("reps", [])
+        session = get_object_or_404(WorkoutSession, pk=session_id)
 
-            # Validate session
-            session = get_object_or_404(WorkoutSession, pk=session_id, user=request.user)
+        for r in reps:
+            Repetition.objects.create(
+                session=session,
+                count_number=r.get("count_number", 0),
+                posture_accuracy=r.get("posture_accuracy", 0)
+            )
 
-            if not reps:
-                return JsonResponse({"success": False, "error": "No reps provided"}, status=400)
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-            for rep in reps:
-                count = rep.get("count_number")
-                accuracy = rep.get("posture_accuracy")
 
-                if count is None or accuracy is None:
-                    continue
-
-                Repetition.objects.create(
-                    session=session,
-                    count_number=int(count),
-                    posture_accuracy=float(accuracy)
-                )
-
-            return JsonResponse({"success": True})
-        
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
-    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
-
-@login_required
+# ------------------- Save Feedback -------------------
+@csrf_exempt
 def save_feedback_api(request):
     if request.method != "POST":
-        return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+        return JsonResponse({"success": False, "error": "POST required"}, status=400)
 
     try:
         data = json.loads(request.body)
-        print("save_feedback input:", data)
-
         session_id = data.get("session_id")
-        feedback_text = data.get("feedback_text") or ""
-        accuracy_score = float(data.get("accuracy_score") or 0)
+        feedback_text = data.get("feedback_text", "")
+        accuracy_score = float(data.get("accuracy_score", 0))
 
-        # Validate session
-        session = get_object_or_404(WorkoutSession, pk=session_id, user=request.user)
-        print("WorkoutSession found:", session)
+        # 1️⃣ Get session
+        session = get_object_or_404(WorkoutSession, pk=session_id)
 
-        # Active AI model (optional)
-        ai_model = AIModel.objects.filter(is_active=True).order_by("-last_updated").first()
-        print("AI Model:", ai_model)
-
-        # Save feedback entry
-        feedback = Feedback.objects.create(
-            user = request.user,
+        # 2️⃣ Save feedback only
+        Feedback.objects.create(
+            user=session.user,
             session=session,
             feedback_text=feedback_text,
             accuracy_score=accuracy_score,
-            ai_model=ai_model
-        )
-        print("Feedback saved successfully:", feedback)
-
-        # Prepare data for PDF
-        repetitions = list(session.repetitions.all())
-        total_reps = len(repetitions)
-        avg_accuracy = sum([r.posture_accuracy for r in repetitions]) / total_reps if total_reps else 0
-        duration_seconds = session.duration.total_seconds() if session.duration else 0
-        minutes, seconds = divmod(int(duration_seconds), 60)
-
-        context = {
-            "session": session,
-            "repetitions": repetitions,
-            "feedbacks": Feedback.objects.filter(session=session),
-            "total_reps": total_reps,
-            "avg_accuracy": avg_accuracy,
-            "minutes": minutes,
-            "seconds": seconds,
-        }
-
-        # Generate PDF safely
-        pdf_file = BytesIO()
-        html_string = render_to_string("posture/report_template.html", context)
-        pdf_result = pisa.CreatePDF(html_string, dest=pdf_file)
-        pdf_file.seek(0)
-
-        if pdf_result.err:
-            print("PDF generation failed")
-            return JsonResponse({"success": False, "error": "Failed to generate PDF"}, status=500)
-
-        # Save PDF to MEDIA
-        reports_dir = os.path.join(settings.MEDIA_ROOT, "reports")
-        os.makedirs(reports_dir, exist_ok=True)
-        pdf_filename = f"report_session_{session.session_id}.pdf"
-        pdf_path = os.path.join(reports_dir, pdf_filename)
-
-        with open(pdf_path, "wb") as f:
-            f.write(pdf_file.read())
-        print("PDF saved:", pdf_path)
-
-        # Save Report instance
-        report = Report.objects.create(
-            session=session,
-            exercise_id=session.exercise.exercise_id,  # use exercise_id for FK
-            generated_by="AI_Model",
-            pdf_file=f"reports/{pdf_filename}"
+            ai_model=None
         )
 
-        return JsonResponse({
-            "success": True,
-            "report_id": report.report_id,
-            "report_url": report.pdf_file.url
-        })
-
+        return JsonResponse({"success": True})
     except Exception as e:
-        import traceback
-        print("Error in save_feedback:", e)
-        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
+# ------------------- Save PDF File to Reports Folder -------------------
+@csrf_exempt
+def save_report_file_api(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=400)
+    try:
+        session_id = request.POST.get("session_id")
+        exercise_id = request.POST.get("exercise_id")
+        pdf_file = request.FILES.get("pdf_file")  # This is the actual file
+
+        session = get_object_or_404(WorkoutSession, pk=session_id)
+
+        # Get existing report or create new
+        report, created = Report.objects.get_or_create(
+            session=session,
+            defaults={"exercise_id": exercise_id, "generated_by": "AI_Model"}
+        )
+
+        # Save the PDF file in reports/ folder
+        report.pdf_file = pdf_file
+        report.save()
+
+        return JsonResponse({"success": True, "report_id": report.report_id})
+    except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 # ---------------------------
@@ -684,6 +652,7 @@ mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 
 @login_required
+@csrf_exempt
 def analyze_pose_api(request):
     body = json.loads(request.body)
     frame_data = body['frame'].split(",")[1]
@@ -703,88 +672,97 @@ def analyze_pose_api(request):
         "landmarks": landmarks_list
     })
 
-# ---------------------------
-# Initialize Gemini client once
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-
 @csrf_exempt
-def generate_ai_response(request):
+def chat_api(request):
     if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method."}, status=400)
+        return JsonResponse({"error": "POST request required"}, status=400)
 
     try:
-        data = json.loads(request.body.decode("utf-8"))
+        import json, traceback
+        from django.utils import timezone
+        from .models import ChatSession, ChatMessage
+        from .ai import generate_response  # Use the fixed ai.py function
+
+        # -------------------------------
+        # Load user message from request
+        # -------------------------------
+        data = json.loads(request.body)
         user_message = data.get("message", "").strip()
         if not user_message:
             return JsonResponse({"reply": "Please type something."})
 
-        model = "gemini-2.5-pro"
+        # -------------------------------
+        # Get or create chat session
+        # -------------------------------
+        session_id = data.get("session_id")
+        if session_id:
+            session, _ = ChatSession.objects.get_or_create(session_id=session_id)
+        else:
+            session = ChatSession.objects.create()
 
-        # --- SYSTEM INSTRUCTION (FIXED) ---
-        system_prompt = """
-You are an AI Therapy Support Assistant for TheraTrak, a digital therapy-tracking and home-exercise system. 
-Your job is to help participants, caregivers, and therapists by giving clear, safe and supportive guidance.
+        session.last_active = timezone.now()
+        session.save()
 
-Goals
-- Help users understand & complete their therapy exercises
-- Encourage consistency and motivation
-- Explain TheraTrak web + mobile app features clearly
-- Collect feedback (pain, difficulty, mood, reps)
-- Provide safe advice only, never medical diagnosis
-- Explain how exercise tracking & analysis works when asked
-
-Special: When asked "how to use the TheraTrak app/website for exercise analyzing"
-Always:
-1. Explain how to log exercises
-2. Explain how to record feedback (pain, reps, mood, difficulty)
-3. Explain how progress graphs and reports work
-4. Explain how therapists review the data
-5. Follow safety language: “If anything feels painful or confusing, pause and let your therapist know.”
-
-Never refuse or redirect these feature-usage questions unless it's medical advice.
-
-Safety
-- Do not prescribe or diagnose
-- Do not modify exercise programs
-- If pain, injury or distress → advise to contact therapist/medical help
-
-Tone
-- Warm, friendly, calm, supportive
-- Short, simple guidance
-- End with one gentle follow-up question when relevant
-
-Examples:
-- “You’re making great progress!”
-- “Let’s take it one step at a time.”
-- “Tell me how that exercise felt afterward.”
-"""
-
-        contents = [
-            types.Content(
-                role="user",
-                parts=[types.Part.from_text(text=user_message)],
-            )
-        ]
-
-        generate_config = types.GenerateContentConfig(
-            temperature=0.7,
-            system_instruction=system_prompt
+        # -------------------------------
+        # Save user message
+        # -------------------------------
+        ChatMessage.objects.create(
+            session=session,
+            message_type="user",
+            message_text=user_message
         )
 
-        reply_text = ""
-        for chunk in client.models.generate_content_stream(
-            model=model,
-            contents=contents,
-            config=generate_config,
-        ):
-            if chunk.candidates and chunk.candidates[0].content.parts:
-                part = chunk.candidates[0].content.parts[0]
-                if part.text:
-                    reply_text += part.text
+        # -------------------------------
+        # Build conversation history (last 20 messages)
+        # -------------------------------
+        messages = ChatMessage.objects.filter(session=session).order_by("timestamp")
+        chat_history = []
+        for msg in messages:
+            role = "User" if msg.message_type == "user" else "Bot"
+            chat_history.append(f"{role}: {msg.message_text}")
+        chat_history = chat_history[-20:]  # Keep last 20 messages
 
-        return JsonResponse({"reply": reply_text})
+        # Join messages into a single prompt for the model
+        prompt = "\n".join(chat_history)
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        # -------------------------------
+        # Generate bot reply
+        # -------------------------------
+        reply_text = generate_response(user_message)
+
+        # -------------------------------
+        # Save bot reply
+        # -------------------------------
+        ChatMessage.objects.create(
+            session=session,
+            message_type="bot",
+            message_text=reply_text
+        )
+
+        return JsonResponse({"reply": reply_text, "session_id": session.session_id})
+
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        tb = traceback.format_exc()
+        print(f"[ERROR] {tb}", flush=True)
+        return JsonResponse({"error": str(e), "trace": tb}, status=500)
+    
+@api_view(['POST'])
+def contact_api(request):
+    """
+    Stores contact form data.
+    All fields are optional to support full anonymity.
+    """
+
+    Contact.objects.create(
+        name=request.data.get('name', ''),
+        email=request.data.get('email', ''),
+        message=request.data.get('message', '')
+    )
+
+    return Response(
+        {"success": "Message submitted successfully"},
+        status=status.HTTP_201_CREATED
+    )
+
+# // generate therapy plan in report template
+# // add visuals in report 

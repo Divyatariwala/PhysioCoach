@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Your TheraTrack Exercise Reminder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .email-container {
+      max-width: 650px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
+    }
+    .email-header {
+      color: #2E7D32;
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .email-content p {
+      line-height: 1.7;
+      margin-bottom: 18px;
+      font-size: 15px;
+    }
+    .cta-button {
+      display: inline-block;
+      padding: 14px 28px;
+      color: #fff;
+      background-color: #2E7D32;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .email-footer {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      margin-top: 25px;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 25px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <h2 class="email-header">⏰ It's Time for Your TheraTrack Exercise</h2>
+    <div class="email-content">
+      <p>Hi {{ user.first_name|default:user.username }},</p>
+      
+      <p>We’re sending you your scheduled TheraTrack exercise reminder. Maintaining a consistent routine is essential for improving posture, increasing mobility, and supporting overall physical well-being.</p>
+      
+      <p>Even a brief session today can help strengthen your core, release tension, and improve posture alignment. Remember, consistency is more important than duration — every effort counts toward long-term results.</p>
+      
+      <p style="text-align:center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="cta-button">Start Your Exercise Now</a>
+      </p>
+      
+      <p>Tracking your progress and completing daily sessions helps reinforce positive habits and ensures continuous improvement. Your dedication today builds a healthier tomorrow.</p>
+      
+      <p>Thank you for prioritizing your health and wellness with TheraTrack.</p>
+      <p>— The TheraTrack Team</p>
+    </div>
+    <hr>
+    <div class="email-footer">
+      <p>This is an automated message from TheraTrack. Please do not reply to this email.</p>
+      <p>© 2026 TheraTrack. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

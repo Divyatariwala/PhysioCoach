@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import chatbot from "../../assets/images/chatbot.png";
-import "../css/chatbot.css";
+import styles from "../css/chatbot.module.css";
 
 export default function ChatbotPopup() {
     const [open, setOpen] = useState(false);
@@ -8,19 +8,16 @@ export default function ChatbotPopup() {
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [liftUp, setLiftUp] = useState(false);
+    const [sessionId, setSessionId] = useState(null);
 
-    // 👇 Detect scroll and lift chatbot button
+    // Lift button on scroll
     useEffect(() => {
-        const handleScroll = () => {
-            const scrollButtonVisible = window.scrollY > 100; // adjust this to match scroll button appearance
-            setLiftUp(scrollButtonVisible);
-        };
-
+        const handleScroll = () => setLiftUp(window.scrollY > 100);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Default bot greeting with typing effect
+    // Initial greeting
     useEffect(() => {
         if (open && messages.length === 0) {
             const greeting = "Hello! 👋 I’m TheraBot, your health assistant. How can I help you today?";
@@ -38,10 +35,10 @@ export default function ChatbotPopup() {
             const response = await fetch("http://127.0.0.1:8000/api/chat/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({ message, session_id: sessionId }),
             });
-            if (!response.ok) return `Server error: ${response.status}`;
             const data = await response.json();
+            if (data.session_id) setSessionId(data.session_id);
             return data.reply;
         } catch {
             return "Server not responding.";
@@ -50,70 +47,72 @@ export default function ChatbotPopup() {
 
     const spawnEmoji = (emoji) => {
         const emojiEl = document.createElement('div');
-        emojiEl.className = 'emoji-float';
+        emojiEl.className = styles.emojiFloat;
         emojiEl.style.left = Math.random() * 80 + '%';
         emojiEl.style.top = '90%';
         emojiEl.textContent = emoji;
-        document.querySelector('.chatbot-body').appendChild(emojiEl);
+        document.querySelector(`.${styles.chatbotBody}`)?.appendChild(emojiEl);
         setTimeout(() => emojiEl.remove(), 3000);
-    }
+    };
 
     const handleSendMessage = async (text = null) => {
         const msgText = text || input;
         if (!msgText.trim()) return;
 
-        const userMsg = { from: "user", text: msgText };
-        setMessages((prev) => [...prev, userMsg]);
+        setMessages(prev => [...prev, { from: "user", text: msgText }]);
         setInput("");
         setLoading(true);
 
         const botReply = await sendToChatbot(msgText);
-        setMessages((prev) => [...prev, { from: "bot", text: botReply }]);
+        setMessages(prev => [...prev, { from: "bot", text: botReply }]);
         setLoading(false);
 
-        // Spawn emojis randomly for fun
         ['💧', '🏃', '🥗', '🧘‍♀️', '🍎'].forEach(e => spawnEmoji(e));
     };
 
     return (
         <>
-            {/* 👇 Chatbot Button */}
-            <button
-                className={`btn-background ${liftUp ? "lift-up" : ""}`}
+            {/* Floating Button */}
+            <button 
+                className={`${styles.btnBackground} ${liftUp ? styles.liftUp : ""}`} 
                 onClick={() => setOpen(!open)}
             >
-                <div className="chatbot-button">
+                <div className={styles.chatbotButton}>
                     <img src={chatbot} alt="Chatbot" />
                 </div>
             </button>
 
+            {/* Chat Popup */}
             {open && (
-                <div className="chatbot-popup">
-                    <div className="chatbot-header">
-                        <span className="bot-avatar">🤖</span>
-                        <div className="bot-info">
-                            <span className="bot-name">TheraBot</span>
-                            <span className="online">Online</span>
+                <div className={styles.chatbotPopup}>
+                    {/* Header */}
+                    <div className={styles.chatbotHeader}>
+                        <div className={styles.botInfo}>
+                            <span className={styles.botName}>TheraBot</span>
+                            <span className={styles.online}>Online</span>
                         </div>
-                        <span className="close-btn" onClick={() => setOpen(false)}>✖</span>
+                        <span className={styles.closeBtn} onClick={() => setOpen(false)}>✖</span>
                     </div>
 
-                    <div className="chatbot-body">
+                    {/* Chat Body */}
+                    <div className={styles.chatbotBody}>
                         {messages.map((m, i) => (
-                            <div key={i} className={`chat-msg ${m.from === "user" ? "user-msg" : "bot-msg"}`}>
+                            <div key={i} className={`${styles.chatMsg} ${m.from === "user" ? styles.userMsg : styles.botMsg}`}>
                                 {m.text}
                             </div>
                         ))}
-                        {loading && <div className="chat-msg bot-msg typing">🤖 TheraBot is typing...</div>}
+                        {loading && <div className={`${styles.chatMsg} ${styles.botMsg} ${styles.typing}`}>🤖 TheraBot is typing...</div>}
                     </div>
 
-                    <div className="quick-replies">
-                        <button className="quick-btn" onClick={() => handleSendMessage("Tell me a health tip")}>Health Tip</button>
-                        <button className="quick-btn" onClick={() => handleSendMessage("Daily exercise suggestion")}>Exercise</button>
-                        <button className="quick-btn" onClick={() => handleSendMessage("Motivation")}>Motivation</button>
+                    {/* Quick Replies */}
+                    <div className={styles.quickReplies}>
+                        <button className={styles.quickBtn} onClick={() => handleSendMessage("Tell me a health tip")}>Health Tip</button>
+                        <button className={styles.quickBtn} onClick={() => handleSendMessage("Daily exercise suggestion")}>Exercise</button>
+                        <button className={styles.quickBtn} onClick={() => handleSendMessage("Motivation")}>Motivation</button>
                     </div>
 
-                    <div className="chatbot-footer">
+                    {/* Footer Input */}
+                    <div className={styles.chatbotFooter}>
                         <input
                             type="text"
                             placeholder="Ask me anything..."

@@ -1,6 +1,6 @@
 // Register.jsx
-import React, { useState, useRef } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import React, { useState } from "react";
+import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import registerPic from "../../assets/images/Login_pic.png";
 import styles from "../css/Register.module.css";
@@ -21,12 +21,10 @@ export default function Register() {
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState({ password1: false, password2: false });
-
-  // ---------------- FORM POPUP (SAME AS LOGIN) ----------------
   const [popupMessage, setPopupMessage] = useState("");
   const [popupType, setPopupType] = useState(""); // error | success
+  const [genderOpen, setGenderOpen] = useState(false);
 
-  // ---------------- PASSWORD STRENGTH ----------------
   const getPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -34,7 +32,6 @@ export default function Register() {
     if (/[a-z]/.test(password)) strength++;
     if (/\d/.test(password)) strength++;
     if (/[@$!%*?&]/.test(password)) strength++;
-
     if (strength <= 2) return "Weak";
     if (strength === 3 || strength === 4) return "Medium";
     if (strength === 5) return "Strong";
@@ -47,11 +44,9 @@ export default function Register() {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  // ---------------- POPUP HELPER ----------------
   const showFormPopup = (message, type = "error") => {
     setPopupMessage(message);
     setPopupType(type);
-
     if (type === "error") {
       setTimeout(() => {
         setPopupMessage("");
@@ -60,7 +55,6 @@ export default function Register() {
     }
   };
 
-  // ---------------- FORM HANDLERS ----------------
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -73,20 +67,15 @@ export default function Register() {
     if (!formData.username) newErrors.username = "Pick a cool username!";
     if (!formData.email) newErrors.email = "Please enter your email address 📬";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format 📬";
-
     if (!formData.age) newErrors.age = "Select your age 🌱";
     else if (formData.age < 18) newErrors.age = "🚫 You must be at least 18 years old.";
     else if (formData.age > 120) newErrors.age = "Enter a valid age.";
-
     if (!formData.gender) newErrors.gender = "Select your gender 🌼";
-
     if (!formData.password1) newErrors.password1 = "Create a secure password 🔒";
     else if (!isStrongPassword(formData.password1))
       newErrors.password1 = "Make it strong! Use uppercase, lowercase, numbers & symbols 💪";
-
     if (!formData.password2) newErrors.password2 = "Please confirm your password 🔐";
     else if (formData.password1 !== formData.password2) newErrors.password2 = "Passwords don’t match!";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -101,9 +90,7 @@ export default function Register() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         showFormPopup(data.error || "Registration failed", "error");
       } else {
@@ -117,18 +104,13 @@ export default function Register() {
 
   const getStrengthColor = (strength, forText = false) => {
     switch (strength) {
-      case "Weak":
-        return forText ? "red" : styles.weakBar;
-      case "Medium":
-        return forText ? "orange" : styles.mediumBar;
-      case "Strong":
-        return forText ? "green" : styles.strongBar;
-      default:
-        return forText ? "black" : "";
+      case "Weak": return forText ? "red" : styles.weakBar;
+      case "Medium": return forText ? "orange" : styles.mediumBar;
+      case "Strong": return forText ? "green" : styles.strongBar;
+      default: return forText ? "black" : "";
     }
   };
 
-  // ---------------- RENDER ----------------
   return (
     <div className="container-fluid p-0">
       <div className="row g-0">
@@ -146,12 +128,8 @@ export default function Register() {
 
         {/* RIGHT FORM */}
         <div className="col-md-7 d-flex position-relative justify-content-center align-items-center min-vh-100">
-          {/* BACK TO HOME – ABOVE FORM (LEFT) */}
           <div className={styles.formHeader}>
-            <button
-              className={styles.backToHomeLink}
-              onClick={() => navigate("/")}
-            >
+            <button className={styles.backToHomeLink} onClick={() => navigate("/")}>
               <i className="fa-solid fa-arrow-left"></i>{" "}
               <span className={styles.backText}>Back to Home</span>
             </button>
@@ -159,15 +137,8 @@ export default function Register() {
 
           <div className={`${styles.loginFormWrapper} w-100 px-4 px-md-5`} style={{ maxWidth: "550px" }}>
             <h2 className="mb-4 text-center">Create Account</h2>
-
-            {/* POPUP ABOVE FORM */}
             {popupMessage && (
-              <div
-                className={`${styles.formPopup} ${popupType === "error"
-                  ? styles.popupError
-                  : styles.popupSuccess
-                  }`}
-              >
+              <div className={`${styles.formPopup} ${popupType === "error" ? styles.popupError : styles.popupSuccess}`}>
                 {popupMessage}
               </div>
             )}
@@ -224,7 +195,7 @@ export default function Register() {
                 {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
               </div>
 
-              {/* Age & Gender */}
+              {/* Age & Gender (custom dropdown) */}
               <div className="row mb-3">
                 <div className="col">
                   <input
@@ -239,23 +210,43 @@ export default function Register() {
                   />
                   {errors.age && <div className="invalid-feedback d-block">{errors.age}</div>}
                 </div>
+
                 <div className="col">
-                  <select
-                    className={`form-select ${errors.gender ? "is-invalid" : ""}`}
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors.gender && <div className="invalid-feedback d-block">{errors.gender}</div>}
+                  <div className="mb-3">
+                    <div className="dropdown">
+                      <button
+                        type="button"
+                        className={`form-control text-start d-flex justify-content-between align-items-center ${errors.gender ? "is-invalid" : ""}`}
+                        onClick={() => setGenderOpen(prev => !prev)}
+                      >
+                        <span>{formData.gender || "Select Gender"}</span>
+                        <ChevronDown
+                          size={18}
+                          style={{
+                            transition: "transform 0.3s",
+                            transform: genderOpen ? "rotate(180deg)" : "rotate(0deg)"
+                          }}
+                        />
+                      </button>
+                      <div className={`dropdown-menu ${genderOpen ? "show" : ""}`}>
+                        {["Male", "Female", "Other"].map((g, idx) => (
+                          <button
+                            type="button"
+                            key={idx}
+                            className="dropdown-item"
+                            onClick={() => { setFormData(prev => ({ ...prev, gender: g })); setGenderOpen(false); }}
+                          >
+                            {g}
+                          </button>
+                        ))}
+                      </div>
+                      {errors.gender && <div className="invalid-feedback d-block">{errors.gender}</div>}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Password & Confirm Password */}
+              {/* Password & Confirm */}
               <div className="row mb-3">
                 <div className="col">
                   <div className="input-group flex-column">
@@ -268,36 +259,22 @@ export default function Register() {
                         value={formData.password1}
                         onChange={handleChange}
                       />
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary"
-                        onClick={() => toggleShowPassword("password1")}
-                      >
+                      <button type="button" className="btn btn-outline-secondary" onClick={() => toggleShowPassword("password1")}>
                         {showPassword.password1 ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                     {formData.password1 && (
                       <>
-                        <small
-                          className="mt-1 fw-semibold"
-                          style={{ color: getStrengthColor(getPasswordStrength(formData.password1), true) }}
-                        >
+                        <small className="mt-1 fw-semibold" style={{ color: getStrengthColor(getPasswordStrength(formData.password1), true) }}>
                           {getPasswordStrength(formData.password1)} password
                         </small>
                         <div className="progress mt-1" style={{ height: "5px", borderRadius: "2px", overflow: "hidden" }}>
-                          <div
-                            className={`progress-bar ${getStrengthColor(getPasswordStrength(formData.password1))}`}
-                            role="progressbar"
-                            style={{
-                              width:
-                                getPasswordStrength(formData.password1) === "Weak"
-                                  ? "33%"
-                                  : getPasswordStrength(formData.password1) === "Medium"
-                                    ? "66%"
-                                    : "100%",
-                              transition: "width 0.5s ease-in-out",
-                            }}
-                          ></div>
+                          <div className={`progress-bar ${getStrengthColor(getPasswordStrength(formData.password1))}`}
+                               style={{
+                                 width: getPasswordStrength(formData.password1) === "Weak" ? "33%" :
+                                        getPasswordStrength(formData.password1) === "Medium" ? "66%" : "100%",
+                                 transition: "width 0.5s ease-in-out",
+                               }}></div>
                         </div>
                       </>
                     )}
@@ -315,11 +292,7 @@ export default function Register() {
                       value={formData.password2}
                       onChange={handleChange}
                     />
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() => toggleShowPassword("password2")}
-                    >
+                    <button type="button" className="btn btn-outline-secondary" onClick={() => toggleShowPassword("password2")}>
                       {showPassword.password2 ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                     {errors.password2 && <div className="invalid-feedback d-block">{errors.password2}</div>}
@@ -327,9 +300,7 @@ export default function Register() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary w-100 mt-2">
-                Register
-              </button>
+              <button type="submit" className="btn btn-primary w-100 mt-2">Register</button>
             </form>
 
             <div className={`${styles.loginLinks} mt-3 text-center`}>
