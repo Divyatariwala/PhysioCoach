@@ -188,5 +188,6 @@ export default Contact;
 
 // only logo, exercise, privacy policy page left 
 // hover , focus colours
+// secure websites
 
 
