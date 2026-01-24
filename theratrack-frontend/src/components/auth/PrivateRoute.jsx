@@ -9,7 +9,7 @@ const PrivateRoute = () => {
 
   // If not logged in, redirect to login
   if (!isLoggedIn) {
-    return <Navigate to="api/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // If logged in, render child routes

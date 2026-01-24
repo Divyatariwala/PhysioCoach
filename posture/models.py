@@ -110,7 +110,7 @@ class ChatSession(models.Model):
     last_active = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.session_id)
+        return str(self.chatSession_id)
 
 class ChatMessage(models.Model):
     chatMessage_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # set as PK
