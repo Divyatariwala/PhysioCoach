@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from datetime import date
 
-from posture.models import WorkoutSession
+from posture.models import Notification, WorkoutSession
 
 # =============================
 # CONFIGURATION
@@ -29,7 +29,7 @@ class Command(BaseCommand):
             if self.exercise_reminder(user, now):
                 self.stdout.write(f"Exercise reminder sent to {user.email}")
 
-            # Inactivity Reminder
+            # Inactivity Remindera
             if self.inactivity_reminder(user, now):
                 self.stdout.write(f"Inactivity reminder sent to {user.email}")
 
@@ -38,14 +38,12 @@ class Command(BaseCommand):
     # =============================
     # SEND HTML EMAIL
     # =============================
-    def send_html_email(self, user, subject, template_name, context):
+    def send_html_email(self, user, subject, template_name, context, notification_type):
         if not user.email:
             return False
 
-        # Render HTML content
         html_content = render_to_string(template_name, context)
 
-        # Create email
         email = EmailMultiAlternatives(
             subject=subject,
             body="This email requires HTML support.",
@@ -55,9 +53,14 @@ class Command(BaseCommand):
         email.attach_alternative(html_content, "text/html")
         email.send(fail_silently=True)
 
-        # Log sent email (UTF-8 to handle emojis)
-        with open(LOG_FILE, "a", encoding="utf-8") as log:
-            log.write(f"[{timezone.localtime()}] {subject} sent to {user.email}\n")
+        # Save notification in database
+        Notification.objects.create(
+            user=user,
+            subject=subject,
+            message=html_content,
+            notification_type=notification_type,
+            is_sent=True
+        )
 
         return True
 
@@ -86,7 +89,8 @@ class Command(BaseCommand):
             user,
             "⏰ Time for Your TheraTrack Exercise",
             "emails/exercise_reminder.html",
-            context
+            context,
+            notification_type="exercise"
         )
 
     # =============================
@@ -115,5 +119,6 @@ class Command(BaseCommand):
             user,
             f"TheraTrack Activity Reminder ({inactive_days} days inactive)",
             "emails/inactivity_reminder.html",
-            context
+            context,
+            notification_type= "inactivity"
         )

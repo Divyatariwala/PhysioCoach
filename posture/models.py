@@ -48,18 +48,6 @@ class Exercise(models.Model):
     def __str__(self):
         return self.exercise_name
 
-
-class TherapyPlan(models.Model):
-    plan_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="therapy_plans")
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
-    duration_weeks = models.IntegerField()
-    exercises = models.ManyToManyField(Exercise, related_name="therapy_plans")
-
-    def __str__(self):
-        return f"Therapy Plan {self.plan_id} for {self.user.username}"
-
 # =========================
 # WORKOUT SESSION & REPETITIONS
 # =========================
@@ -116,7 +104,7 @@ class Feedback(models.Model):
         return f"Feedback {self.feedback_id} for {self.session.user.username}"
 
 class ChatSession(models.Model):
-    session_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # set as PK
+    chatSession_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # set as PK
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_active = models.DateTimeField(auto_now=True)
@@ -125,9 +113,10 @@ class ChatSession(models.Model):
         return str(self.session_id)
 
 class ChatMessage(models.Model):
+    chatMessage_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # set as PK
     MESSAGE_TYPE = [('user', 'User'), ('bot', 'Bot')]
 
-    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    chatSession_id = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
     message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE)
     message_text = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -150,7 +139,7 @@ class Report(models.Model):
     )
     pdf_file = models.FileField(upload_to='reports/', null=True, blank=True)
     generated_at = models.DateTimeField(auto_now_add=True)
-
+    # therapyplan
     def __str__(self):
         return f"Report for Session {self.session.session_id} - {self.generated_by}"
 
@@ -158,10 +147,41 @@ class Report(models.Model):
 # CONTACTS
 # =========================
 class Contact(models.Model):
+    contact_id = models.UUIDField(primary_key=True,  default=uuid.uuid4, editable=False)  # set as PK
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Optional: if submitted by a registered user"
+    )
     name = models.CharField(max_length=100, blank=True)
     email = models.EmailField(blank=True)
     message = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
-        return f"Contact #{self.id}"
+        return f"Contact #{self.contact_id} by {self.user.username if self.user else self.name}"
+    
+class AdminReply(models.Model):
+    adminReply_id = models.UUIDField(primary_key=True, editable=False)  # set as PK
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, related_name="replies")
+    admin_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # optional
+    reply_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Notification(models.Model):
+    NOTIFICATION_TYPE_CHOICES = [
+        ("exercise", "Exercise Reminder"),
+        ("inactivity", "Inactivity Reminder"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPE_CHOICES)
+    is_sent = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.notification_type} - {self.sent_at}"
