@@ -13,6 +13,7 @@ import numpy as np
 import json
 import os
 import re
+from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.decorators import api_view
 from xhtml2pdf import pisa
@@ -34,6 +35,8 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from rest_framework.response import Response
+
+from .ai import generate_response
 # Import your models
 from .models import ChatMessage, ChatSession, Contact, Profile, Exercise, WorkoutSession, Repetition, Report, Feedback, AIModel
 
@@ -265,10 +268,39 @@ def send_otp(request):
 
         # Generate 4-digit OTP
         otp = str(randint(1000, 9999))
-        OTP_STORE[email] = otp
-        print(f"[DEBUG] OTP for {email}: {otp}")  # For testing, replace with email service
+        # Store OTP with timestamp
+        OTP_STORE[email] = {
+            "otp": otp,
+            "created_at": timezone.now()
+        }
 
-        return JsonResponse({"success": True})
+        # Prepare professional email
+        subject = "Your TheraTrack OTP Code"
+        message = f"""
+Dear {user.first_name or 'User'},
+
+We received a request to reset your TheraTrack account password.
+Please use the following One-Time Password (OTP) to proceed:
+
+OTP Code: {otp}
+
+This OTP is valid for 2 minutes. Please do not share this code with anyone.
+
+If you did not request this, please ignore this email or contact TheraTrack support immediately.
+
+Thank you,
+The TheraTrack Team
+noreply.theratrack@gmail.com
+"""
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+
+        return JsonResponse({"success": True, "message": "OTP sent to email"})
 
     except Exception as e:
         import traceback
@@ -288,10 +320,17 @@ def verify_otp(request):
         if not email or not otp:
             return JsonResponse({"success": False, "error": "Email and OTP required"}, status=400)
         
-        if OTP_STORE.get(email) == otp:
-            return JsonResponse({"success": True})
-        else:
+        otp_entry = OTP_STORE.get(email)
+        if not otp_entry:
+            return JsonResponse({"success": False, "error": "OTP not found or expired"}, status=400)
+
+        if timezone.now() > otp_entry["created_at"] + timedelta(minutes=2):
+            OTP_STORE.pop(email, None)
+            return JsonResponse({"success": False, "error": "OTP expired"}, status=400)
+
+        if otp_entry["otp"] != otp:
             return JsonResponse({"success": False, "error": "Invalid OTP"}, status=400)
+        return JsonResponse({"success": True, "message": "OTP verified"})
     
     except Exception as e:
         import traceback
@@ -305,41 +344,39 @@ def reset_password(request):
 
     try:
         data = json.loads(request.body.decode("utf-8"))
-        email = data.get('email')
-        otp = data.get('otp')
-        new_password = data.get('newPassword')
-        confirm_password = data.get('confirmPassword')
+        email = str(data.get("email", "")).strip()
+        otp = str(data.get("otp", "")).strip()
+        new_password = str(data.get("new_password", "")).strip()
+        confirm_password = str(data.get("confirm_password", "")).strip()
 
-        if not email or not otp or not new_password or not confirm_password:
-            return JsonResponse(
-                {"success": False, "error": "All fields are required"},
-                status=400
-            )
+        # Check for empty fields
+        if not all([email, otp, new_password, confirm_password]):
+            return JsonResponse({"success": False, "error": "All fields are required"}, status=400)
 
-        # ✅ Check OTP
-        if OTP_STORE.get(email) != otp:
-            return JsonResponse(
-                {"success": False, "error": "Invalid OTP"},
-                status=400
-            )
+        # ✅ Check OTP existence
+        otp_entry = OTP_STORE.get(email)
+        if not otp_entry:
+            return JsonResponse({"success": False, "error": "Invalid OTP"}, status=400)
 
+        # ✅ Ensure OTP comparison is string and trimmed
+        if str(otp_entry["otp"]).strip() != otp:
+            return JsonResponse({"success": False, "error": "Invalid OTP"}, status=400)
+
+        # ✅ Check OTP expiry (2 minutes)
+        if timezone.now() > otp_entry["created_at"] + timedelta(minutes=2):
+            OTP_STORE.pop(email, None)
+            return JsonResponse({"success": False, "error": "OTP expired"}, status=400)
+
+        # ✅ Password match check
         if new_password != confirm_password:
-            return JsonResponse(
-                {"success": False, "error": "Passwords do not match"},
-                status=400
-            )
+            return JsonResponse({"success": False, "error": "Passwords do not match"}, status=400)
 
+        # ✅ Fetch user
         user = User.objects.get(email=email)
 
-        # 🔒 CRITICAL CHECK: New password must NOT be old password
+        # 🔒 New password must not match old password
         if user.check_password(new_password):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "New password cannot be the same as your old password"
-                },
-                status=400
-            )
+            return JsonResponse({"success": False, "error": "New password cannot be the same as old password"}, status=400)
 
         # ✅ Save new password
         user.set_password(new_password)
@@ -351,19 +388,12 @@ def reset_password(request):
         return JsonResponse({"success": True})
 
     except User.DoesNotExist:
-        return JsonResponse(
-            {"success": False, "error": "User not found"},
-            status=404
-        )
+        return JsonResponse({"success": False, "error": "User not found"}, status=404)
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse(
-            {"success": False, "error": "Something went wrong"},
-            status=500
-        )
-    
+        return JsonResponse({"success": False, "error": "Something went wrong"}, status=500)
 # ---------------------------
 # GOOGLE LOGIN
 # ---------------------------
@@ -678,10 +708,6 @@ def chat_api(request):
         return JsonResponse({"error": "POST request required"}, status=400)
 
     try:
-        import json, traceback
-        from django.utils import timezone
-        from .models import ChatSession, ChatMessage
-        from .ai import generate_response  # Use the fixed ai.py function
 
         # -------------------------------
         # Load user message from request
@@ -696,7 +722,7 @@ def chat_api(request):
         # -------------------------------
         session_id = data.get("session_id")
         if session_id:
-            session, _ = ChatSession.objects.get_or_create(session_id=session_id)
+            session, _ = ChatSession.objects.get_or_create(chatSession_id=session_id)
         else:
             session = ChatSession.objects.create()
 
@@ -707,7 +733,7 @@ def chat_api(request):
         # Save user message
         # -------------------------------
         ChatMessage.objects.create(
-            session=session,
+            chatSession_id=session,
             message_type="user",
             message_text=user_message
         )
@@ -715,7 +741,7 @@ def chat_api(request):
         # -------------------------------
         # Build conversation history (last 20 messages)
         # -------------------------------
-        messages = ChatMessage.objects.filter(session=session).order_by("timestamp")
+        messages = ChatMessage.objects.filter(chatSession_id=session).order_by("timestamp")
         chat_history = []
         for msg in messages:
             role = "User" if msg.message_type == "user" else "Bot"
@@ -734,12 +760,12 @@ def chat_api(request):
         # Save bot reply
         # -------------------------------
         ChatMessage.objects.create(
-            session=session,
+            chatSession_id=session,
             message_type="bot",
             message_text=reply_text
         )
 
-        return JsonResponse({"reply": reply_text, "session_id": session.session_id})
+        return JsonResponse({"reply": reply_text, "session_id": session.chatSession_id})
 
     except Exception as e:
         tb = traceback.format_exc()
@@ -754,9 +780,11 @@ def contact_api(request):
     """
 
     Contact.objects.create(
+        user=request.user if request.user.is_authenticated else None,
         name=request.data.get('name', ''),
         email=request.data.get('email', ''),
-        message=request.data.get('message', '')
+        message=request.data.get('message', ''),
+        created_at=timezone.now()
     )
 
     return Response(

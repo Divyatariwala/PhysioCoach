@@ -157,7 +157,7 @@ export default function Login() {
         setStep(2);
         setOtpTimer(120);
         setOtpAttempts(0);
-        showFormPopup("OTP sent successfully 📩", "success");
+        showFormPopup("OTP has been sent to your email 📩", "success");
       } else {
         showFormPopup(data.error || "Failed to send OTP", "error");
       }
@@ -291,44 +291,57 @@ export default function Login() {
 
 
   const handleResetPassword = async () => {
-    if (!newPassword.trim() || !confirmPassword.trim()) {
-      showFormPopup("Please fill all fields!", "error");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      showFormPopup("Passwords do not match", "error");
-      return;
-    }
+  const trimmedEmail = forgotEmail.trim().toLowerCase();
+  const enteredOtp = otp.map(d => (d ? d.trim() : "")).join("");
+  const trimmedNewPassword = newPassword.trim();
+  const trimmedConfirmPassword = confirmPassword.trim();
 
-    try {
-      const res = await fetch("http://localhost:8000/api/reset-password/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: forgotEmail,
-          otp: otp.join(""),
-          newPassword: newPassword,
-          confirmPassword: confirmPassword
-        }),
-      });
-      const data = await res.json();
+  if (!trimmedEmail || !enteredOtp || !trimmedNewPassword || !trimmedConfirmPassword) {
+    showFormPopup("All fields are required!", "error");
+    return;
+  }
 
-      if (data.success) {
-        showFormPopup("Password reset successful ✅", "success");
-        setShowForgotModal(false);
-        setStep(1);
-        setForgotEmail("");
-        setOtp("");
-        setNewPassword("");
-        setConfirmPassword("");
-        setForgotOtpSent(false);
-      } else {
-        showFormPopup(data.error || "Password reset failed", "error");
-      }
-    } catch {
-      showFormPopup("Network error. Please try again.", "error");
+  if (enteredOtp.length !== 4) {
+    showFormPopup("Please enter the 4-digit OTP", "error");
+    return;
+  }
+
+  if (trimmedNewPassword !== trimmedConfirmPassword) {
+    showFormPopup("Passwords do not match", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:8000/api/reset-password/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: trimmedEmail,
+        otp: enteredOtp,
+        new_password: trimmedNewPassword,
+        confirm_password: trimmedConfirmPassword,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showFormPopup("Password reset successful ✅", "success");
+      setShowForgotModal(false);
+      setStep(1);
+      setForgotEmail("");
+      setOtp(["", "", "", ""]);
+      setNewPassword("");
+      setConfirmPassword("");
+      setForgotOtpSent(false);
+    } else {
+      showFormPopup(data.error || "Password reset failed", "error");
     }
-  };
+  } catch {
+    showFormPopup("Network error. Please try again.", "error");
+  }
+};
+
 
   return (
     <div className="container-fluid p-0">
@@ -447,7 +460,7 @@ export default function Login() {
                 setShowForgotModal(false);
                 setStep(1);
                 setForgotEmail("");
-                setOtp("");
+                setOtp(["", "", "", ""]);
                 setNewPassword("");
                 setConfirmPassword("");
                 setShowModalPassword(false);
@@ -631,7 +644,3 @@ export default function Login() {
     </div>
   );
 }
-
-
-// limit to otp 
-

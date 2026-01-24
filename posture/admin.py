@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import (
-    ChatMessage, ChatSession, Contact, Profile, Exercise, TherapyPlan, WorkoutSession,
+    AdminReply, ChatMessage, ChatSession, Contact, Profile, Exercise, WorkoutSession,
     Repetition, Report, AIModel, Feedback
 )
 
@@ -103,7 +103,7 @@ class ChatMessageInline(admin.TabularInline):
 
 @admin.register(ChatSession)
 class ChatSessionAdmin(admin.ModelAdmin):
-    list_display = ('session_id', 'created_at', 'last_active', 'message_count')
+    list_display = ('chatSession_id', 'created_at', 'last_active', 'message_count')
     inlines = [ChatMessageInline]
 
     def message_count(self, obj):
@@ -114,7 +114,7 @@ class ChatSessionAdmin(admin.ModelAdmin):
 # --------------------------
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_or_anonymous', 'email_or_anonymous', 'short_message', 'created_at')
+    list_display = ('contact_id', 'name_or_anonymous', 'email_or_anonymous', 'short_message', 'created_at')
     search_fields = ('name', 'email', 'message')
     list_filter = ('created_at',)
 
@@ -132,3 +132,14 @@ class ContactAdmin(admin.ModelAdmin):
             return obj.message[:50] + "..."
         return obj.message or "-"
     short_message.short_description = "Message"
+
+admin.register(AdminReply)
+class AdminReplyAdmin(admin.ModelAdmin):
+    list_display = ['display_id', 'contact', 'admin_user', 'created_at']
+
+    def display_id(self, obj):
+        return str(obj.adminReply_id)
+
+    display_id.short_description = "Admin Reply ID"
+
+admin.site.register(AdminReply, AdminReplyAdmin)
