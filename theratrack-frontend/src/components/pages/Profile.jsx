@@ -90,7 +90,7 @@ export default function Profile() {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-
+console.log("Exercises from API:", data.exercises);
       let profilePic = data.profile?.profile_picture
         ? data.profile.profile_picture.startsWith("http")
           ? data.profile.profile_picture

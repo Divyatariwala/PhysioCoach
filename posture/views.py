@@ -792,5 +792,3 @@ def contact_api(request):
         status=status.HTTP_201_CREATED
     )
 
-# // generate therapy plan in report template
-# // add visuals in report 

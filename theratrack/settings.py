@@ -159,9 +159,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'theratrack', 'media')
 
 
 # Redirect URLs for authentication
-LOGIN_URL = '/api/login/'  # When @login_required is used, go here if not logged in
-LOGOUT_REDIRECT_URL = 'login'  # After logout, redirect here
-LOGIN_REDIRECT_URL = 'exercises'  # After login, go here
+LOGIN_URL = '/'  # When @login_required is used, go here if not logged in
+LOGOUT_REDIRECT_URL = '/'  # After logout, redirect here
+LOGIN_REDIRECT_URL = '/'  # After login, go here
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

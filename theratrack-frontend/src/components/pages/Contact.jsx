@@ -189,5 +189,10 @@ export default Contact;
 // only logo, exercise, privacy policy page left 
 // hover , focus colours
 // secure websites
+// generate therapy plan in report template
+// add visuals in report 
+// add exercises in database
+// change the contact uuid to normal id
+// change notification model of i to notificaion_id same like EERD
 
 
