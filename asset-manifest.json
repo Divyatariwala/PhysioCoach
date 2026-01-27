@@ -1,0 +1,37 @@
+{
+  "files": {
+    "main.css": "/PhysioCoach/static/css/main.fffc707f.css",
+    "main.js": "/PhysioCoach/static/js/main.5551dfde.js",
+    "static/js/549.64a35f77.chunk.js": "/PhysioCoach/static/js/549.64a35f77.chunk.js",
+    "static/js/260.3520ad73.chunk.js": "/PhysioCoach/static/js/260.3520ad73.chunk.js",
+    "static/js/453.6a56d402.chunk.js": "/PhysioCoach/static/js/453.6a56d402.chunk.js",
+    "static/media/Login_pic.png": "/PhysioCoach/static/media/Login_pic.6b3cbf7871ec3b6dc10d.png",
+    "static/media/about&profile.png": "/PhysioCoach/static/media/about&profile.039b05c51222d9dc1356.png",
+    "static/media/image 3.png": "/PhysioCoach/static/media/image 3.c22675f748151c0e7967.png",
+    "static/media/image 6.png": "/PhysioCoach/static/media/image 6.1f2b3daee134f8bebb43.png",
+    "static/media/tracking img.png": "/PhysioCoach/static/media/tracking img.125ce2af5361248658f8.png",
+    "static/media/image 1.png": "/PhysioCoach/static/media/image 1.4a73a468a6814fc2f7f3.png",
+    "static/media/image 4.png": "/PhysioCoach/static/media/image 4.ba2877c19a74df94fa39.png",
+    "static/media/image 5.png": "/PhysioCoach/static/media/image 5.6c73ea73aa4d897df614.png",
+    "static/media/image 2.png": "/PhysioCoach/static/media/image 2.1a6fcd99810e86838743.png",
+    "static/media/bootstrap-icons.woff?": "/PhysioCoach/static/media/bootstrap-icons.1295669cd4e305c97f2c.woff",
+    "static/media/Group 6.png": "/PhysioCoach/static/media/Group 6.ac4f8f365dc55b8aa23a.png",
+    "static/media/home1.png": "/PhysioCoach/static/media/home1.f372f0b9e782ab1bf355.png",
+    "static/media/bootstrap-icons.woff2?": "/PhysioCoach/static/media/bootstrap-icons.92ea18a81d737146ff04.woff2",
+    "static/media/fa-solid-900.woff2": "/PhysioCoach/static/media/fa-solid-900.8ae0d37556ff1e685de2.woff2",
+    "static/media/fa-brands-400.woff2": "/PhysioCoach/static/media/fa-brands-400.1c5c7716b05754cb4eab.woff2",
+    "static/media/default-avatar.png": "/PhysioCoach/static/media/default-avatar.a6143582309785dca610.png",
+    "static/media/fa-regular-400.woff2": "/PhysioCoach/static/media/fa-regular-400.6f05ca9ab7b5345dbc07.woff2",
+    "static/media/fa-v4compatibility.woff2": "/PhysioCoach/static/media/fa-v4compatibility.e4340c52a50e727c6afa.woff2",
+    "index.html": "/PhysioCoach/index.html",
+    "main.fffc707f.css.map": "/PhysioCoach/static/css/main.fffc707f.css.map",
+    "main.5551dfde.js.map": "/PhysioCoach/static/js/main.5551dfde.js.map",
+    "549.64a35f77.chunk.js.map": "/PhysioCoach/static/js/549.64a35f77.chunk.js.map",
+    "260.3520ad73.chunk.js.map": "/PhysioCoach/static/js/260.3520ad73.chunk.js.map",
+    "453.6a56d402.chunk.js.map": "/PhysioCoach/static/js/453.6a56d402.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fffc707f.css",
+    "static/js/main.5551dfde.js"
+  ]
+}
