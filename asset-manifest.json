@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/PhysioCoach/static/css/main.fffc707f.css",
-    "main.js": "/PhysioCoach/static/js/main.5c490cc0.js",
+    "main.css": "/PhysioCoach/static/css/main.e8b292e1.css",
+    "main.js": "/PhysioCoach/static/js/main.5551dfde.js",
     "static/js/549.64a35f77.chunk.js": "/PhysioCoach/static/js/549.64a35f77.chunk.js",
     "static/js/260.3520ad73.chunk.js": "/PhysioCoach/static/js/260.3520ad73.chunk.js",
     "static/js/453.6a56d402.chunk.js": "/PhysioCoach/static/js/453.6a56d402.chunk.js",
@@ -24,14 +24,14 @@
     "static/media/fa-regular-400.woff2": "/PhysioCoach/static/media/fa-regular-400.6f05ca9ab7b5345dbc07.woff2",
     "static/media/fa-v4compatibility.woff2": "/PhysioCoach/static/media/fa-v4compatibility.e4340c52a50e727c6afa.woff2",
     "index.html": "/PhysioCoach/index.html",
-    "main.fffc707f.css.map": "/PhysioCoach/static/css/main.fffc707f.css.map",
-    "main.5c490cc0.js.map": "/PhysioCoach/static/js/main.5c490cc0.js.map",
+    "main.e8b292e1.css.map": "/PhysioCoach/static/css/main.e8b292e1.css.map",
+    "main.5551dfde.js.map": "/PhysioCoach/static/js/main.5551dfde.js.map",
     "549.64a35f77.chunk.js.map": "/PhysioCoach/static/js/549.64a35f77.chunk.js.map",
     "260.3520ad73.chunk.js.map": "/PhysioCoach/static/js/260.3520ad73.chunk.js.map",
     "453.6a56d402.chunk.js.map": "/PhysioCoach/static/js/453.6a56d402.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.fffc707f.css",
-    "static/js/main.5c490cc0.js"
+    "static/css/main.e8b292e1.css",
+    "static/js/main.5551dfde.js"
   ]
 }
