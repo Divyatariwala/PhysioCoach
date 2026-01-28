@@ -147,7 +147,7 @@ class Report(models.Model):
 # CONTACTS
 # =========================
 class Contact(models.Model):
-    contact_id = models.UUIDField(primary_key=True,  default=uuid.uuid4, editable=False)  # set as PK
+    contact_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
@@ -171,6 +171,7 @@ class AdminReply(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Notification(models.Model):
+    notification_id = models.AutoField(primary_key=True)
     NOTIFICATION_TYPE_CHOICES = [
         ("exercise", "Exercise Reminder"),
         ("inactivity", "Inactivity Reminder"),

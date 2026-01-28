@@ -144,6 +144,11 @@ h3 {
   white-space: nowrap;
 }
 
+.customBtn:active{
+  background-color: #24704c!important;
+  border-color: #24704c!important;
+}
+
 .customInput {
   width: 497px;
   height: 36px;

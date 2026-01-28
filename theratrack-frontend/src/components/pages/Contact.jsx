@@ -186,13 +186,17 @@ export default Contact;
 
 
 
-// only logo, exercise, privacy policy page left 
-// hover , focus colours
-// secure websites
+// only logo, exercise, privacy policy , reportpage left 
 // generate therapy plan in report template
 // add visuals in report 
 // add exercises in database
-// change the contact uuid to normal id
-// change notification model of i to notificaion_id same like EERD
+
+// create presentation
+// ask siddhi abt the logo 
+// try to finish design ASAP
+
+// try to figure out how to deploy figma 
+// try to figure out how to deploy ur project
 
 
+//exercises left videos to find 
