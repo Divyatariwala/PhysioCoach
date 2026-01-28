@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import chatbot from "../../assets/images/chatbot.png";
-import styles from "../css/chatbot.module.css";
+import styles from "../css/Chatbot.module.css";
 
-export default function ChatbotPopup() {
+export default function ChatbotPopup({ footerVisible }) {
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
@@ -74,11 +74,12 @@ export default function ChatbotPopup() {
         <>
             {/* Floating Button */}
             <button 
-                className={`${styles.btnBackground} ${liftUp ? styles.liftUp : ""}`} 
+                className={`${styles.btnBackground} ${liftUp ? styles.liftUp : ""} ${footerVisible ? styles.footerActive : ""}`} 
                 onClick={() => setOpen(!open)}
             >
-                <div className={styles.chatbotButton}>
-                    <img src={chatbot} alt="Chatbot" />
+                <div className={`${styles.chatbotButton} ${footerVisible ? styles.footerActive : ""} `}>
+                    <img src={chatbot} alt="Chatbot" 
+                    />
                 </div>
             </button>
 

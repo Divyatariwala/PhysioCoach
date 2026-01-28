@@ -284,6 +284,11 @@
   border-color: #40916c;
 }
 
+.btn-primary:active{
+  background-color: #24704c!important;
+  border-color: #24704c!important;
+}
+
 /* ================= ANIMATIONS ================= */
 @keyframes floatY {
 

@@ -319,7 +319,7 @@
 /* Small resend OTP link */
 .resendOtpLink {
     cursor: pointer;
-    color: #2D3436;
+    color: #2D3436!important;
     /* Bootstrap primary color */
     text-decoration: underline;
     font-size: 14.4px;
@@ -335,7 +335,7 @@
     /* Darker shade on hover */
 }
 
-.resendOtpLink.disabled {
+.disabled {
     cursor: not-allowed;
     color: gray;
     text-decoration: none;

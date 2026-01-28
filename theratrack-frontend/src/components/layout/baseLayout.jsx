@@ -12,6 +12,7 @@ import ChatbotPopup from "../pages/ChatbotPopup";
 function BaseLayout() {
   const [showScroll, setShowScroll] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
 
   const location = useLocation();
 
@@ -43,6 +44,35 @@ function BaseLayout() {
     const handleScroll = () => setShowScroll(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Scroll button logic
+  useEffect(() => {
+    const handleScroll = () => setShowScroll(window.scrollY > 100);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Footer visibility logic for chatbot button
+  useEffect(() => {
+    const footer = document.querySelector("footer");
+
+    const handleFooterScroll = () => {
+      if (!footer) return;
+      const footerTop = footer.getBoundingClientRect().top;
+      const windowHeight = window.innerHeight;
+      setIsFooterVisible(footerTop < windowHeight);
+    };
+
+    window.addEventListener("scroll", handleFooterScroll);
+    window.addEventListener("resize", handleFooterScroll);
+
+    handleFooterScroll(); // run once on mount
+
+    return () => {
+      window.removeEventListener("scroll", handleFooterScroll);
+      window.removeEventListener("resize", handleFooterScroll);
+    };
   }, []);
 
   // Navbar links
@@ -136,39 +166,38 @@ function BaseLayout() {
 
       {/* Footer */}
       {!hideLayout && (
-        <footer>
-          <div>
-            {footerLinks.map(link => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className="footer-link"
-                end={link.path === "/"}
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </div>
+        <footer className="footer">
+          <div className="container">
+            <div className="footer-section footer-about">
+              <h4>About TheraTrack</h4>
+              <p>
+                TheraTrack is a digital platform designed to support mental health awareness
+                and personal well-being through structured tracking and intelligent assistance.
+              </p>
+            </div>
 
-          <div className="mt-3">
-            {socialLinks.map(social => (
-              <a
-                key={social.href}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-social"
-              >
-                <i className={social.icon}></i>
-              </a>
-            ))}
-          </div>
+            <div className="footer-section footer-links">
+              <h4>Quick Links</h4>
+              {footerLinks.map(link => (
+                <NavLink key={link.path} to={link.path} className="footer-link">
+                  {link.label}
+                </NavLink>
+              ))}
+            </div>
 
-          <div className="footer-bottom mt-3">
-            © {new Date().getFullYear()} PhysioCoach — Your AI-powered
-            physiotherapy companion.
+            <div className="footer-section footer-contact">
+              <h4>Contact</h4>
+              <p><i className="fas fa-envelope"></i> support@theratrack.com</p>
+              <p><i className="fas fa-map-marker-alt"></i> United Kingdom</p>
+            </div>
+
+           
           </div>
+           <div className="footer-bottom">
+              © {new Date().getFullYear()} TheraTrack. All Rights Reserved.
+            </div>
         </footer>
+
       )}
 
       {/* Scroll Button */}
@@ -183,7 +212,7 @@ function BaseLayout() {
       )}
 
       {/* Chatbot */}
-      {!hideLayout && <ChatbotPopup />}
+      {!hideLayout && <ChatbotPopup footerVisible={isFooterVisible} />}
     </>
   );
 }

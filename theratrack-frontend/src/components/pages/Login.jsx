@@ -548,7 +548,7 @@ export default function Login() {
                     {resendLocked ? `Resend in ${RESEND_COOLDOWN}s` : "Resend OTP"}
                   </span>
                 </div>
-
+{/* //link colour */}
               </>
             )}
 

@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-_rb$s9mtdy2!25$1jtban2_wc23o_a(c=c6_fz5fn@eu-+vkr=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -50,6 +50,7 @@ AUTHENTICATION_BACKENDS = (
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,13 +62,14 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://divyatariwala.github.io"
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
 ]
 
 # Frontend URL for TheraTrack (used in email links)
-APP_URL = "http://127.0.0.1:3000"  # Use your React frontend URL
+APP_URL = "https://divyatariwala.github.io/"  # Use your React frontend URL
 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -167,6 +169,8 @@ LOGIN_REDIRECT_URL = '/'  # After login, go here
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
