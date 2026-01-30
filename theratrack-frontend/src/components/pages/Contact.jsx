@@ -188,8 +188,8 @@ export default Contact;
 
 
 
-// change image to free stock
-// change image in the code
+// change 2 images to free stock
+// change all image in the code
 
 // should work with the github pages 
 // 8. create presentation`
