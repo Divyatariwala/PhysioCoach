@@ -125,6 +125,10 @@ main.container {
     border-radius: 20px;
 }
 
+.navbar-collapse .navbar-nav{
+  padding: 20px;
+}
+
 
 /* ================= FOOTER THERATRACK ================= */
 .footer {
@@ -342,6 +346,11 @@ main.container {
   .footer-contact p {
     justify-content: center;
   }
+  
+  .footer h4::after{
+    position: absolute;
+    left: 13%;
+  }
 }
 
 
@@ -428,3 +437,114 @@ main.container {
 @media (max-width: 320px) {
   .scroll-top-btn { width: 36px; height: 36px; font-size: 1rem; bottom: 10px; right: 10px; }
 }
+
+/* Footer responsive for small mobile devices (375px) */
+@media (max-width: 760px) {
+  .footer .container {
+    flex-direction: column;       /* Stack footer sections vertically */
+    text-align: center;           /* Center content */
+    gap: 20px;                    /* Space between sections */
+    padding: 0 15px;              /* Narrow horizontal padding */
+  }
+
+  .footer-section {
+    min-width: 100%;              /* Full width for each section */
+    flex: 1 1 100%;
+  }
+
+  .footer h4 {
+    font-size: 22px;              /* Smaller headings */
+    margin-bottom: 10px;
+  }
+
+  .footer p,
+  .footer-link {
+    font-size: 15px;              /* Smaller text for readability */
+    line-height: 1.4;
+  }
+
+  .footer-link {
+    padding-left: 0;              /* Remove left padding */
+  }
+
+  .footer-link::before {
+    display: none;                /* Hide the arrow decoration */
+  }
+
+  .footer-contact p {
+    justify-content: center;      /* Center icons and text */
+    gap: 6px;
+  }
+
+  .footer-bottom {
+    font-size: 12px;              /* Small footer note */
+    padding-top: 10px;
+  }
+}
+
+/* Footer fully responsive and centered for 320px screens */
+@media (max-width: 320px) {
+  .footer .container {
+    display: flex !important;
+    flex-direction: column !important; /* Stack vertically */
+    align-items: center !important;    /* Center horizontally */
+    justify-content: center !important;
+    text-align: center !important;     /* Center text */
+    gap: 15px !important;              /* Space between sections */
+    padding: 0 10px !important;        /* Narrow padding for tiny screens */
+  }
+
+  .footer-section {
+    flex: unset !important;            /* Remove flex sizing */
+    width: 100% !important;            /* Full width */
+    max-width: 280px !important;       /* Prevent stretching */
+  }
+
+  .footer h4 {
+    font-size: 22px !important;        /* Smaller headings */
+    margin-bottom: 8px !important;
+  }
+
+  .footer p,
+  .footer-link {
+    font-size: 15px !important;        /* Smaller text */
+    line-height: 1.3 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .footer-link {
+    padding-left: 0 !important;        /* Remove left padding */
+  }
+
+  .footer-link::before {
+    display: none !important;          /* Remove decorative arrow */
+  }
+
+  .footer-contact p {
+    justify-content: center !important; /* Center icon + text */
+    gap: 5px !important;
+  }
+
+  .footer-bottom {
+    font-size: 11px !important;        /* Small footer note */
+    padding-top: 8px !important;
+  }
+
+  /* Optional: reduce gap between footer sections */
+  .footer .container > .footer-section {
+    margin-bottom: 10px !important;
+  }
+
+  /* If you have social icons row */
+  .footer .social-icons {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;        /* Wrap if needed */
+  }
+
+  .footer .social-icons a {
+    font-size: 14px !important;        /* Smaller icons */
+  }
+}
+

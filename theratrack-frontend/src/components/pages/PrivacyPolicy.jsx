@@ -174,7 +174,7 @@ const PrivacyPolicy = () => {
           <div className={`${styles.policySection} row`}>
 
             {/* Left Column: Dynamic Policy Content */}
-            <div className="col-md-8">
+            <div className={`col-md-8 ${styles.policyColumn}`}>
               <div className={styles.policyHead}>
                 {sections.map((section) => (
                   activeSection === section.id && (
@@ -188,7 +188,7 @@ const PrivacyPolicy = () => {
             </div>
 
             {/* Right Column: Table of Contents */}
-            <div className="col-md-4">
+            <div className={`col-md-4 ${styles.tocColumn}`}>
               <div className={styles.tableContents}>
                 <div className={styles.title}>Table of Contents:</div>
                 <div className={styles.contentName}>
