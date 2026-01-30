@@ -19,19 +19,19 @@ function Home() {
   const cards = [
     {
       title: "AI Yoga Companion",
-      text: "Your AI coach adapts every pose to your unique body mechanics — no guesswork, no injuries, just perfect alignment."
+      text: "Your AI coach customises each posture to your specific body mechanics – no guesswork, no injuries, just perfect alignment."
     },
     {
       title: "Instant Posture Correction",
-      text: "TheraTrack scans your movement and gives real-time posture feedback. Think of it as your personal physiotherapist inside your device."
+      text: "TheraTrack provides real-time posture feedback by scanning your movements. Consider your gadget to be your own personal physiotherapist."
     },
     {
       title: "Next-Level Progress Tracking",
-      text: "Track your workouts, analyze patterns, and visualize progress with AI-powered insights that help you reach your goals faster."
+      text: "With AI-powered insights, you can monitor your exercises, spot trends, and see your progress to help you accomplish your goals more quickly."
     },
     {
       title: "Personalized Plans",
-      text: "TheraTrack learns from your body, energy levels, and goals, creating adaptive plans that evolve as you improve."
+      text: "TheraTrack creates flexible plans that change as you get better by learning from your body, energy levels, and objectives."
     }
   ];
 
@@ -44,7 +44,7 @@ function Home() {
             <div className="col-md-6 hero-text">
               <h1 className="hero-title">Your Body. Your AI. Your Superpower.</h1>
               <p className="hero-subtitle">
-                Step into the future of fitness and physiotherapy. TheraTrack’s AI learns your movements, adapts workouts in real-time, and helps you train smarter, safer, and more effectively than ever.
+                Step into the future of fitness and physiotherapy. TheraTrack's AI learns from your motions, adapts exercises in real time, and enables you to train smarter, safer, and more effectively than before.
               </p>
 
               <div className="d-flex align-items-center flex-wrap gap-2 hero-buttons">
@@ -79,7 +79,11 @@ function Home() {
                     <img src={yogapose1} className="card-img-side" alt="Yoga" />
                     <div>
                       <h5>{card.title}</h5>
-                      <p>{card.text}</p>
+                      <p style={{ fontFamily: '"Poppins", sans-serif', fontSize: "13px", color: "#565555", fontWeight:"300" }}>
+                        {card.text}
+                      </p>
+
+
                     </div>
                   </div>
                 </div>
@@ -135,39 +139,39 @@ function Home() {
       {/* SERVICE FLOAT */}
       <section className="service-section floating-from-about">
         <div className="container">
-        <div className="service-board">
-          <div className="service-item">
-            <img src={service} alt="Service" className="service-img" />
-            <div className="service-text">
-              <span>10+</span>
-              <p>AI-GUIDANCE</p>
+          <div className="service-board">
+            <div className="service-item">
+              <img src={service} alt="Service" className="service-img" />
+              <div className="service-text">
+                <span>10+</span>
+                <p>AI-GUIDANCE</p>
+              </div>
             </div>
-          </div>
 
-          <div className="service-item">
-            <img src={service} alt="Service" className="service-img" />
-            <div className="service-text">
-              <span>8+</span>
-              <p>PERSONALIZED WORKOUTS</p>
+            <div className="service-item">
+              <img src={service} alt="Service" className="service-img" />
+              <div className="service-text">
+                <span>8+</span>
+                <p>PERSONALIZED WORKOUTS</p>
+              </div>
             </div>
-          </div>
 
-          <div className="service-item">
-            <img src={service} alt="Service" className="service-img" />
-            <div className="service-text">
-              <span>15+</span>
-              <p>PROGRESS TRACKING</p>
+            <div className="service-item">
+              <img src={service} alt="Service" className="service-img" />
+              <div className="service-text">
+                <span>15+</span>
+                <p>PROGRESS TRACKING</p>
+              </div>
             </div>
-          </div>
 
-          <div className="service-item">
-            <img src={service} alt="Service" className="service-img" />
-            <div className="service-text">
-              <span>5+</span>
-              <p>EXPERT SUPPORT</p>
+            <div className="service-item">
+              <img src={service} alt="Service" className="service-img" />
+              <div className="service-text">
+                <span>5+</span>
+                <p>EXPERT SUPPORT</p>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </section>
 

@@ -35,6 +35,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .ai import generate_response
 # Import your models
@@ -130,51 +131,6 @@ def update_profile(request):
         traceback.print_exc()
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-@login_required
-@csrf_exempt
-def filter_reports_api(request):
-    """
-    Return reports filtered by exercise as JSON
-    """
-    exercise_id = request.GET.get("exercise_id")
-
-    if exercise_id == "all" or not exercise_id:
-        reports = Report.objects.filter(session__user=request.user).order_by("-generated_at")
-    else:
-        reports = Report.objects.filter(session__user=request.user, exercise_id=exercise_id).order_by("-generated_at")
-
-    reports_data = [
-        {
-            "id": r.report_id,
-            "title": f"Report for Session {r.session.session_id}",
-            "date": r.generated_at.strftime("%d %b %Y"),
-            "file_url": r.pdf_file.url if r.pdf_file else None,
-        }
-        for r in reports
-    ]
-
-    return JsonResponse({"reports": reports_data})
-
-@login_required
-@csrf_exempt
-def download_report_api(request, report_id):
-    report = get_object_or_404(Report, report_id=report_id)
-
-    if not report.pdf_file or not os.path.exists(report.pdf_file.path):
-        raise Http404("Report file missing")
-
-    filename = os.path.basename(report.pdf_file.name)
-    
-    # Open file in binary mode
-    file_handle = open(report.pdf_file.path, "rb")
-    response = FileResponse(file_handle)
-    
-    # Force download by setting header manually
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    
-    return response
-
-@login_required
 @csrf_exempt
 def exercises_api(request):
     if not request.user.is_authenticated:
@@ -183,7 +139,7 @@ def exercises_api(request):
     exercises = Exercise.objects.all()
     data = [
         {
-            "id": e.exercise_id,
+            "exercise_id": e.exercise_id,
             "exercise_name": e.exercise_name,
             "description": e.description,
             "target_muscle": e.target_muscle,
@@ -245,8 +201,20 @@ def login_api(request):
     if not user.is_active:
         return JsonResponse({"success": False, "error": "Account is inactive"})
 
+    if user.is_staff or user.is_superuser:
+        return JsonResponse({
+            "success": False,
+            "error": "Admin cannot log in from user portal"
+        })
+
     login(request, user)
-    return JsonResponse({"success": True, "username": user.username})
+
+    # JWT tokens (optional)
+    refresh = RefreshToken.for_user(user)
+    
+    return JsonResponse({"success": True, "username": user.username,"role": user.is_staff and "admin" or "user",
+        "access": str(refresh.access_token),
+        "refresh": str(refresh),})
 
 # Temporary OTP store
 OTP_STORE = {}
@@ -567,54 +535,79 @@ def logout_view_api(request):
 # ---------------------------
 # Workout & Repetitions
 # ---------------------------
-
 @csrf_exempt
 def save_workout_session_api(request):
+    """
+    Create a new session (start) or update an existing session (stop) with duration.
+    """
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST required"}, status=400)
+    
     try:
         data = json.loads(request.body)
+        session_id = data.get("session_id")
         exercise_id = data.get("exercise_id")
-        duration_seconds = data.get("duration_seconds", 0)
+        duration_seconds = data.get("duration_seconds")  # may be None at start
 
-        start_time = timezone.now()
-        end_time = start_time + timezone.timedelta(seconds=duration_seconds) if duration_seconds else None
-        duration = timezone.timedelta(seconds=duration_seconds) if duration_seconds else None
+        if session_id:
+            # Stop / update session
+            session = get_object_or_404(WorkoutSession, pk=session_id)
+            session.end_time = timezone.now()
+            if duration_seconds is not None:
+                session.duration = timezone.timedelta(seconds=duration_seconds)
+            session.status = "Completed"
+            session.save()
+        else:
+            # Start new session
+            session = WorkoutSession.objects.create(
+                user=request.user,
+                exercise_id=exercise_id,
+                start_time=timezone.now(),
+                end_time=None,
+                duration=None,
+                device_type="Webcam",
+                status="In Progress"
+            )
 
-        session = WorkoutSession.objects.create(
-            user=request.user,
-            exercise_id=exercise_id,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            device_type="Webcam",
-            status="Completed"
-        )
+        return JsonResponse({
+            "success": True,
+            "session_id": session.session_id
+        })
 
-        return JsonResponse({"success": True, "session_id": session.session_id})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
-
 
 # ------------------- Save Repetitions -------------------
 @csrf_exempt
 def save_repetitions_api(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST required"}, status=400)
+
     try:
         data = json.loads(request.body)
         session_id = data.get("session_id")
         reps = data.get("reps", [])
+
         session = get_object_or_404(WorkoutSession, pk=session_id)
 
         for r in reps:
-            Repetition.objects.create(
+            # Save repetition
+            rep = Repetition.objects.create(
                 session=session,
-                count_number=r.get("count_number", 0),
+                count_number=r.get("rep_number", 0),
                 posture_accuracy=r.get("posture_accuracy", 0)
+            )
+            # Save feedback for this rep
+            Feedback.objects.create(
+                user=session.user,
+                session=session,
+                feedback_text=r.get("feedback_text", ""),
+                accuracy_score=r.get("posture_accuracy", 0),
+                ai_model=None
             )
 
         return JsonResponse({"success": True})
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
@@ -649,30 +642,37 @@ def save_feedback_api(request):
     
 # ------------------- Save PDF File to Reports Folder -------------------
 @csrf_exempt
-def save_report_file_api(request):
+def save_report_api(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST required"}, status=400)
+
     try:
-        session_id = request.POST.get("session_id")
-        exercise_id = request.POST.get("exercise_id")
-        pdf_file = request.FILES.get("pdf_file")  # This is the actual file
+        data = json.loads(request.body)
+        session_id = data.get("session_id")
+        pdf_base64 = data.get("pdf_base64")
+        generated_by = data.get("generated_by", "AI_Model")
+
+        if not pdf_base64:
+            return JsonResponse({"success": False, "error": "PDF data missing"}, status=400)
 
         session = get_object_or_404(WorkoutSession, pk=session_id)
 
-        # Get existing report or create new
-        report, created = Report.objects.get_or_create(
+        # Convert base64 PDF to Django file
+        format, pdf_str = pdf_base64.split(';base64,')
+        pdf_data = ContentFile(base64.b64decode(pdf_str), name=f"report_session_{session_id}.pdf")
+
+        report = Report.objects.create(
             session=session,
-            defaults={"exercise_id": exercise_id, "generated_by": "AI_Model"}
+            exercise=session.exercise,
+            generated_by=generated_by,
+            pdf_file=pdf_data
         )
 
-        # Save the PDF file in reports/ folder
-        report.pdf_file = pdf_file
-        report.save()
-
         return JsonResponse({"success": True, "report_id": report.report_id})
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
-
+    
 # ---------------------------
 # Mediapipe Pose Analysis
 # ---------------------------

@@ -39,8 +39,6 @@ urlpatterns = [
     # Protected APIs (decorator in views.py)
     # ---------------------------
     path('api/profile/', views.profile_api, name='profile_api'),
-    path('api/filter_reports/', views.filter_reports_api, name='filter_reports_api'),
-    path('api/download_report/<int:report_id>/', views.download_report_api, name='download_report_api'),
     path('api/update_profile_picture/', views.update_profile_picture_api, name='update_profile_picture_api'),
     path("api/update_profile/", views.update_profile, name="update_profile"),
     path('api/exercises/', views.exercises_api, name='exercises_api'),
@@ -52,7 +50,7 @@ urlpatterns = [
     path('api/save_workout_session/', views.save_workout_session_api, name='save_workout_session_api'),
     path('api/save_repetitions/', views.save_repetitions_api, name='save_repetitions_api'),
     path('api/save_feedback/', views.save_feedback_api, name='save_feedback_api'),      
-    path('api/save_report_file/', views.save_report_file_api, name='save_report_file_api'),
+    path('api/save_report/', views.save_report_api, name='save_report_api'),
 
     # Pose Analysis
     path('api/analyze_pose/', views.analyze_pose_api, name='analyze_pose_api'),

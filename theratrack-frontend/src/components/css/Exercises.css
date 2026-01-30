@@ -1,10 +1,40 @@
-/* Glass Cards */
+/* ================= Glass Cards ================= */
 .glass-card {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(12px);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.glass-card p{
+    font-family: 'palaquine', sans-serif;
+    color: #1B4332;
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.glass-card span , .modal-section span{
+    font-family: 'poppins', sans-serif;
+    color: rgba(86, 85, 85, 0.7216);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.9;
+}
+
+.glass-card h2 {
+    font-family: 'Palanquin', sans-serif;
+    font-weight: bold;
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+}
+
+.glass-card h3 {
+    font-size: 32px;
+    margin-bottom: 7px;
 }
 
 .glass-card-inner {
@@ -15,21 +45,21 @@
     padding: 15px;
 }
 
-/* Feedback Box */
-.feedback-box {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(8px);
-    border-radius: 15px;
-    padding: 15px;
-    font-size: 1.2rem;
-    min-height: 80px;
-    text-align: center;
-    transition: all 0.3s;
-    color: #000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* ================= Buttons ================= */
+.customBtn {
+    font-family: 'italiana', sans-serif;
+    height: 40px;
+    margin-top: 12px;
+    margin-right: 43px;
+    width: 127px;
+    white-space: nowrap;
 }
 
-/* Buttons */
+.customBtn:active {
+    background-color: #24704c!important;
+    border-color: #24704c!important;
+}
+
 .glass-btn-start,
 .glass-btn-stop {
     border-radius: 25px;
@@ -61,23 +91,65 @@
     box-shadow: 0 0 15px rgba(233, 76, 60, 0.7);
 }
 
-/* Video Container */
+.btn-custom-start {
+    background-color: #6B8778;
+    border-color: #6B8778;
+    color: white;
+    transition: all 0.3s;
+}
+
+.btn-custom-start:hover {
+    background-color: #40916c;
+    color: #ffffff;
+}
+
+.btn-custom-start:active {
+    background-color: #24704c;
+    color: #ffffff;
+}
+
+.btn-custom-start:disabled {
+    background-color: rgba(107, 135, 120, 0.7);
+    border-color: rgba(107, 135, 120, 0.7);
+    color: white;
+    cursor: not-allowed;
+}
+
+/* ================= Feedback Box ================= */
+.feedback-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 1.2rem;
+    min-height: 80px;
+    text-align: center;
+    transition: all 0.3s;
+    color: #000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ================= Video Container ================= */
 .video-container {
     position: relative;
     width: 100%;
-    height: 80vh;
+    height: 90vh;
     border-radius: 20px;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
+
 .video-container video {
-  width: 100%;
-  height: auto;
-  transform: scaleX(-1); /* mirror horizontally */
-  -webkit-transform: scaleX(-1); /* Safari */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror horizontally */
+    -webkit-transform: scaleX(-1); /* Safari */
 }
+
 video#video {
     width: 100%;
     height: 100%;
@@ -92,68 +164,143 @@ canvas#overlay {
     height: 100%;
 }
 
-/* Custom Dropdown */
-.custom-select-wrapper {
-    position: relative;
-    user-select: none;
-    width: 100%;
-    margin-bottom: 1rem;
-    z-index: 10;
-}
-
-.custom-select {
-    position: relative;
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
-    border-radius: 18px;
-    padding: 12px 15px;
-    cursor: pointer;
-    color: #1b4332;
-}
-
-.custom-select-trigger::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #1b4332;
-    transform: translateY(-50%);
-}
-
-.custom-options {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
-    max-height: 180px;
-    overflow-y: auto;
+/* ---------------- Exercise Info Modal ---------------- */
+.exercise-info-modal {
     display: none;
-    z-index: 2000;
-    margin-top: 5px;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background-color: rgba(0,0,0,0.6);
 }
 
-.custom-option {
-    padding: 12px 20px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.custom-option:hover {
-    background: rgba(76, 175, 80, 0.2);
-}
-
-.custom-options.show {
+.exercise-info-modal.show {
     display: block;
 }
 
-/* Responsive */
-@media (max-width:991px) {
-    
+.exercise-info-modal .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 470px;
+    color: #1b4332;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    position: relative;
+}
 
+.exercise-info-modal .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.exercise-info-modal .modal-section {
+    margin-bottom: 15px;
+}
+
+.exercise-info-modal .modal-section p {
+    margin-bottom: 5px;
+    font-family: 'palaquine', sans-serif;
+    font-weight: 500;
+    color: #1B4332;
+}
+
+/* Exercise info button (inline with select) */
+.open-info-modal-btn {
+    display: none;
+    background-color: #6B8778;
+    border-color: #6B8778;
+    color: #ffffff;
+    font-family: 'italiana', sans-serif;
+    height: 43px;
+    width: 60px;
+    border-radius: 7px;
+}
+
+/* Dropdown wrapper */
+.exercise-dropdown {
+  position: relative;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  z-index: 10;
+}
+
+/* Header of dropdown */
+.dropdown-header {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Font Awesome arrow rotation */
+.arrow {
+  transition: transform 0.3s;
+  font-size: 16px;
+}
+
+.arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* Dropdown list */
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Each option */
+.dropdown-list li {
+  padding: 10px 12px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-list li:hover {
+  background-color: rgba(107, 135, 120, 0.1084);
+}
+
+/* Mobile (<768px) */
+@media (max-width: 767px) {
+  .exercise-select-wrapper {
+    flex-direction: row; /* stays in one line */
+    width: 100%;
+    gap: 8px;
+  }
+
+  .customDropdown {
+    width: 70%; /* smaller so button fits */
+  }
+
+  .open-info-modal-btn {
+    width: 28%; /* button fits next to select */
+  }
+}
+
+
+/* ================= Responsive ================= */
+@media (max-width: 991px) {
     .video-container {
         height: 50vh;
         margin-bottom: 20px;
@@ -165,7 +312,7 @@ canvas#overlay {
     }
 }
 
-@media (max-width:575px) {
+@media (max-width: 575px) {
     .glass-card {
         padding: 15px;
     }
@@ -181,3 +328,33 @@ canvas#overlay {
         gap: 5px;
     }
 }
+
+/* ---------------- Responsive Adjustments ---------------- */
+@media (max-width: 1024px) {
+    /* Hide original exercise info on laptops */
+    .exercise-info-large {
+        display: none;
+    }
+
+    /* Show info button inline with select */
+    .open-info-modal-btn {
+        display: inline-block;
+    }
+
+    /* Optional: make video and canvas fit container */
+    .video-container video,
+    .video-container canvas {
+        width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Info button remains inline with select */
+    .open-info-modal-btn {
+        display: inline-block;
+        font-size: 14px;
+        padding: 6px 12px;
+    }
+}
+

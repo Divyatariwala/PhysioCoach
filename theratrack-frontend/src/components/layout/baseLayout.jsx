@@ -187,8 +187,8 @@ function BaseLayout() {
 
             <div className="footer-section footer-contact">
               <h4>Contact</h4>
-              <p><i className="fas fa-envelope"></i> support@theratrack.com</p>
-              <p><i className="fas fa-map-marker-alt"></i> United Kingdom</p>
+              <p><i className="fas fa-envelope"></i> noreply.theratrack@gmail.com</p>
+              <p><i className="fas fa-map-marker-alt"></i> London, United Kingdom</p>
             </div>
 
            
