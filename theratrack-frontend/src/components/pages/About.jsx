@@ -37,7 +37,7 @@ const About = () => {
             <div className={`col-12 col-md-6 text-center text-md-start mt-3 mt-md-0 ${styles.textColumn}`}>
               <span>AI That Moves With You</span>
               <h2 className="mt-2">Transform Your Fitness Journey with Precision AI</h2>
-              <p>Say goodbye to one-size-fits-all workouts. TheraTrack leverages advanced AI to understand your unique body mechanics, provide instant posture corrections, and design workouts tailored specifically for your strengths and goals. Whether you are aiming for strength, mobility, or overall wellness, TheraTrack adapts to you.</p>
+              <p>Say goodbye to one-size-fits-all workouts. TheraTrack uses cutting-edge AI to comprehend your particular body mechanics, offer immediate posture corrections, and create exercises that are especially suited to your objectives and strengths. TheraTrack adjusts to your goals, whether they be mobility, strength, or general well-being.</p>
             </div>
           </div>
         </div>

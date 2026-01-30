@@ -186,17 +186,17 @@ export default Contact;
 
 
 
-// only logo, exercise, privacy policy , reportpage left 
-// generate therapy plan in report template
-// add visuals in report 
-// add exercises in database
-
-// create presentation
-// ask siddhi abt the logo 
-// try to finish design ASAP
-
-// try to figure out how to deploy figma 
-// try to figure out how to deploy ur project
 
 
-//exercises left videos to find 
+// change image to free stock
+// change image in the code
+
+// should work with the github pages 
+// 8. create presentation`
+
+// 10. try to figure out how to deploy figma 
+// 11. try to figure out how to deploy ur project on render nd github
+// ty winscp, cyberduck using compute0.westminter.ac.uk
+
+// 5. generate therapy plan in report template
+

@@ -81,7 +81,14 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
+        if (data.role === "admin") {
+        showFormPopup("Admin cannot log in here", "error");
+        return;
+      }
+
         localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userRole", data.role || "user");
+        localStorage.setItem("userId", data.user_id || "");
         showFormPopup("Login successful 🎉", "success");
         setTimeout(() => navigate("/home"), 1200);
       } else {
@@ -433,7 +440,7 @@ export default function Login() {
 
             <div className={styles.loginLinks}>
               <span>
-                Don't have an account? <a href="/api/register">Sign up</a>
+                Don't have an account? <a href="#/api/register">Sign up</a>
               </span>
               <a
                 href="#"
