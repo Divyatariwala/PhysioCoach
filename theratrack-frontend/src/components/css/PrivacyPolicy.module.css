@@ -125,3 +125,22 @@
   font-size: 20px;
   color: #505050;
 }
+
+/* Mobile layout ≤ 425px */
+@media (max-width: 500px) {
+  .policySection {
+    display: flex;
+    flex-direction: column; /* stack vertically */
+  }
+
+  .tocColumn {
+    order: -1; /* TOC first */
+    margin-bottom: 20px; /* spacing below TOC */
+    width: 100%;
+  }
+
+  .policyColumn {
+    order: 1; /* content second */
+    width: 100%;
+  }
+}
