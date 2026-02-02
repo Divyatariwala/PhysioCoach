@@ -190,9 +190,11 @@ export default Contact;
 
 // change 2 images to free stock
 // change all image in the code
+// add notification email photo in the figma 
 
 // should work with the github pages 
-// 8. create presentation`
+// create presentation add diagrams in it
+// writ script for prsentation and video demonstration 
 
 // 10. try to figure out how to deploy figma 
 // 11. try to figure out how to deploy ur project on render nd github
@@ -200,3 +202,4 @@ export default Contact;
 
 // 5. generate therapy plan in report template
 
+// ask furqan how to deploy on winscp
