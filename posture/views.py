@@ -127,9 +127,6 @@ def update_profile(request):
 
 @csrf_exempt
 def exercises_api(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "Unauthorized"}, status=401)
-
     exercises = Exercise.objects.all()
     data = [
         {
@@ -536,6 +533,9 @@ def save_workout_session_api(request):
     """
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST required"}, status=400)
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
     
     try:
         data = json.loads(request.body)
