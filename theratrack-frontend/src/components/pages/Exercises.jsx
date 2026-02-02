@@ -160,6 +160,7 @@ const Exercises = () => {
     }
 
     if (!currentSessionIdRef.current) return;
+console.log("Selected exercise ID:", selectedExercise?.exercise_id);
 
     try {
       // 1️⃣ Calculate session duration
@@ -175,7 +176,6 @@ const Exercises = () => {
           duration_seconds: duration
         })
       });
-
       // 3️⃣ Prepare repetitions data
       const repsToSave = repetitionsData.map((rep, i) => ({
         count_number: i + 1,

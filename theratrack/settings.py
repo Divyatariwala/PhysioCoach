@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+load_dotenv()  
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -77,17 +79,18 @@ CSRF_TRUSTED_ORIGINS = [
     "https://nonepiscopalian-gibingly-isabell.ngrok-free.dev"
 ]
 
-# Frontend URL for TheraTrack (used in email links)
-APP_URL = "https://divyatariwala.github.io/"  # Use your React frontend URL
-
 
 CORS_ALLOW_CREDENTIALS = True
 
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
+
+# Frontend URL for TheraTrack (used in email links)
+APP_URL = "https://divyatariwala.github.io/"  # Use your React frontend URL
 
 # EMAIL CONFIG
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -99,9 +102,6 @@ EMAIL_HOST_USER = "noreply.theratrack@gmail.com"
 EMAIL_HOST_PASSWORD = "qohc mmln qxks nirx"
 
 DEFAULT_FROM_EMAIL = "TheraTrack <noreply.theratrack@gmail.com>"
-
-
-load_dotenv()  
 
 ROOT_URLCONF = 'theratrack.urls'
 
@@ -179,6 +179,7 @@ LOGIN_REDIRECT_URL = '/'  # After login, go here
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
