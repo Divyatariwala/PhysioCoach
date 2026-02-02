@@ -127,6 +127,9 @@ def update_profile(request):
 
 @csrf_exempt
 def exercises_api(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
     exercises = Exercise.objects.all()
     data = [
         {
