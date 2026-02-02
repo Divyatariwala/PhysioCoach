@@ -534,9 +534,6 @@ def save_workout_session_api(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST required"}, status=400)
     
-    if not request.user.is_authenticated:
-        return JsonResponse({"success": False, "error": "User not authenticated"}, status=403)
-    
     try:
         data = json.loads(request.body)
         session_id = data.get("session_id")
