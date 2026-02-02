@@ -68,7 +68,8 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://divyatariwala.github.io"
+    "https://divyatariwala.github.io",
+    "https://nonepiscopalian-gibingly-isabell.ngrok-free.dev"
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
