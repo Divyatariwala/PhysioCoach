@@ -73,6 +73,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "https://divyatariwala.github.io",
+    "https://nonepiscopalian-gibingly-isabell.ngrok-free.dev"
 ]
 
 # Frontend URL for TheraTrack (used in email links)
