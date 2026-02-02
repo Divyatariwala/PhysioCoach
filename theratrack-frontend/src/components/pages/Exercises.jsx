@@ -31,7 +31,7 @@ const Exercises = () => {
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/exercises/", { credentials: "include" });
+        const res = await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/exercises/", { credentials: "include" });
         const data = await res.json();
         setExercises(data);
         const squat = data.find(ex => ex.exercise_name.toLowerCase() === "squats");
