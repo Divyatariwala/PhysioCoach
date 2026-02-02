@@ -4,11 +4,8 @@ from io import BytesIO
 from random import randint
 from django.utils import timezone
 import traceback
-import google.genai as genai
-from google.genai import types
 import cv2
 import base64
-from fastapi.responses import FileResponse
 import numpy as np
 import json
 import os
@@ -16,7 +13,6 @@ import re
 from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.decorators import api_view
-from xhtml2pdf import pisa
 from django.core.files.base import ContentFile
 from django.contrib.auth import get_backends
 from google.auth.transport import requests as google_requests
@@ -27,8 +23,6 @@ from django.contrib.auth.decorators import login_required
 import mediapipe as mp
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
-from django.contrib.auth import update_session_auth_hash
-from requests import session
 from theratrack import settings
 from xhtml2pdf import pisa  # for PDF generation
 from django.template.loader import render_to_string

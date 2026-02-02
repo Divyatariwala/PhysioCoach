@@ -31,9 +31,8 @@ const Exercises = () => {
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const res = await fetch(" https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/exercises/", { credentials: "include" });
+        const res = await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/exercises/", { credentials: "include" });
         const data = await res.json();
-        console.log("Exercises data:", data); 
         setExercises(data);
         const squat = data.find(ex => ex.exercise_name.toLowerCase() === "squats");
         if (squat) setSelectedExercise(squat);
@@ -92,7 +91,7 @@ const Exercises = () => {
       requestAnimationFrame(detectFrame);
 
       // Create workout session ONCE at the start
-      const res = await fetch("http://localhost:8000/api/save_workout_session/", {
+      const res = await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/save_workout_session/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -131,7 +130,7 @@ const Exercises = () => {
       reader.onloadend = async () => {
         const base64data = reader.result;
 
-        await fetch("http://localhost:8000/api/save_report/", {
+        await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/save_report/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -167,7 +166,7 @@ const Exercises = () => {
       const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
 
       // 2️⃣ Update session duration & mark completed
-      await fetch("http://localhost:8000/api/save_workout_session/", {
+      await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/save_workout_session/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -185,7 +184,7 @@ const Exercises = () => {
 
       // Save repetitions
       if (repsToSave.length > 0) {
-        await fetch("http://localhost:8000/api/save_repetitions/", {
+        await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/save_repetitions/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -204,7 +203,7 @@ const Exercises = () => {
         else if (rep.posture_accuracy > 70) feedbackText = `Good! Rep #${i + 1} almost there 👍`;
         else feedbackText = `Needs improvement! Rep #${i + 1} keep trying ⚠️`;
 
-        await fetch("http://localhost:8000/api/save_feedback/", {
+        await fetch("https://nonepiscopalian-gibingly-isabell.ngrok-free.dev/api/save_feedback/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
