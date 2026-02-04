@@ -2,8 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
+import ReactPlayer from "react-player";
 import "../css/Exercises.css";
 import ReportTemplate from "./ReportTemplate";
+
+// ------------------ Backend Host ------------------
+const backendHost = "http://localhost:8000";
 
 const Exercises = () => {
   const videoRef = useRef(null);
@@ -14,6 +18,8 @@ const Exercises = () => {
   const keypointHistoryRef = useRef([]);
   const sessionActiveRef = useRef(false);
   const currentSessionIdRef = useRef(null);
+  const repsRef = useRef([]); // <-- NEW: keeps latest reps
+  const [repetitionsData, setRepetitionsData] = useState([]);
 
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
@@ -22,20 +28,31 @@ const Exercises = () => {
   const [postureFeedback, setPostureFeedback] = useState("Stand straight and get ready! 🚀");
   const [postureAccuracy, setPostureAccuracy] = useState(0);
   const [sessionActive, setSessionActive] = useState(false);
-  const [repetitionsData, setRepetitionsData] = useState([]);
   const [reportReady, setReportReady] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false); // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // ------------------ CSRF ------------------
+  const getCSRFToken = () => {
+    const name = "csrftoken";
+    const cookies = document.cookie.split(";").map(c => c.trim());
+    for (let cookie of cookies) {
+      if (cookie.startsWith(name + "=")) return decodeURIComponent(cookie.split("=")[1]);
+    }
+    return null;
+  };
 
   // ------------------ Fetch exercises ------------------
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/exercises/", { credentials: "include" });
+        const res = await fetch(`${backendHost}/api/exercises/`, { credentials: "include" });
         const data = await res.json();
         setExercises(data);
         const squat = data.find(ex => ex.exercise_name.toLowerCase() === "squats");
         if (squat) setSelectedExercise(squat);
+
       } catch (err) {
         console.error("Error fetching exercises:", err);
       }
@@ -43,14 +60,17 @@ const Exercises = () => {
     fetchExercises();
   }, []);
 
+  useEffect(() => {
+    console.log("Selected exercise video URL:", selectedExercise?.video_demo_url);
+  }, [selectedExercise]);
+
+
   // ------------------ Init pose detector ------------------
   useEffect(() => {
     const initDetector = async () => {
       await tf.ready();
       await tf.setBackend("webgl");
-      detectorRef.current = await poseDetection.createDetector(
-        poseDetection.SupportedModels.MoveNet
-      );
+      detectorRef.current = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
       console.log("Pose detector ready ✅");
     };
     initDetector();
@@ -78,11 +98,14 @@ const Exercises = () => {
     setSessionTime(0);
     repStateRef.current = "UP";
     keypointHistoryRef.current = [];
+    repsRef.current = [];
     setRepetitionsData([]);
-    startTimeRef.current = Date.now();
     setPostureFeedback("📸 Initializing...");
     setReportReady(false);
     currentSessionIdRef.current = null;
+
+    // ✅ Set start time here
+    startTimeRef.current = Date.now();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -90,10 +113,13 @@ const Exercises = () => {
       await videoRef.current.play();
       requestAnimationFrame(detectFrame);
 
-      // Create workout session ONCE at the start
-      const res = await fetch("http://localhost:8000/api/save_workout_session/", {
+      // Create workout session on server
+      const res = await fetch(`${backendHost}/api/save_workout_session/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
         credentials: "include",
         body: JSON.stringify({ exercise_id: selectedExercise.exercise_id })
       });
@@ -105,55 +131,12 @@ const Exercises = () => {
     }
   };
 
-  // ------------------ Upload PDF report ------------------
-  const uploadReport = async () => {
-    if (!currentSessionIdRef.current || !selectedExercise) return;
-
-    try {
-      const blob = await pdf(
-        <ReportTemplate
-          session={selectedExercise}
-          minutes={Math.floor(sessionTime / 60)}
-          seconds={sessionTime % 60}
-          totalReps={repCount}
-          avgAccuracy={
-            repetitionsData.length > 0
-              ? (repetitionsData.reduce((sum, r) => sum + r.posture_accuracy, 0) / repetitionsData.length).toFixed(1)
-              : "0"
-          }
-          repetitions={repetitionsData}
-        />
-      ).toBlob();
-
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = async () => {
-        const base64data = reader.result;
-
-        await fetch("http://localhost:8000/api/save_report/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            session_id: currentSessionIdRef.current,
-            pdf_base64: base64data,
-            generated_by: "AI_Model"
-          })
-        });
-
-        console.log("Report uploaded successfully ✅");
-      };
-    } catch (err) {
-      console.error("Error generating/uploading report:", err);
-    }
-  };
 
   // ------------------ Stop session ------------------
   const stopSession = async () => {
     setSessionActive(false);
     sessionActiveRef.current = false;
 
-    // Stop webcam
     if (videoRef.current?.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
@@ -162,13 +145,15 @@ const Exercises = () => {
     if (!currentSessionIdRef.current) return;
 
     try {
-      // 1️⃣ Calculate session duration
       const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
 
-      // 2️⃣ Update session duration & mark completed
-      await fetch("http://localhost:8000/api/save_workout_session/", {
+      // Update session duration
+      await fetch(`${backendHost}/api/save_workout_session/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
         credentials: "include",
         body: JSON.stringify({
           session_id: currentSessionIdRef.current,
@@ -176,17 +161,20 @@ const Exercises = () => {
         })
       });
 
-      // 3️⃣ Prepare repetitions data
-      const repsToSave = repetitionsData.map((rep, i) => ({
-        count_number: i + 1,
-        posture_accuracy: rep.posture_accuracy
+      // Save repetitions
+      const repsToSave = repsRef.current.map(rep => ({
+        count_number: rep.count_number,
+        posture_accuracy: rep.posture_accuracy,
+        feedback_text: rep.feedback_text
       }));
 
-      // Save repetitions
       if (repsToSave.length > 0) {
-        await fetch("http://localhost:8000/api/save_repetitions/", {
+        await fetch(`${backendHost}/api/save_repetitions/`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+          },
           credentials: "include",
           body: JSON.stringify({
             session_id: currentSessionIdRef.current,
@@ -195,58 +183,60 @@ const Exercises = () => {
         });
       }
 
-      // 4️⃣ Save dynamic feedbacks
-      for (let i = 0; i < repetitionsData.length; i++) {
-        const rep = repetitionsData[i];
-        let feedbackText;
-        if (rep.posture_accuracy > 85) feedbackText = `Excellent! Rep #${i + 1} perfect ✅`;
-        else if (rep.posture_accuracy > 70) feedbackText = `Good! Rep #${i + 1} almost there 👍`;
-        else feedbackText = `Needs improvement! Rep #${i + 1} keep trying ⚠️`;
+      // Upload PDF report
+      await uploadReport(currentSessionIdRef.current, selectedExercise, repsRef.current, duration);
 
-        await fetch("http://localhost:8000/api/save_feedback/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            session_id: currentSessionIdRef.current,
-            feedback_text: feedbackText,
-            accuracy_score: rep.posture_accuracy
-          })
-        });
-      }
-      await uploadReport();
-      // 5️⃣ Update frontend
       setReportReady(true);
-
     } catch (err) {
       console.error("Error saving session/reps/feedback:", err);
     }
   };
 
+  // ------------------ Upload PDF report ------------------
+  const uploadReport = async (sessionId, exercise, repsData, duration) => {
+    if (!sessionId || !exercise) return;
 
-  // ------------------ Convert YouTube URL ------------------
-  const getEmbedUrl = (url) => {
-    if (!url) return "";
+    try {
+      const blob = await pdf(
+        <ReportTemplate
+          session={exercise}
+          minutes={Math.floor(duration / 60)}
+          seconds={duration % 60}
+          totalReps={repsData.length}
+          avgAccuracy={
+            repsData.length > 0
+              ? (repsData.reduce((sum, r) => sum + r.posture_accuracy, 0) / repsData.length).toFixed(1)
+              : "0"
+          }
+          repetitions={repsData}
+        />
+      ).toBlob();
 
-    const cleanUrl = url.split("?")[0];
+      const base64data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
 
-    if (cleanUrl.includes("/shorts/")) {
-      const id = cleanUrl.split("/shorts/")[1];
-      return `https://www.youtube.com/embed/${id}`;
+      await fetch(`${backendHost}/api/save_report/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          session_id: sessionId,
+          pdf_base64: base64data,
+          generated_by: "AI_Model"
+        })
+      });
+
+      console.log("Report uploaded successfully ✅");
+    } catch (err) {
+      console.error("Error generating/uploading report:", err);
     }
-
-    if (cleanUrl.includes("watch?v=")) {
-      return cleanUrl.replace("watch?v=", "https://www.youtube.com/embed/");
-    }
-
-    if (cleanUrl.includes("youtu.be/")) {
-      const id = cleanUrl.split("youtu.be/")[1];
-      return `https://www.youtube.com/embed/${id}`;
-    }
-
-    if (cleanUrl.includes("/embed/")) return cleanUrl;
-
-    return "";
   };
 
   // ------------------ Pose detection ------------------
@@ -282,7 +272,23 @@ const Exercises = () => {
       }
     });
   };
-
+  const getReactPlayerUrl = (url) => {
+    if (!url) return "";
+    // Shorts URL → watch URL
+    if (url.includes("/shorts/")) {
+      return "https://www.youtube.com/watch?v=" + url.split("/shorts/")[1].split("?")[0];
+    }
+    // Embed URL → watch URL
+    if (url.includes("/embed/")) {
+      return "https://www.youtube.com/watch?v=" + url.split("/embed/")[1].split("?")[0];
+    }
+    // Already a watch URL
+    if (url.includes("watch?v=")) {
+      return url.split("&")[0]; // remove extra params
+    }
+    // fallback
+    return url;
+  };
   const smoothKeypoints = keypoints => {
     keypointHistoryRef.current.push(keypoints);
     if (keypointHistoryRef.current.length > 5) keypointHistoryRef.current.shift();
@@ -299,7 +305,7 @@ const Exercises = () => {
     });
   };
 
-  const handleReps = pose => {
+  const handleReps = (pose) => {
     const keypoints = smoothKeypoints(pose.keypoints);
 
     const leftHip = keypoints.find(k => k.name === "left_hip");
@@ -309,59 +315,53 @@ const Exercises = () => {
 
     const kneeAngle = getAngle(leftHip, leftKnee, leftAnkle);
 
-    // Posture accuracy calculation
     let postureScore = 60 + Math.max(0, Math.min(1, (180 - kneeAngle) / 120)) * 40;
     postureScore = Math.round(postureScore);
     setPostureAccuracy(postureScore);
 
-    // Give live feedback
     let liveFeedback;
     if (postureScore > 85) liveFeedback = "Excellent form! Keep it up 💪";
     else if (postureScore > 70) liveFeedback = "Good form! Almost perfect 👍";
     else liveFeedback = "Adjust your posture ⚠️";
-
     setPostureFeedback(liveFeedback);
 
-    // Rep detection
     if (kneeAngle < 100 && repStateRef.current === "UP") repStateRef.current = "DOWN";
 
     if (kneeAngle > 160 && repStateRef.current === "DOWN") {
       repStateRef.current = "UP";
-      setRepCount(prev => prev + 1);
 
-      // Save rep data with dynamic feedback
-      const repNumber = repCount + 1;
-      let repFeedback;
-      if (postureScore > 85) repFeedback = `Excellent! Rep #${repNumber} perfect ✅`;
-      else if (postureScore > 70) repFeedback = `Good! Rep #${repNumber} almost there 👍`;
-      else repFeedback = `Needs improvement! Rep #${repNumber} keep trying ⚠️`;
+      // ✅ Add rep to state AND ref
+      setRepetitionsData(prev => {
+        const newRepNumber = prev.length + 1;
+        const newRep = {
+          count_number: newRepNumber,
+          posture_accuracy: postureScore,
+          feedback_text:
+            postureScore > 85
+              ? `Excellent! Rep #${newRepNumber} perfect ✅`
+              : postureScore > 70
+                ? `Good! Rep #${newRepNumber} almost there 👍`
+                : `Needs improvement! Rep #${newRepNumber} keep trying ⚠️`
+        };
 
-      const newRep = {
-        count_number: repNumber,
-        posture_accuracy: postureScore,
-        feedback_text: repFeedback
-      };
+        const newArray = [...prev, newRep];
+        repsRef.current = newArray; // update ref immediately
 
-      setRepetitionsData(prev => [...prev, newRep]);
+        setRepCount(newRepNumber);
+        setPostureFeedback(newRep.feedback_text);
 
-      // Update feedback message live
-      setPostureFeedback(repFeedback);
+        return newArray;
+      });
     }
   };
-
 
   const getAngle = (a, b, c) => {
     const ab = { x: a.x - b.x, y: a.y - b.y };
     const cb = { x: c.x - b.x, y: c.y - b.y };
     const dot = ab.x * cb.x + ab.y * cb.y;
-    return (
-      Math.acos(
-        dot / (Math.sqrt(ab.x ** 2 + ab.y ** 2) * Math.sqrt(cb.x ** 2 + cb.y ** 2))
-      ) * 180 / Math.PI
-    );
+    return (Math.acos(dot / (Math.sqrt(ab.x ** 2 + ab.y ** 2) * Math.sqrt(cb.x ** 2 + cb.y ** 2))) * 180) / Math.PI;
   };
 
-  const dropdownRef = useRef(null);
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -466,7 +466,7 @@ const Exercises = () => {
                 }
                 fileName="Workout_Report.pdf"
                 className="btn btn-primary mb-3 customBtn"
-                style={{ width: "177px" }}
+                style={{ width: "177px", lineHeight: "1.8" }}
               >
                 {({ loading }) => (loading ? "Generating PDF..." : "Download Report")}
               </PDFDownloadLink>
@@ -475,14 +475,20 @@ const Exercises = () => {
             {selectedExercise?.video_demo_url && (
               <div className="mt-4">
                 <h4>Exercise Demo Video</h4>
-                <div className="ratio ratio-16x9">
+                <div style={{ position: "relative", paddingTop: "56.25%" }}>
                   <iframe
-                    src={getEmbedUrl(selectedExercise.video_demo_url)}
-                    title="Exercise Demo"
-                    frameBorder="0"
+                    src={selectedExercise.video_demo_url} // must be a watch URL like https://www.youtube.com/watch?v=...
+                    title="Exercise Video"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      border: "0"
+                    }}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                    style={{ borderRadius: "12px" }}
                   />
                 </div>
               </div>

@@ -16,6 +16,7 @@ import ChatbotPopup from "./components/pages/ChatbotPopup";
 
 
 function App() {
+  const isLoggedIn = !!localStorage.getItem("access_token"); // JWT or token
   return (
     <Router>
       {/* Shows cookies popup across all pages */}
@@ -38,7 +39,7 @@ function App() {
           <Route path="api/privacy" element={<PrivacyPolicy />} />
 
           {/* Protected Routes */}
-          <Route element={<PrivateRoute />}>
+          <Route element={<PrivateRoute  />}>
             <Route path="api/profile" element={<Profile />} />
             <Route path="api/exercises" element={<Exercises />} />
           </Route>

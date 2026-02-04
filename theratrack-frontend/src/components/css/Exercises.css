@@ -58,6 +58,7 @@
 .customBtn:active {
     background-color: #24704c!important;
     border-color: #24704c!important;
+    color: #fff!important;
 }
 
 .glass-btn-start,
@@ -223,6 +224,17 @@ canvas#overlay {
     height: 43px;
     width: 60px;
     border-radius: 7px;
+}
+
+.open-info-modal-btn:hover{
+    background-color: #40916c;
+    color: #fff;
+}
+
+.open-info-modal-btn:active{
+    background-color: #24704c !important;
+    border-color: #24704c !important;
+    color: #fff;
 }
 
 /* Dropdown wrapper */

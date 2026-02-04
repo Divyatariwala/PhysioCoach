@@ -126,6 +126,25 @@
   color: #505050;
 }
 
+/* ------------------ Join Us Section ------------------ */
+.joinSection {
+  background-color: #F9F4F0;
+}
+
+.joinSection h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #6B8778;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.joinSection .btn {
+  padding: 10px 25px;
+  font-size: 16px;
+}
+
 /* Mobile layout ≤ 425px */
 @media (max-width: 500px) {
   .policySection {
@@ -142,5 +161,36 @@
   .policyColumn {
     order: 1; /* content second */
     width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+.joinSection {
+    padding: 20px 0;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .joinSection h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .joinSection .btn {
+    width: 100%;
+    max-width: 250px;
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .joinSection h3 {
+    font-size: 16px;
+  }
+
+  .joinSection .btn {
+    font-size: 13px;
+    padding: 10px;
   }
 }
