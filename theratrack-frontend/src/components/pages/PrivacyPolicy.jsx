@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useOutletContext  } from "react-router-dom";
 import picture from "../../assets/images/about&profile.png";
 import { useState } from "react";
 import styles from "../css/PrivacyPolicy.module.css";
 
 const PrivacyPolicy = () => {
+  const { isLoggedIn } = useOutletContext();
   const [activeSection, setActiveSection] = useState("introduction");
 
   const sections = [
@@ -208,7 +209,20 @@ const PrivacyPolicy = () => {
           </div>
         </div>
       </section>
+
+      {/* Join Now Section */}
+            {!isLoggedIn && (
+              <section className={styles.joinSection}>
+                <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
+                  <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
+                    Ready to take the first step towards your fitness goals?
+                  </h3>
+                  <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+                </div>
+              </section>
+            )}
     </>
+    
   );
 };
 

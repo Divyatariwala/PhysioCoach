@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from django.contrib.auth import get_backends
 from google.auth.transport import requests as google_requests
-from django.http import Http404, FileResponse,  JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -24,8 +24,6 @@ import mediapipe as mp
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from theratrack import settings
-from xhtml2pdf import pisa  # for PDF generation
-from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from rest_framework.response import Response
@@ -125,6 +123,21 @@ def update_profile(request):
         traceback.print_exc()
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
+def current_user(request):
+    if request.user.is_authenticated:
+        user = request.user
+        return JsonResponse({
+            "success": True,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        })
+    return JsonResponse({"success": False, "user": None})
+    
 @csrf_exempt
 def exercises_api(request):
     if not request.user.is_authenticated:
@@ -518,13 +531,7 @@ def set_cookie_consent(request):
 
 def logout_view_api(request):
     logout(request)
-     # If user logged out from admin panel
-    if request.path.startswith('/admin'):
-        return redirect('/admin/login/')
-
-    # Otherwise (normal website logout)
-    return redirect('exercises')
-
+    return JsonResponse({"success": True})
 
 # ---------------------------
 # Workout & Repetitions
@@ -588,15 +595,15 @@ def save_repetitions_api(request):
             # Save repetition
             rep = Repetition.objects.create(
                 session=session,
-                count_number=r.get("rep_number", 0),
+                count_number=r.get("count_number", 0),
                 posture_accuracy=r.get("posture_accuracy", 0)
             )
             # Save feedback for this rep
             Feedback.objects.create(
                 user=session.user,
                 session=session,
-                feedback_text=r.get("feedback_text", ""),
-                accuracy_score=r.get("posture_accuracy", 0),
+                feedback_text=r.get("feedback_text"),
+                accuracy_score=r.get("posture_accuracy"),
                 ai_model=None
             )
 

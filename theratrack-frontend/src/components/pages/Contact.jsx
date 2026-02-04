@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import picture from "../../assets/images/about&profile.png";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import styles from "../css/Contact.module.css";
 
+const backendHost = "http://localhost:8000";
+
 const Contact = () => {
+  const { isLoggedIn } = useOutletContext(); // get login state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -42,13 +45,16 @@ const Contact = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/contact/", {
+      const res = await fetch(`${backendHost}/api/contact/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
+      credentials: "include" // include cookies for logged-in users
       });
 
-      if (res.ok) {
+      const data = await res.json();
+
+     if (res.status === 201 && data.success) {
         showPopupMessage("✅ Message submitted successfully!", "success");
         setFormData({ name: "", email: "", message: "" });
       } else {
@@ -166,14 +172,16 @@ const Contact = () => {
       </section>
 
       {/* Join Now Section */}
-      <section className={styles.joinSection}>
-        <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
-          <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
-            Ready to take the first step towards your fitness goals?
-          </h3>
-          <Link to="/signup" className="btn btn-primary">Join Now</Link>
-        </div>
-      </section>
+      {!isLoggedIn && (
+        <section className={styles.joinSection}>
+          <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
+            <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
+              Ready to take the first step towards your fitness goals?
+            </h3>
+            <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+          </div>
+        </section>
+      )}
     </>
   );
 };
@@ -188,18 +196,14 @@ export default Contact;
 
 
 
+// add video in the home page 
+// fix video in exercise page
+// fix the login with google navbar changes 
+
 // change 2 images to free stock
 // change all image in the code
-// add notification email photo in the figma 
 
-// should work with the github pages 
-// create presentation add diagrams in it
+
 // writ script for prsentation and video demonstration 
 
-// 10. try to figure out how to deploy figma 
-// 11. try to figure out how to deploy ur project on render nd github
-// ty winscp, cyberduck using compute0.westminter.ac.uk
-
 // 5. generate therapy plan in report template
-
-// ask furqan how to deploy on winscp

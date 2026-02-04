@@ -19,9 +19,11 @@ from django.urls import include, path
 from django.conf import settings
 from posture import views
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', TemplateView.as_view(template_name='index.html')),
 
     # ---------------------------
     # Public / Authentication APIs
@@ -34,7 +36,7 @@ urlpatterns = [
     path('api/register/', views.register_api, name='register_api'),
     path('api/reset-password/', views.reset_password, name='reset_password'),
     path("api/contact/", views.contact_api, name='contact_api'),
-
+    path('api/current_user/', views.current_user, name='current_user'),
     # ---------------------------
     # Protected APIs (decorator in views.py)
     # ---------------------------
@@ -64,3 +66,4 @@ if settings.DEBUG:
     # Serve static & media files during development
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [path('', TemplateView.as_view(template_name='index.html'))]

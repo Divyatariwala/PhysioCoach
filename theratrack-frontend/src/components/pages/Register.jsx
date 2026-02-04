@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import registerPic from "../../assets/images/Login_pic.png";
+import logo from "../../assets/images/logo.png";
 import styles from "../css/Register.module.css";
 
 export default function Register() {
@@ -85,7 +86,7 @@ export default function Register() {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch("http://localhost:8000/api/register/", {
+      const response = await fetch("http://localhost:8000api/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -135,7 +136,12 @@ export default function Register() {
             </button>
           </div>
 
+          
+
           <div className={`${styles.loginFormWrapper} w-100 px-4 px-md-5`} style={{ maxWidth: "550px" }}>
+            <div className="d-flex justify-content-center">
+            <img src={logo} className="card-img-side" alt="logo" style={{marginBottom: "20px"}}/>
+          </div>
             <h2 className="mb-4 text-center">Create Account</h2>
             {popupMessage && (
               <div className={`${styles.formPopup} ${popupType === "error" ? styles.popupError : styles.popupSuccess}`}>

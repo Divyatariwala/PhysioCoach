@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import login_pic from "../../assets/images/Login_pic.png";
+import logo from "../../assets/images/logo.png";
 import styles from "../css/Login.module.css";
 
 export default function Login() {
@@ -13,7 +14,8 @@ export default function Login() {
 
   // ---------------- FORM POPUP ----------------
   const [popupMessage, setPopupMessage] = useState("");
-  const [popupType, setPopupType] = useState(""); // error | success
+  const [popupType, setPopupType] = useState(""); // "error" | "success"
+  const [isFading, setIsFading] = useState(false);
 
   // ---------------- FORGOT PASSWORD MODAL ----------------
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -21,18 +23,22 @@ export default function Login() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [otpAttempts, setOtpAttempts] = useState(0);
   const MAX_OTP_ATTEMPTS = 3;
-  const [otpTimer, setOtpTimer] = useState(120); // 2 minutes
-  const [resendLocked, setResendLocked] = useState(false); // prevent spam resend
-  const RESEND_COOLDOWN = 30; // seconds
+  const [otpTimer, setOtpTimer] = useState(120);
+  const [resendLocked, setResendLocked] = useState(false);
+  const RESEND_COOLDOWN = 30;
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showModalPassword, setShowModalPassword] = useState(false);
   const [showModalConfirmPassword, setShowModalConfirmPassword] = useState(false);
-  const [step, setStep] = useState(1); // 1 = email, 2 = OTP, 3 = new password
+  const [step, setStep] = useState(1); // 1=email, 2=OTP, 3=new password
   const [forgotOtpSent, setForgotOtpSent] = useState(false);
-  const [isFading, setIsFading] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const API_BASE = "http://localhost:8000";
+
+  const [isLoggedIn, setIsLoggedIn] = useState(
+  localStorage.getItem("access_token") ? true : false
+);
 
   // ---------------- HELPERS ----------------
   const showFormPopup = (message, type = "error") => {
@@ -40,12 +46,7 @@ export default function Login() {
     setPopupType(type);
     setIsFading(false);
 
-    // Start fade out after 3 seconds
-    setTimeout(() => {
-      setIsFading(true);
-    }, 3000);
-
-    // Remove popup completely after fade animation
+    setTimeout(() => setIsFading(true), 3000);
     setTimeout(() => {
       setPopupMessage("");
       setPopupType("");
@@ -68,11 +69,12 @@ export default function Login() {
     else if (value.includes("@") && !emailRegex.test(value))
       newErrors.identifier = "Invalid email format!";
     if (!formData.password.trim()) newErrors.password = "Password is required!";
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length) return;
 
     try {
-      const response = await fetch("http://localhost:8000/api/login/", {
+      const response = await fetch(`${API_BASE}/api/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -82,10 +84,11 @@ export default function Login() {
 
       if (data.success) {
         if (data.role === "admin") {
-        showFormPopup("Admin cannot log in here", "error");
-        return;
-      }
-
+          showFormPopup("Admin cannot log in here", "error");
+          return;
+        }
+        localStorage.setItem("access_token", data.access_token);
+        setIsLoggedIn(true);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userRole", data.role || "user");
         localStorage.setItem("userId", data.user_id || "");
@@ -103,7 +106,7 @@ export default function Login() {
   const handleGoogleLogin = async (response) => {
     if (!response?.credential) return;
     try {
-      const res = await fetch("http://localhost:8000/api/google-login/", {
+      const res = await fetch(`${API_BASE}/api/google-login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -111,6 +114,9 @@ export default function Login() {
       });
       const data = await res.json();
       if (data.success) {
+        if (data.access_token) localStorage.setItem("access_token", data.access_token);
+         localStorage.setItem("isLoggedIn", "true");
+        setIsLoggedIn(true);
         showFormPopup("Google login successful", "success");
         setTimeout(() => navigate("/home"), 1200);
       } else {
@@ -134,14 +140,11 @@ export default function Login() {
     );
   }, []);
 
-  // ---------------- OTP TIMER EFFECT ----------------
+  // ---------------- OTP TIMER ----------------
   useEffect(() => {
     if (step !== 2 || otpTimer <= 0) return;
 
-    const timer = setInterval(() => {
-      setOtpTimer(prev => prev - 1);
-    }, 1000);
-
+    const timer = setInterval(() => setOtpTimer(prev => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [step, otpTimer]);
 
@@ -152,13 +155,12 @@ export default function Login() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8000/api/send-otp/", {
+      const res = await fetch(`${API_BASE}/api/send-otp/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail }),
       });
       const data = await res.json();
-
       if (data.success) {
         setForgotOtpSent(true);
         setStep(2);
@@ -183,10 +185,10 @@ export default function Login() {
       showFormPopup("Too many wrong attempts. Please resend OTP.", "error");
       return;
     }
-    const enteredOtp = otp.join("");
 
+    const enteredOtp = otp.join("");
     try {
-      const res = await fetch("http://localhost:8000/api/verify-otp/", {
+      const res = await fetch(`${API_BASE}/api/verify-otp/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail, otp: enteredOtp }),
@@ -195,12 +197,16 @@ export default function Login() {
 
       if (data.success) {
         setStep(3);
-        setOtpAttempts(0); // reset attempts
+        setOtpAttempts(0);
         showFormPopup("OTP verified ✅", "success");
       } else {
-        setOtpAttempts(prev => prev + 1);
+        const newAttempts = otpAttempts + 1;
+        setOtpAttempts(newAttempts);
+        const attemptsLeft = MAX_OTP_ATTEMPTS - newAttempts;
         showFormPopup(
-          `Invalid OTP. Attempts left: ${MAX_OTP_ATTEMPTS - (otpAttempts + 1)}`,
+          attemptsLeft <= 0
+            ? "Too many wrong attempts. Please resend OTP."
+            : `Invalid OTP. Attempts left: ${attemptsLeft}`,
           "error"
         );
       }
@@ -216,16 +222,12 @@ export default function Login() {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Move to next box automatically
-    if (value && index < 3) {
-      document.getElementById(`otp-${index + 1}`).focus();
-    }
+    if (value && index < 3) document.getElementById(`otp-${index + 1}`).focus();
   };
 
   const handleOtpKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0)
       document.getElementById(`otp-${index - 1}`).focus();
-    }
   };
 
   const handleResendOTP = async () => {
@@ -240,22 +242,18 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/send-otp/", {
+      const res = await fetch(`${API_BASE}/api/send-otp/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail }),
       });
-
       const data = await res.json();
-
       if (data.success) {
-        setOtp(["", "", "", ""]); // clear old OTP
-        setOtpAttempts(0); // reset attempts
-        setOtpTimer(120); // reset timer
-        setResendLocked(true); // lock resend for cooldown
+        setOtp(["", "", "", ""]);
+        setOtpAttempts(0);
+        setOtpTimer(120);
+        setResendLocked(true);
         showFormPopup("OTP resent successfully 📩", "success");
-
-        // unlock resend after cooldown
         setTimeout(() => setResendLocked(false), RESEND_COOLDOWN * 1000);
       } else {
         showFormPopup(data.error || "Failed to resend OTP", "error");
@@ -264,8 +262,6 @@ export default function Login() {
       showFormPopup("Network error. Please try again.", "error");
     }
   };
-
-
 
   // ---------------- PASSWORD STRENGTH ----------------
   const getPasswordStrength = (password) => {
@@ -296,60 +292,58 @@ export default function Login() {
     }
   };
 
-
+  // ---------------- RESET PASSWORD ----------------
   const handleResetPassword = async () => {
-  const trimmedEmail = forgotEmail.trim().toLowerCase();
-  const enteredOtp = otp.map(d => (d ? d.trim() : "")).join("");
-  const trimmedNewPassword = newPassword.trim();
-  const trimmedConfirmPassword = confirmPassword.trim();
+    const trimmedEmail = forgotEmail.trim().toLowerCase();
+    const enteredOtp = otp.join("");
+    const trimmedNewPassword = newPassword.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
 
-  if (!trimmedEmail || !enteredOtp || !trimmedNewPassword || !trimmedConfirmPassword) {
-    showFormPopup("All fields are required!", "error");
-    return;
-  }
-
-  if (enteredOtp.length !== 4) {
-    showFormPopup("Please enter the 4-digit OTP", "error");
-    return;
-  }
-
-  if (trimmedNewPassword !== trimmedConfirmPassword) {
-    showFormPopup("Passwords do not match", "error");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://localhost:8000/api/reset-password/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: trimmedEmail,
-        otp: enteredOtp,
-        new_password: trimmedNewPassword,
-        confirm_password: trimmedConfirmPassword,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      showFormPopup("Password reset successful ✅", "success");
-      setShowForgotModal(false);
-      setStep(1);
-      setForgotEmail("");
-      setOtp(["", "", "", ""]);
-      setNewPassword("");
-      setConfirmPassword("");
-      setForgotOtpSent(false);
-    } else {
-      showFormPopup(data.error || "Password reset failed", "error");
+    if (!trimmedEmail || !enteredOtp || !trimmedNewPassword || !trimmedConfirmPassword) {
+      showFormPopup("All fields are required!", "error");
+      return;
     }
-  } catch {
-    showFormPopup("Network error. Please try again.", "error");
-  }
-};
 
+    if (enteredOtp.length !== 4) {
+      showFormPopup("Please enter the 4-digit OTP", "error");
+      return;
+    }
 
+    if (trimmedNewPassword !== trimmedConfirmPassword) {
+      showFormPopup("Passwords do not match", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/reset-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          otp: enteredOtp,
+          new_password: trimmedNewPassword,
+          confirm_password: trimmedConfirmPassword,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showFormPopup("Password reset successful ✅", "success");
+        setShowForgotModal(false);
+        setStep(1);
+        setForgotEmail("");
+        setOtp(["", "", "", ""]);
+        setNewPassword("");
+        setConfirmPassword("");
+        setForgotOtpSent(false);
+      } else {
+        showFormPopup(data.error || "Password reset failed", "error");
+      }
+    } catch {
+      showFormPopup("Network error. Please try again.", "error");
+    }
+  };
+
+  // ---------------- JSX ----------------
   return (
     <div className="container-fluid p-0">
       <div className="row g-0">
@@ -373,23 +367,22 @@ export default function Login() {
               <span className={styles.backText}>Back to Home</span>
             </button>
           </div>
-
+          
           <div className={`${styles.loginFormWrapper} w-100 px-4`}>
+            <div className="d-flex justify-content-center">
+            <img src={logo} className="card-img-side" alt="logo" style={{marginBottom: "20px"}}/>
+          </div>
             <h2 className="text-center mb-4">TheraTrack Login</h2>
 
             {popupMessage && (
               <div
-                className={`
-      ${styles.formPopup}
-      ${popupType === "error" ? styles.popupError : styles.popupSuccess}
-      ${isFading ? styles.hidePopup : styles.showPopup}
-    `}
+                className={`${styles.formPopup} ${
+                  popupType === "error" ? styles.popupError : styles.popupSuccess
+                } ${isFading ? styles.hidePopup : styles.showPopup}`}
               >
                 {popupMessage}
               </div>
             )}
-
-
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -479,21 +472,17 @@ export default function Login() {
 
             <h3 className={styles.modalTitle}>Forgot Password</h3>
 
-            {/* MODAL POPUP INSIDE */}
             {popupMessage && (
               <div
-                className={`
-      ${styles.formPopup}
-      ${popupType === "error" ? styles.popupError : styles.popupSuccess}
-      ${isFading ? styles.hidePopup : styles.showPopup}
-    `}
+                className={`${styles.formPopup} ${
+                  popupType === "error" ? styles.popupError : styles.popupSuccess
+                } ${isFading ? styles.hidePopup : styles.showPopup}`}
               >
                 {popupMessage}
               </div>
             )}
 
-
-
+            {/* STEP 1: EMAIL */}
             {step === 1 && (
               <>
                 <input
@@ -509,6 +498,7 @@ export default function Login() {
               </>
             )}
 
+            {/* STEP 2: OTP */}
             {step === 2 && (
               <>
                 <div className="d-flex justify-content-center gap-2 mb-3">
@@ -522,13 +512,13 @@ export default function Login() {
                       onChange={(e) => handleOtpChange(e.target.value, index)}
                       onKeyDown={(e) => handleOtpKeyDown(e, index)}
                       className={styles.otpBox}
-                      disabled={otpAttempts >= MAX_OTP_ATTEMPTS || otpTimer <= 0} // lock on attempts or expiry
+                      disabled={otpAttempts >= MAX_OTP_ATTEMPTS || otpTimer <= 0}
                     />
                   ))}
                 </div>
 
                 {otpTimer > 0 ? (
-                  <small className="text-muted text-center d-block" style={{ paddingBottom: "3px"}}>
+                  <small className="text-muted text-center d-block" style={{ paddingBottom: "3px" }}>
                     OTP expires in {Math.floor(otpTimer / 60)}:
                     {(otpTimer % 60).toString().padStart(2, "0")}
                   </small>
@@ -546,7 +536,6 @@ export default function Login() {
                   Verify code
                 </button>
 
-                {/* Small Resend Link */}
                 <div className="text-center">
                   <span
                     className={`${styles.resendOtpLink} ${resendLocked ? styles.disabled : ""}`}
@@ -555,14 +544,12 @@ export default function Login() {
                     {resendLocked ? `Resend in ${RESEND_COOLDOWN}s` : "Resend OTP"}
                   </span>
                 </div>
-{/* //link colour */}
               </>
             )}
 
-
+            {/* STEP 3: NEW PASSWORD */}
             {step === 3 && (
               <>
-                {/* NEW PASSWORD FIELD */}
                 <div className="input-group flex-column mb-2">
                   <div className="d-flex">
                     <input
@@ -581,7 +568,6 @@ export default function Login() {
                     </button>
                   </div>
 
-                  {/* Strength Meter */}
                   {newPassword && (
                     <>
                       <small
@@ -599,8 +585,8 @@ export default function Login() {
                               getPasswordStrength(newPassword) === "Weak"
                                 ? "33%"
                                 : getPasswordStrength(newPassword) === "Medium"
-                                  ? "66%"
-                                  : "100%",
+                                ? "66%"
+                                : "100%",
                             transition: "width 0.5s ease-in-out",
                           }}
                         ></div>
@@ -609,7 +595,6 @@ export default function Login() {
                   )}
                 </div>
 
-                {/* CONFIRM PASSWORD FIELD */}
                 <div className="input-group flex-column mb-3">
                   <div className="d-flex">
                     <input
@@ -628,7 +613,6 @@ export default function Login() {
                     </button>
                   </div>
 
-                  {/* Optional: Confirm password matches new password */}
                   {confirmPassword && (
                     <small
                       className="mt-1 fw-semibold"
@@ -644,7 +628,6 @@ export default function Login() {
                 </button>
               </>
             )}
-
           </div>
         </div>
       )}

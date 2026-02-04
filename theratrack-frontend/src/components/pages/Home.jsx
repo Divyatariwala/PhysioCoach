@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import heroImage from "../../assets/images/home1.png";
 import yogapose1 from "../../assets/images/yoga-pose 1.png";
 import grouppic from "../../assets/images/Group 6.png";
@@ -14,7 +14,7 @@ import image6 from "../../assets/images/image 6.png";
 import "../css/Home.css";
 
 function Home() {
-  const isAuthenticated = localStorage.getItem("isLoggedIn") === "true";
+  const { isLoggedIn } = useOutletContext(); 
 
   const cards = [
     {
@@ -48,7 +48,7 @@ function Home() {
               </p>
 
               <div className="d-flex align-items-center flex-wrap gap-2 hero-buttons">
-                {isAuthenticated ? (
+                {isLoggedIn ? (
                   <Link to="/api/exercises" className="btn btn-primary">Start Exercising</Link>
                 ) : (
                   <Link to="/api/login" className="btn btn-primary">Join Now</Link>
@@ -100,14 +100,14 @@ function Home() {
             <div className="col-md-6 text-center">
               <img src={grouppic} className="img-fluid rounded" alt="Group" />
             </div>
-            <div className="col-md-6 auto-right">
+            <div className="col-md-6 auto-right margin-top-section">
               <span>AI That Moves With You</span>
               <h2>Push Beyond Limits And Unlock Your Strength</h2>
               <p>
                 TheraTrack goes beyond generic workouts. Our AI analyzes your biomechanics in real-time, corrects posture instantly, and crafts routines tailored to your body, so every session is safe, effective, and optimized for growth.
               </p>
 
-              {isAuthenticated ? (
+              {isLoggedIn ? (
                 <Link to="/api/exercises" className="btn btn-primary">Start Exercising</Link>
               ) : (
                 <Link to="/api/login" className="btn btn-primary">Join Now</Link>
@@ -178,6 +178,7 @@ function Home() {
 
       {/* PHOTOS */}
       <section className="photos-section">
+        <div className="overlay-grid"></div>
         <div className="photos-grid">
           <img src={image4} alt="Gallery 1" />
           <img src={image2} alt="Gallery 2" />

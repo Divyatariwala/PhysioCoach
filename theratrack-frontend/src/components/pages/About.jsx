@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import picture from "../../assets/images/about&profile.png";
 import grouppic from "../../assets/images/Group 7.png";
 import heartIcon from "../../assets/images/heartIcon.png";
 import styles from "../css/About.module.css";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 
 const About = () => {
+  const { isLoggedIn } = useOutletContext();
   const coreValues = [
     { title: "Passion", text: "We are passionate about fitness and technology, combining both to inspire every user to move, improve, and succeed." },
     { title: "Integrity", text: "We prioritize honesty, transparency, and trust in every aspect of our platform and interactions." },
@@ -73,14 +74,16 @@ const About = () => {
       </section>
 
       {/* Join Now */}
-      <section className={styles.joinSection}>
-        <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
-          <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
-            Ready to take the first step towards your fitness goals?
-          </h3>
-          <Link to="/signup" className="btn btn-primary">Join Now</Link>
-        </div>
-      </section>
+      {!isLoggedIn && (
+        <section className={styles.joinSection}>
+          <div className="container d-flex flex-column flex-md-row align-items-center justify-content-center py-4">
+            <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
+              Ready to take the first step towards your fitness goals?
+            </h3>
+            <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+          </div>
+        </section>
+      )}
     </>
   );
 };
