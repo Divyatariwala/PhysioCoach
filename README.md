@@ -46,6 +46,14 @@ source venv/bin/activate
 Navigate to the project root:
 cd theratrack
 
+Backend Dependencies
+The backend is built using Django and requires additional packages for API support and frontend communication.
+The main dependencies include:
+Django
+Django REST Framework
+django-cors-headers
+
+All required packages are listed in the requirements.txt file.
 Install Python dependencies:
 pip install -r requirements.txt
 
