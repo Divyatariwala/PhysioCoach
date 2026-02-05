@@ -68,9 +68,9 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",       # Local React frontend
     "http://127.0.0.1:3000",
+    "https://divyatariwala.github.io"
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  # only for testing
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
