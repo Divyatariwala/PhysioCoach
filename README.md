@@ -31,7 +31,7 @@ Modern web browser (Google Chrome, Firefox, or equivalent)
 
 Installation and Setup
 1. Clone the Repository
-git clone https://github.com/your-username/theratrack.git
+git clone [https://github.com/Divyatariwala/TheraTrack.git]
 cd project-folder
 
 2. Activate Virtual Environment (Before Entering Project Root)
