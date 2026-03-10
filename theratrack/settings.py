@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------
 # SECURITY SETTINGS
 # ----------------------
-SECRET_KEY = 'django-insecure-_rb$s9mtdy2!25$1jtban2_wc23o_a(c=c6_fz5fn@eu-+vkr='
+SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]  
 
@@ -64,6 +64,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://divyatariwala.github.io"
+]
+
 # Allow local frontend and ngrok frontend
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",       # Local React frontend
@@ -85,8 +90,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "noreply.theratrack@gmail.com"
-EMAIL_HOST_PASSWORD = "qohc mmln qxks nirx"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = "TheraTrack <noreply.theratrack@gmail.com>"
 
 APP_URL = "http://localhost:3000"
@@ -157,7 +162,6 @@ LOGIN_REDIRECT_URL = '/'
 # ----------------------
 # STATIC FILES
 # ----------------------
-STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 

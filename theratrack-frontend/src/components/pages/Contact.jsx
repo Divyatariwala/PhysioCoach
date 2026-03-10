@@ -197,13 +197,12 @@ export default Contact;
 
 
 // add video in the home page 
-// fix video in exercise page
-// fix the login with google navbar changes 
+// fix video in exercise page 
 
 // change 2 images to free stock
 // change all image in the code
 
+// train chatbot to reduce response time
+// train model to analyze the exercises 
 
-// writ script for prsentation and video demonstration 
-
-// 5. generate therapy plan in report template
+// generate therapy plan in report template

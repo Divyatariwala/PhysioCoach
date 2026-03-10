@@ -32,7 +32,7 @@ urlpatterns = [
     path('api/send-otp/', views.send_otp, name='send_otp'),
     path('api/verify-otp/', views.verify_otp, name='verify_otp'),
     path('auth/', include('social_django.urls', namespace='social')),
-    path("api/google-login/", views.google_login, name="google-login"),
+    path('api/google-login/', views.google_login, name="google-login"),
     path('api/register/', views.register_api, name='register_api'),
     path('api/reset-password/', views.reset_password, name='reset_password'),
     path("api/contact/", views.contact_api, name='contact_api'),
@@ -42,7 +42,7 @@ urlpatterns = [
     # ---------------------------
     path('api/profile/', views.profile_api, name='profile_api'),
     path('api/update_profile_picture/', views.update_profile_picture_api, name='update_profile_picture_api'),
-    path("api/update_profile/", views.update_profile, name="update_profile"),
+    path('api/update_profile/', views.update_profile, name="update_profile"),
     path('api/exercises/', views.exercises_api, name='exercises_api'),
     path('api/logout/', views.logout_view_api, name='logout_api'),
     path("api/get-cookie-consent/", views.get_cookie_consent, name="get_cookie_consent"),

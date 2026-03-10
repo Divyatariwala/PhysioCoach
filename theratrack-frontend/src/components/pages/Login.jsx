@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate} from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../layout/AuthContext";
+import { useNavigate } from "react-router-dom";
 import login_pic from "../../assets/images/Login_pic.png";
 import logo from "../../assets/images/logo.png";
 import styles from "../css/Login.module.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   // ---------------- FORM STATE ----------------
   const [formData, setFormData] = useState({ identifier: "", password: "" });
@@ -35,10 +37,6 @@ export default function Login() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const API_BASE = "http://localhost:8000";
-
-  const [isLoggedIn, setIsLoggedIn] = useState(
-  localStorage.getItem("access_token") ? true : false
-);
 
   // ---------------- HELPERS ----------------
   const showFormPopup = (message, type = "error") => {
@@ -87,13 +85,19 @@ export default function Login() {
           showFormPopup("Admin cannot log in here", "error");
           return;
         }
-        localStorage.setItem("access_token", data.access_token);
-        setIsLoggedIn(true);
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userRole", data.role || "user");
-        localStorage.setItem("userId", data.user_id || "");
+
+        // Use AuthContext to set login state
+        login({
+          token: data.access_token,
+          role: data.role || "user",
+          userId: data.user_id || "",
+        });
+
         showFormPopup("Login successful 🎉", "success");
-        setTimeout(() => navigate("/home"), 1200);
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload(); 
+        }, 1200);
       } else {
         showFormPopup(data.error || "Login failed", "error");
       }
@@ -114,11 +118,22 @@ export default function Login() {
       });
       const data = await res.json();
       if (data.success) {
-        if (data.access_token) localStorage.setItem("access_token", data.access_token);
-         localStorage.setItem("isLoggedIn", "true");
-        setIsLoggedIn(true);
-        showFormPopup("Google login successful", "success");
-        setTimeout(() => navigate("/home"), 1200);
+        if (data.role === "admin") {
+          showFormPopup("Admin cannot log in here", "error");
+          return;
+        }
+
+        login({
+          token: data.access_token,
+          role: data.role || "user",
+        });
+
+        showFormPopup("Login successful 🎉", "success");
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1200);
+
       } else {
         showFormPopup("Google login failed", "error");
       }
@@ -367,18 +382,17 @@ export default function Login() {
               <span className={styles.backText}>Back to Home</span>
             </button>
           </div>
-          
+
           <div className={`${styles.loginFormWrapper} w-100 px-4`}>
             <div className="d-flex justify-content-center">
-            <img src={logo} className="card-img-side" alt="logo" style={{marginBottom: "20px"}}/>
-          </div>
+              <img src={logo} className="card-img-side" alt="logo" style={{ marginBottom: "20px" }} />
+            </div>
             <h2 className="text-center mb-4">TheraTrack Login</h2>
 
             {popupMessage && (
               <div
-                className={`${styles.formPopup} ${
-                  popupType === "error" ? styles.popupError : styles.popupSuccess
-                } ${isFading ? styles.hidePopup : styles.showPopup}`}
+                className={`${styles.formPopup} ${popupType === "error" ? styles.popupError : styles.popupSuccess
+                  } ${isFading ? styles.hidePopup : styles.showPopup}`}
               >
                 {popupMessage}
               </div>
@@ -474,9 +488,8 @@ export default function Login() {
 
             {popupMessage && (
               <div
-                className={`${styles.formPopup} ${
-                  popupType === "error" ? styles.popupError : styles.popupSuccess
-                } ${isFading ? styles.hidePopup : styles.showPopup}`}
+                className={`${styles.formPopup} ${popupType === "error" ? styles.popupError : styles.popupSuccess
+                  } ${isFading ? styles.hidePopup : styles.showPopup}`}
               >
                 {popupMessage}
               </div>
@@ -585,8 +598,8 @@ export default function Login() {
                               getPasswordStrength(newPassword) === "Weak"
                                 ? "33%"
                                 : getPasswordStrength(newPassword) === "Medium"
-                                ? "66%"
-                                : "100%",
+                                  ? "66%"
+                                  : "100%",
                             transition: "width 0.5s ease-in-out",
                           }}
                         ></div>

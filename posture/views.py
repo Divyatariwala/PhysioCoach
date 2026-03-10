@@ -369,6 +369,7 @@ def reset_password(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"success": False, "error": "Something went wrong"}, status=500)
+        
 # ---------------------------
 # GOOGLE LOGIN
 # ---------------------------

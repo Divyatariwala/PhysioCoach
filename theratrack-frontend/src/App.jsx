@@ -2,6 +2,7 @@ import React from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import BaseLayout from "./components/layout/baseLayout";
 import AuthLayout from "./components/layout/AuthLayout";
+import { AuthProvider } from "./components/layout/AuthContext";
 import Home from "./components/pages/Home";
 import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
@@ -16,36 +17,37 @@ import ChatbotPopup from "./components/pages/ChatbotPopup";
 
 
 function App() {
-  const isLoggedIn = !!localStorage.getItem("access_token"); // JWT or token
   return (
-    <Router>
-      {/* Shows cookies popup across all pages */}
-      <CookiesBanner />
+    <AuthProvider>
+      <Router>
+        {/* Shows cookies popup across all pages */}
+        <CookiesBanner />
 
-      <Routes>
-        {/* AUTH ROUTES (NO NAVBAR / FOOTER) */}
-        <Route element={<AuthLayout />}>
-          <Route path="api/login" element={<Login />} />
-          <Route path="api/register" element={<Register />} />
-        </Route>
-
-        {/* MAIN APP ROUTES */}
-        <Route path="/" element={<BaseLayout />}>
-          <Route index element={<Home />} />
-          <Route path="home" element={<Home />} />
-          <Route path="api/about" element={<About />} />
-          <Route path="api/contact" element={<Contact />} />
-          <Route path="api/faq" element={<div>FAQ Page</div>} />
-          <Route path="api/privacy" element={<PrivacyPolicy />} />
-
-          {/* Protected Routes */}
-          <Route element={<PrivateRoute  />}>
-            <Route path="api/profile" element={<Profile />} />
-            <Route path="api/exercises" element={<Exercises />} />
+        <Routes>
+          {/* AUTH ROUTES (NO NAVBAR / FOOTER) */}
+          <Route element={<AuthLayout />}>
+            <Route path="api/login" element={<Login />} />
+            <Route path="api/register" element={<Register />} />
           </Route>
-        </Route>
-      </Routes>
-    </Router>
+
+          {/* MAIN APP ROUTES */}
+          <Route path="/" element={<BaseLayout />}>
+            <Route index element={<Home />} />
+            <Route path="home" element={<Home />} />
+            <Route path="api/about" element={<About />} />
+            <Route path="api/contact" element={<Contact />} />
+            <Route path="api/faq" element={<div>FAQ Page</div>} />
+            <Route path="api/privacy" element={<PrivacyPolicy />} />
+
+            {/* Protected Routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path="api/profile" element={<Profile />} />
+              <Route path="api/exercises" element={<Exercises />} />
+            </Route>
+          </Route>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

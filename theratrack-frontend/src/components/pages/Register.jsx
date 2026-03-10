@@ -1,7 +1,7 @@
 // Register.jsx
 import React, { useState } from "react";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import registerPic from "../../assets/images/Login_pic.png";
 import logo from "../../assets/images/logo.png";
 import styles from "../css/Register.module.css";
@@ -310,7 +310,7 @@ export default function Register() {
             </form>
 
             <div className={`${styles.loginLinks} mt-3 text-center`}>
-              Already have an account? <a href="/api/login">Login</a>
+              Already have an account? <Link to="/api/login">Login</Link>
             </div>
           </div>
         </div>

@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { AuthContext } from "../layout/AuthContext";
 
-const PrivateRoute = () => {
-  const token = localStorage.getItem("access_token"); // check if logged in
-  return token ? <Outlet /> : <Navigate to="/login" replace />;
-};
+export default function PrivateRoute() {
+  const { token } = useContext(AuthContext);
 
-export default PrivateRoute;
+  // If not logged in, redirect to login page
+  if (!token) {
+    return <Navigate to="/api/login" replace />;
+  }
+
+  // If logged in, render the protected component(s)
+  return <Outlet />;
+}

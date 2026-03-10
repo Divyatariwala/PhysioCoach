@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -9,22 +9,17 @@ import "../css/BaseLayout.css";
 
 // Import Chatbot
 import ChatbotPopup from "../pages/ChatbotPopup";
+import { AuthContext } from "../layout/AuthContext";
 
 function BaseLayout() {
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, logout } = useContext(AuthContext);
   const [showScroll, setShowScroll] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
 
   // Hide navbar/footer on certain routes
   const hideLayoutRoutes = ["/login"];
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
-
-  // Check login status using JWT token
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    setIsLoggedIn(!!token); // true if token exists
-  }, []);
 
   // Scroll button logic
   useEffect(() => {
@@ -52,8 +47,7 @@ function BaseLayout() {
 
   // Logout
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    setIsLoggedIn(false);
+    logout();
     window.location.href = "/login";
   };
 
@@ -111,7 +105,7 @@ function BaseLayout() {
                   ))}
 
                 {isLoggedIn && (
-                  <li className="nav-item">
+                  <li className="nav-item" style={{ lineHeight: 2.5 }}>
                     <button
                       className="btn btn-primary ms-2"
                       onClick={handleLogout}
@@ -128,7 +122,7 @@ function BaseLayout() {
 
       {/* Main Content */}
       <main className="main-content">
-        <Outlet context={{ isLoggedIn, setIsLoggedIn }} />
+        <Outlet context={{ isLoggedIn, logout }} />
       </main>
 
       {/* Footer */}
