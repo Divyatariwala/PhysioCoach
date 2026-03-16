@@ -1,5 +1,6 @@
-Django==5.2.6
-djangorestframework==3.16.1
+Django
+djangorestframework
+djangorestframework-simplejwt
 gunicorn
 whitenoise
 psycopg2-binary
@@ -8,3 +9,5 @@ django-cors-headers
 dj-rest-auth
 django-allauth
 opencv-python
+numpy
+google-auth
