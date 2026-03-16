@@ -1,9 +1,8 @@
-Django==5.2.6
-djangorestframework==3.16.1
-gunicorn
-whitenoise
-psycopg2-binary
-python-dotenv
-django-cors-headers
-dj-rest-auth
-django-allauth
+Django==4.2
+djangorestframework==3.14.0
+django-cors-headers==3.15.0
+opencv-python==4.8.1.78
+python-dotenv==1.0.0
+whitenoise==6.5.0
+djangorestframework-simplejwt==6.0.0
+gunicorn==21.2.0
