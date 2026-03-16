@@ -12,3 +12,4 @@ opencv-python
 numpy
 google-auth
 requests
+transformers
