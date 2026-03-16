@@ -11,3 +11,4 @@ django-allauth
 opencv-python
 numpy
 google-auth
+requests
