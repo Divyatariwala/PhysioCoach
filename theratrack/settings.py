@@ -19,8 +19,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 # ----------------------
 SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]  
+DEBUG = False
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "theratrack-1-k5n9.onrender.com"
+]
 
 # ----------------------
 # INSTALLED APPS
@@ -65,12 +69,14 @@ MIDDLEWARE = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://theratrack-1-k5n9.onrender.com",
     "http://localhost:3000",
     "https://divyatariwala.github.io"
 ]
 
 # Allow local frontend and ngrok frontend
 CORS_ALLOWED_ORIGINS = [
+    "https://theratrack-1-k5n9.onrender.com"
     "http://localhost:3000",       # Local React frontend
     "http://127.0.0.1:3000",
     "https://divyatariwala.github.io"
@@ -94,7 +100,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = "TheraTrack <noreply.theratrack@gmail.com>"
 
-APP_URL = "http://localhost:3000"
+APP_URL = "https://theratrack-1-k5n9.onrender.com"
 # ----------------------
 # URL CONFIGURATION
 # ----------------------
