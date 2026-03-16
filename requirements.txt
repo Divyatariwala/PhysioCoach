@@ -13,3 +13,4 @@ numpy
 google-auth
 requests
 transformers
+torch
