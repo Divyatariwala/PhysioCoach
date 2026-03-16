@@ -164,12 +164,19 @@ class Contact(models.Model):
         return f"Contact #{self.contact_id} by {self.user.username if self.user else self.name}"
     
 class AdminReply(models.Model):
-    adminReply_id = models.UUIDField(primary_key=True, editable=False)  # set as PK
+    adminReply_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE, related_name="replies")
-    admin_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # optional
+    admin_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     reply_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Reply #{self.adminReply_id} to Contact #{self.contact.contact_id}"
+    
 class Notification(models.Model):
     notification_id = models.AutoField(primary_key=True)
     NOTIFICATION_TYPE_CHOICES = [

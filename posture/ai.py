@@ -3,16 +3,12 @@ import torch
 import re
 
 MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-
 _tokenizer = None
 _model = None
-_model_device = None  # keep track of model device
+_device = None
 
-# -------------------------------
-# Load model
-# -------------------------------
 def load_model():
-    global _tokenizer, _model, _model_device
+    global _tokenizer, _model, _model_device, _system_ids
 
     if _model is None:
         print("Loading TinyLlama model...", flush=True)
@@ -21,121 +17,100 @@ def load_model():
         _model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             device_map="auto",
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+            dtype=torch.float16 if torch.cuda.is_available() else torch.float32
         )
         _model.eval()
         _model_device = next(_model.parameters()).device
 
-    return _tokenizer, _model, _model_device
+        # Optional: pre-tokenize system prompt
+        system_prompt = """
+You are TheraBot, a friendly and professional health assistant specializing in posture, exercises, and Theratrack guidance. 
+
+Your rules:
+
+1. ALWAYS provide clear, direct, and actionable answers to user questions.
+2. NEVER ask questions back to the user under any circumstances.
+3. ONLY give health, posture, exercise, or Theratrack guidance when relevant.
+4. For questions about Theratrack usage:
+   - Explain step-by-step instructions if needed.
+   - Give the recommended frequency for using Theratrack.
+5. For questions about exercises or general health:
+   - Provide the optimal exercise frequency and type.
+   - Include posture, stretching, and ergonomic advice when relevant.
+6. For anything outside of these topics:
+   - Give helpful, friendly responses without asking questions.
+7. Always assume the user wants concise, practical answers.
+8. Never generate vague or generic responses like “It depends” or “You should consult a professional.”
+9. Your tone is friendly, professional, and encouraging, but always informative.
+10. If a user asks something you don’t know, respond with:
+    - “I’m here to help with posture, exercises, and Theratrack guidance. Could you ask about one of these topics?”
+
+Instructions to follow in conversation:
+
+- Include any numbers, reps, duration, or frequency when relevant.
+- Include step-by-step instructions if applicable.
+- NEVER suggest the user do something without telling them how.
+- Do not say “How can I help you?” or similar phrases.
+"""
+        _system_ids = _tokenizer(system_prompt, return_tensors="pt").input_ids.to(_model_device)
+
+    return _tokenizer, _model, _model_device, _system_ids
+
+# Call this when Django starts
+load_model()
 
 # -------------------------------
-# Detect user intent
-# -------------------------------
-THERATRACK_KEYWORDS = [
-    "theratrack", "how to use theratrack", "theratrack doubt",
-    "trouble with theratrack", "theratrack question"
-]
-
-HEALTH_KEYWORDS = [
-    "posture", "back pain", "neck pain", "exercise",
-    "stretch", "ergonomics", "therapy", "rehab", "pain"
-]
-
-def is_theratrack_question(user_message):
-    msg = user_message.lower()
-    return any(keyword in msg for keyword in THERATRACK_KEYWORDS)
-
-def is_health_question(user_message):
-    msg = user_message.lower()
-    return any(keyword in msg for keyword in HEALTH_KEYWORDS)
-
-# -------------------------------
-# Theratrack step-by-step guidance
-# -------------------------------
-def get_theratrack_help(user_message):
-    return (
-        "It looks like you have a doubt about using Theratrack. Here's how you can use it:\n\n"
-        "1. **Sign up:** If you don’t have an account, create one first.\n"
-        "2. **Log in:** Use your credentials to access your dashboard.\n"
-        "3. **About Page:** If you want to know more about the system, visit the 'About' page.\n"
-        "4. **Start Tracking Posture:** Click 'Start Exercises' to begin.\n"
-        "   - Select the exercise you want to do.\n"
-        "   - Watch the demonstration video.\n"
-        "   - Start the camera to track your posture live.\n"
-        "   - Reps will be counted automatically with time duration.\n"
-        "5. **Visual Reports:** After completing exercises, a visual report will be generated.\n"
-        "   - The report includes a therapy plan.\n"
-        "   - You can download the report as a PDF.\n"
-        "6. **Profile Page:** Visit your profile to see the history of all your reports and progress.\n\n"
-        "7. **Need Help?:** If you encounter any issues, please visit the 'Contact' page to reach support.\n\n"
-        "Feel free to ask me specific questions about any of these steps!"
-    )
-
-# -------------------------------
-# Health posture advice
-# -------------------------------
-def get_health_advice(user_message):
-    return (
-        "For good posture and health:\n"
-        "- Stand and sit upright with your back straight.\n"
-        "- Keep your shoulders relaxed.\n"
-        "- Feet should be flat on the floor.\n"
-        "- Take short breaks to stretch if sitting for long periods.\n"
-        "- Exercise regularly to strengthen your back and core muscles."
-    )
-
-# -------------------------------
-# Generate TheraBot response
+# Generate response from LLM
 # -------------------------------
 def generate_response(user_message, conversation_history=None):
-    tokenizer, model, device = load_model()
+    tokenizer, model, device, system_ids = load_model()
 
-    # -------------------------------
-    # System instructions
-    # -------------------------------
-    system_prompt = (
-        "You are TheraBot, a friendly assistant.\n"
-        "- Answer the user's questions directly.\n"
-        "- Only give health/posture advice if asked.\n"
-        "- Give clear guidance if the user has doubts about using Theratrack.\n"
-        "- Avoid asking questions back unless clarification is requested.\n\n"
-    )
+    # Start with system prompt
+    input_ids = system_ids.clone()
 
-    # -------------------------------
-    # Build prompt with recent conversation
-    # -------------------------------
-    prompt = system_prompt
+    # Include last 1–2 conversation turns for context
     if conversation_history:
-        for msg in conversation_history[-6:]:
+        for msg in conversation_history[-2:]:
             role = "User" if msg["role"] == "user" else "TheraBot"
-            prompt += f"{role}: {msg['content']}\n"
-    prompt += f"User: {user_message}\nTheraBot:"
+            text = f"{role}: {msg['content']}\n"
+            ids = tokenizer(text, return_tensors="pt").input_ids.to(device)
+            input_ids = torch.cat([input_ids, ids], dim=-1)
 
-    # -------------------------------
-    # Tokenize and generate
-    # -------------------------------
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    # Append current user message
+    user_ids = tokenizer(f"User: {user_message}\nTheraBot:", return_tensors="pt").input_ids.to(device)
+    input_ids = torch.cat([input_ids, user_ids], dim=-1)
+
+    # Generate response from model
     with torch.no_grad():
         output = model.generate(
-            **inputs,
+            input_ids,
             max_new_tokens=150,
             do_sample=True,
             temperature=0.7,
             top_p=0.9,
-            repetition_penalty=1.15,
+            repetition_penalty=1.1,
             eos_token_id=tokenizer.eos_token_id,
             pad_token_id=tokenizer.eos_token_id
         )
+
     decoded = tokenizer.decode(output[0], skip_special_tokens=True)
-    match = re.search(r"TheraBot:(.*?)(?:User:|Assistant:|$)", decoded, re.DOTALL)
+    # Extract only TheraBot's reply
+    match = re.search(r"TheraBot:(.*?)(?:User:|$)", decoded, re.DOTALL)
     response = match.group(1).strip() if match else decoded.strip()
 
-    # -------------------------------
-    # Override response if intent matches
-    # -------------------------------
-    if is_theratrack_question(user_message):
-        response = get_theratrack_help(user_message)
-    elif is_health_question(user_message):
-        response = get_health_advice(user_message)
-
     return response
+
+# -------------------------------
+# Example usage
+# -------------------------------
+if __name__ == "__main__":
+    conversation_history = []
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() in ["exit", "quit"]:
+            break
+        reply = generate_response(user_input, conversation_history)
+        print(f"TheraBot: {reply}\n")
+        # Save conversation history
+        conversation_history.append({"role": "user", "content": user_input})
+        conversation_history.append({"role": "bot", "content": reply})

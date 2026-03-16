@@ -49,12 +49,12 @@ const Contact = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      credentials: "include" // include cookies for logged-in users
+        credentials: "include" // include cookies for logged-in users
       });
 
       const data = await res.json();
 
-     if (res.status === 201 && data.success) {
+      if (res.status === 201 && data.success) {
         showPopupMessage("✅ Message submitted successfully!", "success");
         setFormData({ name: "", email: "", message: "" });
       } else {
@@ -97,13 +97,13 @@ const Contact = () => {
             {/* Left Side */}
             <div className="col-md-6">
               <div className="address">
-                <h3>Our Office</h3>
-                <p>TheraTrack is committed to helping you achieve your fitness goals.</p>
-                <p>Reach out to us for support, feedback, or any questions.</p>
-                <p>Our team is always ready to assist you in your health journey.</p>
+                <h3 className="mb-3">Our Office</h3>
+                <div style={{ width: "430px" }}>
+                  <p>TheraTrack is committed to helping you achieve your fitness goals. Reach out to us for support, feedback, or any questions. Our team is always ready to assist you in your health journey.</p>
+                </div>
               </div>
 
-              <h3 className="pt-4">Branch</h3>
+              <h3 className="pt-4 mb-2">Branch</h3>
               <div className={styles.address}>
                 <p>115 New Cavendish St</p>
                 <p>London W1W 6UW</p>
@@ -195,14 +195,14 @@ export default Contact;
 
 
 
-
-// add video in the home page 
-// fix video in exercise page 
+// add video in the home page
+// fix video in exercise page
 
 // change 2 images to free stock
 // change all image in the code
 
 // train chatbot to reduce response time
-// train model to analyze the exercises 
+
+// train model to analyze the exercises
 
 // generate therapy plan in report template

@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
+from django.core.mail import send_mail
+from django import forms
+from django.urls import reverse
 
 from .models import (
     Profile, Exercise, WorkoutSession, Repetition, Feedback,
@@ -196,20 +199,70 @@ class ReportAdmin(admin.ModelAdmin):
         return f"Session #{obj.session.session_id}"
     get_session_id.short_description = 'Session'
 
+# --------------------------
+# Form for AdminReply Inline
+# --------------------------
+class AdminReplyInlineForm(forms.ModelForm):
+    class Meta:
+        model = AdminReply
+        fields = ('reply_text',)
 
 # --------------------------
-# Contact (VIEW ONLY)
+# Inline for AdminReply
+# --------------------------
+class AdminReplyInline(admin.TabularInline):
+    model = AdminReply
+    form = AdminReplyInlineForm
+    extra = 1
+    can_delete = False  # remove default checkbox
+    readonly_fields = ('created_at', 'delete_button')
+    fields = ('reply_text', 'created_at', 'delete_button')
+
+    # Prefill reply text
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        if obj:
+            user_name = obj.name or "Anonymous"
+            default_reply = (
+                f"Hello {user_name},\n\n"
+                "Thank you for contacting us. We have received your message:\n\n"
+                "{message}\n\n"
+                "Our team will assist you shortly.\n\n"
+                "Best regards,\n"
+                "TheraTrack Support Team"
+            )
+            formset.form.base_fields['reply_text'].initial = default_reply
+        return formset
+
+    # Delete button per reply
+    def delete_button(self, obj):
+        if obj.pk:
+            delete_url = reverse('admin:posture_adminreply_delete', args=[obj.pk])
+            contact_url = reverse('admin:posture_contact_change', args=[obj.contact.pk])
+            url = f"{delete_url}?next={contact_url}"
+            return format_html(
+                '<a class="button" style="color:white; background:red; padding:2px 8px; text-decoration:none; border-radius:3px;" href="{}">Delete</a>',
+                url
+            )
+        return ""
+    delete_button.short_description = "Delete"
+
+# --------------------------
+# Contact Admin
 # --------------------------
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
     list_display = ('contact_id', 'name_or_anonymous', 'email_or_anonymous', 'short_message', 'created_at')
     readonly_fields = ('name', 'email', 'message', 'user', 'created_at')
+    inlines = [AdminReplyInline]
 
     def has_add_permission(self, request):
         return False
-    def has_change_permission(self, request, obj=None):
-        return False
     def has_delete_permission(self, request, obj=None):
+        return False
+    def has_change_permission(self, request, obj=None):
+        if obj is not None:
+            return True
         return False
 
     def name_or_anonymous(self, obj):
@@ -226,9 +279,43 @@ class ContactAdmin(admin.ModelAdmin):
         return obj.message or "-"
     short_message.short_description = "Message"
 
+    # --------------------------
+    # Override save_formset for AdminReply
+    # --------------------------
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+
+        # Loop through all inlines
+        for formset in formsets:
+            if formset.model == AdminReply:
+                for obj in formset.new_objects:  # Django automatically keeps new objects here
+                    if not obj.admin_user:
+                        obj.admin_user = request.user
+                        obj.save()
+
+                    if obj.contact.email:
+                        try:
+                            send_mail(
+                                subject=f"Reply to your query: {obj.contact.name or 'Anonymous'}",
+                                message=obj.reply_text,
+                                from_email='TheraTrack <noreply.theratrack@gmail.com>',
+                                recipient_list=[obj.contact.email],
+                                fail_silently=False
+                            )
+                            self.message_user(
+                                request,
+                                f"Email successfully sent to {obj.contact.email}",
+                                level='info'
+                            )
+                        except Exception as e:
+                            self.message_user(
+                                request,
+                                f"Email not sent to {obj.contact.email}: {e}",
+                                level='error'
+                            )
 
 # --------------------------
-# AdminReply (EDIT & DELETE allowed, NO ADD)
+# AdminReply Admin
 # --------------------------
 @admin.register(AdminReply)
 class AdminReplyAdmin(admin.ModelAdmin):
@@ -248,7 +335,6 @@ class AdminReplyAdmin(admin.ModelAdmin):
     def admin_user_anonymous(self, obj):
         return f"Admin #{obj.admin_user.id}" if obj.admin_user else "Anonymous"
     admin_user_anonymous.short_description = "Admin"
-
 
 # --------------------------
 # Notification (VIEW ONLY)

@@ -71,14 +71,20 @@
   font-size: 30px;
 }
 
-.contactDetails p, .address a{
+.address a{
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   color: #2D2D2D;
 }
-
+.contactDetails p{
+  font-family: 'Open Sans', sans-serif;
+  font-size: 15px;
+  margin: 0px;
+  color: #565555B8;
+}
 .address a{
-  color: #2D2D2D;
+  color: #565555B8;
+  font-size: 15px;
   text-decoration: none;
 }
 

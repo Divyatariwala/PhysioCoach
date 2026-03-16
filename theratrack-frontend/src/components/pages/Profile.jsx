@@ -73,13 +73,24 @@ export default function Profile() {
     type: r.exercise?.name || "Unknown",
   }));
 
+  const token = localStorage.getItem("access_token"); // <- get token
+
   // ---------------- Fetch Profile ----------------
   const fetchProfile = useCallback(async () => {
     try {
+      if (!token) {
+        alert("⚠️ You must be logged in!");
+        navigate("/login");
+        return;
+      }
+
       const res = await fetch(`${backendHost}/api/profile/`, {
         method: "GET",
         credentials: "include",
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`, // <- send token
+        },
       });
 
       if (res.status === 401) {
@@ -90,7 +101,8 @@ export default function Profile() {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-console.log("Exercises from API:", data.exercises);
+      console.log("Exercises from API:", data.exercises);
+
       let profilePic = data.profile?.profile_picture
         ? data.profile.profile_picture.startsWith("http")
           ? data.profile.profile_picture
@@ -141,7 +153,10 @@ console.log("Exercises from API:", data.exercises);
         method: "POST",
         body: formData,
         credentials: "include",
-        headers: { "X-CSRFToken": getCSRFToken() },
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+          Authorization: `Bearer ${token}`, // <- send token
+        },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -185,7 +200,11 @@ console.log("Exercises from API:", data.exercises);
       const res = await fetch(`${backendHost}/api/update_profile/`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+          Authorization: `Bearer ${token}`, // <- send token
+        },
         body: JSON.stringify({
           first_name: profile.first_name || null,
           last_name: profile.last_name || null,
@@ -211,19 +230,33 @@ console.log("Exercises from API:", data.exercises);
   // ---------------- Download Report ----------------
   const handleDownload = async (reportId) => {
     try {
-      const res = await fetch(`${backendHost}/api/download_report/${reportId}/`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to download report");
+      // GET request to download report
+      const res = await fetch(`${backendHost}/api/download_report/${reportId}/`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status} - Failed to download report`);
+
+      // Get blob (PDF)
       const blob = await res.blob();
+
+      // Trigger browser download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = `report_${reportId}.pdf`;
       link.click();
-      link.remove();
       window.URL.revokeObjectURL(url);
+
       showReportPopupMessage("✅ Report downloaded successfully!");
       triggerConfetti();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error("Error downloading report:", err);
+      showReportPopupMessage("❌ Failed to download report", "error");
+    }
   };
 
   const filteredReports = reports.filter(r => {

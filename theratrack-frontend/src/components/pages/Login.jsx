@@ -86,9 +86,12 @@ export default function Login() {
           return;
         }
 
+        // Save token in localStorage
+        localStorage.setItem("access_token", data.access);
+
         // Use AuthContext to set login state
         login({
-          token: data.access_token,
+          token: data.access,
           role: data.role || "user",
           userId: data.user_id || "",
         });
@@ -96,7 +99,7 @@ export default function Login() {
         showFormPopup("Login successful 🎉", "success");
         setTimeout(() => {
           navigate("/");
-          window.location.reload(); 
+          window.location.reload();
         }, 1200);
       } else {
         showFormPopup(data.error || "Login failed", "error");
@@ -123,9 +126,15 @@ export default function Login() {
           return;
         }
 
+        // Save token in localStorage
+        const token = data.access || data.token; // fallback if backend uses 'token'
+        console.log("Saving token to localStorage:", token);
+        localStorage.setItem("access_token", token);
+
         login({
-          token: data.access_token,
+          token: data.access,
           role: data.role || "user",
+          userId: data.user_id || "",
         });
 
         showFormPopup("Login successful 🎉", "success");
