@@ -178,7 +178,7 @@ const Contact = () => {
             <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
               Ready to take the first step towards your fitness goals?
             </h3>
-            <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+            <Link to="/login" className="btn btn-primary">Join Now</Link>
           </div>
         </section>
       )}
@@ -196,13 +196,9 @@ export default Contact;
 
 
 // add video in the home page
-// fix video in exercise page
 
 // change 2 images to free stock
 // change all image in the code
 
-// train chatbot to reduce response time
-
 // train model to analyze the exercises
 
-// generate therapy plan in report template

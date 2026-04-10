@@ -175,6 +175,25 @@ const Exercises = () => {
     }
   };
 
+  // Utility function to convert watch URL to embed URL
+  const getEmbedUrl = (url) => {
+    if (!url) return null;
+
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.hostname.includes("youtube.com") && urlObj.searchParams.has("v")) {
+        return `https://www.youtube.com/embed/${urlObj.searchParams.get("v")}`;
+      }
+      // if already embed URL, return as is
+      if (urlObj.hostname.includes("youtube.com") && urlObj.pathname.startsWith("/embed/")) {
+        return url;
+      }
+      return url; // for other video platforms, just return
+    } catch (err) {
+      return url; // fallback
+    }
+  };
+
   // ------------------ Upload PDF report ------------------
   const uploadReport = async (sessionId, exercise, repsData, duration) => {
     if (!sessionId || !exercise) return;
@@ -425,7 +444,7 @@ const Exercises = () => {
                 <h4>Exercise Demo Video</h4>
                 <div style={{ position: "relative", paddingTop: "56.25%" }}>
                   <iframe
-                    src={selectedExercise.video_demo_url} // must be a watch URL like https://www.youtube.com/watch?v=...
+                    src={getEmbedUrl(selectedExercise.video_demo_url)}
                     title="Exercise Video"
                     style={{
                       position: "absolute",

@@ -54,18 +54,18 @@ function BaseLayout() {
   // Navbar links
   const navLinks = [
     { path: "/", label: "Home" },
-    { path: "/api/exercises", label: "Exercises", auth: true },
-    { path: "/api/profile", label: "Profile", auth: true },
-    { path: "/api/about", label: "About" },
-    { path: "/api/contact", label: "Contact" },
+    { path: "/exercises", label: "Exercises", auth: true },
+    { path: "/profile", label: "Profile", auth: true },
+    { path: "/about", label: "About" },
+    { path: "/contact", label: "Contact" },
   ];
 
   // Footer links
   const footerLinks = [
     { path: "/", label: "Home" },
-    { path: "/api/about", label: "About" },
-    { path: "/api/contact", label: "Contact" },
-    { path: "/api/privacy", label: "Privacy Policy" },
+    { path: "/about", label: "About" },
+    { path: "/contact", label: "Contact" },
+    { path: "/privacy", label: "Privacy Policy" },
   ];
 
   return (

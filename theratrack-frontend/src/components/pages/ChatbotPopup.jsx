@@ -35,13 +35,25 @@ export default function ChatbotPopup({ footerVisible }) {
             const response = await fetch("http://localhost:8000/api/chat/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message, session_id: sessionId }),
+                body: JSON.stringify(
+                    sessionId ? { message, session_id: sessionId } : { message }
+                ),
             });
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Server error:", text);
+                return "⚠️ Server error. Please try again.";
+            }
+
             const data = await response.json();
+
             if (data.session_id) setSessionId(data.session_id);
-            return data.reply;
-        } catch {
-            return "Server not responding.";
+
+            return data.reply || "No response from bot.";
+        } catch (error) {
+            console.error(error);
+            return "⚠️ Server not responding.";
         }
     };
 
@@ -73,12 +85,12 @@ export default function ChatbotPopup({ footerVisible }) {
     return (
         <>
             {/* Floating Button */}
-            <button 
-                className={`${styles.btnBackground} ${liftUp ? styles.liftUp : ""} ${footerVisible ? styles.footerActive : ""}`} 
+            <button
+                className={`${styles.btnBackground} ${liftUp ? styles.liftUp : ""} ${footerVisible ? styles.footerActive : ""}`}
                 onClick={() => setOpen(!open)}
             >
                 <div className={`${styles.chatbotButton} ${footerVisible ? styles.footerActive : ""} `}>
-                    <img src={chatbot} alt="Chatbot" 
+                    <img src={chatbot} alt="Chatbot"
                     />
                 </div>
             </button>

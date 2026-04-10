@@ -10,6 +10,7 @@ import numpy as np
 import json
 import os
 import re
+import traceback
 
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -601,51 +602,94 @@ def analyze_pose_api(request):
 @csrf_exempt
 @api_view(['POST'])
 def chat_api(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "POST request required"}, status=400)
+    """
+    POST /api/chat/
+    """
+
     try:
-        data = request.data
+        data = request.data if hasattr(request, "data") else {}
         user_message = data.get("message", "").strip()
+
         if not user_message:
             return JsonResponse({"reply": "Please type something."})
 
+        # -------------------------------
+        # SESSION HANDLING
+        # -------------------------------
         session_id = data.get("session_id")
+
         if session_id:
-            session, _ = ChatSession.objects.get_or_create(chatSession_id=session_id)
+            session, _ = ChatSession.objects.get_or_create(
+                chatSession_id=session_id
+            )
         else:
             session = ChatSession.objects.create()
+
         session.last_active = timezone.now()
         session.save()
 
+        # -------------------------------
+        # SAVE USER MESSAGE
+        # -------------------------------
         ChatMessage.objects.create(
             chatSession_id=session,
             message_type="user",
             message_text=user_message
         )
 
-        messages = ChatMessage.objects.filter(chatSession_id=session).order_by("timestamp")
-        chat_history = []
-        for msg in messages:
-            role = "User" if msg.message_type == "user" else "Bot"
-            chat_history.append(f"{role}: {msg.message_text}")
-        chat_history = chat_history[-20:]
-        prompt = "\n".join(chat_history)
+        # -------------------------------
+        # GET LAST MESSAGES (LIGHT CONTEXT)
+        # -------------------------------
+        messages = ChatMessage.objects.filter(
+            chatSession_id=session
+        ).order_by("timestamp")[:5]
 
-        reply_text = generate_response(user_message)
+        conversation_history = [
+            {
+                "role": "user" if m.message_type == "user" else "bot",
+                "content": m.message_text
+            }
+            for m in messages
+        ]
 
+        # -------------------------------
+        # GENERATE RESPONSE
+        # -------------------------------
+        try:
+            reply_text = generate_response(user_message, conversation_history)
+        except Exception:
+            tb = traceback.format_exc()
+            print("🔥 THERABOT ERROR:\n", tb, flush=True)
+
+            reply_text = (
+                "- Sit upright for 30 minutes.\n"
+                "- Keep your screen at eye level.\n"
+                "- Take breaks every 30 minutes."
+            )
+
+        # -------------------------------
+        # SAVE BOT MESSAGE
+        # -------------------------------
         ChatMessage.objects.create(
             chatSession_id=session,
             message_type="bot",
             message_text=reply_text
         )
 
-        return JsonResponse({"reply": reply_text, "session_id": session.chatSession_id})
+        return JsonResponse({
+            "reply": reply_text,
+            "session_id": session.chatSession_id
+        })
 
-    except Exception as e:
+    except Exception:
         tb = traceback.format_exc()
-        print(f"[ERROR] {tb}", flush=True)
-        return JsonResponse({"error": str(e), "trace": tb}, status=500)
+        print("🔥 CHAT API ERROR:\n", tb, flush=True)
 
+        return JsonResponse({
+            "error": "Internal server error",
+            "trace": tb
+        }, status=500)
+    
 # ---------------------------
 # CONTACT FORM
 # ---------------------------

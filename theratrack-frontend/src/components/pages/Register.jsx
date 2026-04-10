@@ -86,7 +86,7 @@ export default function Register() {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch("http://localhost:8000api/register/", {
+      const response = await fetch("http://localhost:8000/api/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -310,7 +310,7 @@ export default function Register() {
             </form>
 
             <div className={`${styles.loginLinks} mt-3 text-center`}>
-              Already have an account? <Link to="/api/login">Login</Link>
+              Already have an account? <Link to="/login">Login</Link>
             </div>
           </div>
         </div>

@@ -456,7 +456,7 @@ export default function Login() {
 
             <div className={styles.loginLinks}>
               <span>
-                Don't have an account? <a href="#/api/register">Sign up</a>
+                Don't have an account? <a href="#/register">Sign up</a>
               </span>
               <a
                 href="#"

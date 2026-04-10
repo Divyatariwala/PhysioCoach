@@ -18,36 +18,35 @@ import ChatbotPopup from "./components/pages/ChatbotPopup";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         {/* Shows cookies popup across all pages */}
         <CookiesBanner />
 
         <Routes>
           {/* AUTH ROUTES (NO NAVBAR / FOOTER) */}
           <Route element={<AuthLayout />}>
-            <Route path="api/login" element={<Login />} />
-            <Route path="api/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Route>
 
           {/* MAIN APP ROUTES */}
           <Route path="/" element={<BaseLayout />}>
             <Route index element={<Home />} />
             <Route path="home" element={<Home />} />
-            <Route path="api/about" element={<About />} />
-            <Route path="api/contact" element={<Contact />} />
-            <Route path="api/faq" element={<div>FAQ Page</div>} />
-            <Route path="api/privacy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
 
             {/* Protected Routes */}
             <Route element={<PrivateRoute />}>
-              <Route path="api/profile" element={<Profile />} />
-              <Route path="api/exercises" element={<Exercises />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/exercises" element={<Exercises />} />
             </Route>
           </Route>
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

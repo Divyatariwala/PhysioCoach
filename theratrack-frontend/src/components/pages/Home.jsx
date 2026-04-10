@@ -49,9 +49,9 @@ function Home() {
 
               <div className="d-flex align-items-center flex-wrap gap-2 hero-buttons">
                 {isLoggedIn ? (
-                  <Link to="/api/exercises" className="btn btn-primary">Start Exercising</Link>
+                  <Link to="/exercises" className="btn btn-primary">Start Exercising</Link>
                 ) : (
-                  <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+                  <Link to="/login" className="btn btn-primary">Join Now</Link>
                 )}
 
                 <div className="hero-video">
@@ -108,9 +108,9 @@ function Home() {
               </p>
 
               {isLoggedIn ? (
-                <Link to="/api/exercises" className="btn btn-primary">Start Exercising</Link>
+                <Link to="/exercises" className="btn btn-primary">Start Exercising</Link>
               ) : (
-                <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+                <Link to="/login" className="btn btn-primary">Join Now</Link>
               )}
             </div>
           </div>
@@ -127,7 +127,7 @@ function Home() {
               <p>
                 TheraTrack isn’t just another fitness app. It’s a smart AI system designed to understand your body, optimize your movements, and provide personalized coaching. Whether you’re recovering from injury or pushing your limits, TheraTrack guides you every step of the way.
               </p>
-              <Link to="/api/about" className="btn btn-primary">Read More</Link>
+              <Link to="/about" className="btn btn-primary">Read More</Link>
             </div>
             <div className="col-md-6 text-center">
               <img src={trackingimg} className="img-fluid rounded" alt="Tracking" />

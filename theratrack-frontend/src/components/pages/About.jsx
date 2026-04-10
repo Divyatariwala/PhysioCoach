@@ -80,7 +80,7 @@ const About = () => {
             <h3 className="text-center text-md-start mb-3 mb-md-0 me-md-4">
               Ready to take the first step towards your fitness goals?
             </h3>
-            <Link to="/api/login" className="btn btn-primary">Join Now</Link>
+            <Link to="/login" className="btn btn-primary">Join Now</Link>
           </div>
         </section>
       )}
