@@ -6,40 +6,45 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
+  // ------------------ Initial auth state ------------------
   const [auth, setAuth] = useState(() => ({
     token: localStorage.getItem("access_token"),
-    role: localStorage.getItem("userRole") || "user"
+    role: localStorage.getItem("userRole") || "user",
   }));
 
-  // ------------------ Decode JWT safely ------------------
+  // ------------------ Decode JWT ------------------
   const decodeToken = (token) => {
     try {
       return JSON.parse(atob(token.split(".")[1]));
-    } catch {
+    } catch (err) {
       return null;
     }
   };
 
-  // ------------------ Check token expiry ------------------
+  // ------------------ Check expiry safely ------------------
   const isTokenExpired = (token) => {
     if (!token) return true;
 
     const payload = decodeToken(token);
     if (!payload?.exp) return true;
 
-    return payload.exp < Date.now() / 1000;
+    // buffer = prevents instant logout due to timing mismatch
+    const bufferInSeconds = 30;
+
+    const currentTime = Date.now() / 1000;
+
+    return payload.exp < currentTime + bufferInSeconds;
   };
 
   // ------------------ Login ------------------
   const login = ({ token, role }) => {
-    const authData = { token, role };
+    setAuth({ token, role });
 
-    setAuth(authData);
     localStorage.setItem("access_token", token);
     localStorage.setItem("userRole", role);
-    localStorage.setItem("session_start", Date.now());
+    localStorage.setItem("session_start", Date.now().toString());
 
-    navigate("/"); // redirect after login
+    navigate("/");
   };
 
   // ------------------ Logout ------------------
@@ -62,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [auth.token]);
 
-  // ------------------ Periodic expiry check ------------------
+  // ------------------ Periodic token check ------------------
   useEffect(() => {
     if (!auth.token) return;
 
@@ -70,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       if (isTokenExpired(auth.token)) {
         logout();
       }
-    }, 5 * 60 * 1000); // every 5 mins
+    }, 60 * 1000); // check every 1 minute
 
     return () => clearInterval(interval);
   }, [auth.token]);
@@ -82,12 +87,13 @@ export const AuthProvider = ({ children }) => {
     const sessionStart = Number(localStorage.getItem("session_start"));
 
     if (!sessionStart) {
-      localStorage.setItem("session_start", Date.now());
+      localStorage.setItem("session_start", Date.now().toString());
     } else if (Date.now() - sessionStart > FIVE_DAYS) {
       logout();
     }
   }, []);
 
+  // ------------------ Derived state ------------------
   const isLoggedIn = !!auth.token;
 
   return (
@@ -98,10 +104,10 @@ export const AuthProvider = ({ children }) => {
         isLoggedIn,
         login,
         logout,
-        isTokenExpired
+        isTokenExpired,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}; 

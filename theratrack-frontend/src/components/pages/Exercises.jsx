@@ -4,6 +4,7 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import "../css/Exercises.css";
 import ReportTemplate from "./ReportTemplate";
+import { AIEngine } from "../../ai/AIEngine";
 
 const backendHost = "http://localhost:8000";
 
@@ -11,22 +12,27 @@ const Exercises = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const detectorRef = useRef(null);
-  const repStateRef = useRef("UP");
+
+  const aiEngineRef = useRef(null);
+
   const startTimeRef = useRef(null);
-  const keypointHistoryRef = useRef([]);
   const sessionActiveRef = useRef(false);
   const currentSessionIdRef = useRef(null);
+  
   const repsRef = useRef([]);
-  const [repetitionsData, setRepetitionsData] = useState([]);
 
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
+
   const [repCount, setRepCount] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
+  
   const [postureFeedback, setPostureFeedback] = useState("Stand straight and get ready! 🚀");
   const [postureAccuracy, setPostureAccuracy] = useState(0);
+  
   const [sessionActive, setSessionActive] = useState(false);
   const [reportReady, setReportReady] = useState(false);
+  
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -100,10 +106,10 @@ const Exercises = () => {
     sessionActiveRef.current = true;
     setRepCount(0);
     setSessionTime(0);
-    repStateRef.current = "UP";
-    keypointHistoryRef.current = [];
+    
+    
     repsRef.current = [];
-    setRepetitionsData([]);
+    
     setPostureFeedback("📸 Initializing...");
     setReportReady(false);
     currentSessionIdRef.current = null;
@@ -239,106 +245,53 @@ const Exercises = () => {
     }
   };
 
-  // ------------------ Pose detection ------------------
+  // ---------------- DETECTION LOOP ----------------
   const detectFrame = async () => {
-    if (!sessionActiveRef.current || !videoRef.current) return;
+    if (!sessionActiveRef.current) return;
+
     try {
-      const poses = await detectorRef.current.estimatePoses(videoRef.current);
-      if (poses.length > 0) {
-        drawKeypoints(poses[0]);
-        handleReps(poses[0]);
+      const poses = await detectorRef.current.estimatePoses(
+        videoRef.current
+      );
+
+      if (poses.length > 0 && aiEngineRef.current) {
+        const result = await aiEngineRef.current.analyze(
+          poses[0]
+        );
+
+        if (result) {
+          setPostureAccuracy(result.accuracy);
+          setPostureFeedback(result.feedback);
+
+          if (result.repCompleted) {
+            setRepCount((prev) => prev + 1);
+
+            setPostureFeedback(result.feedback);
+
+            setRepCount((prev) => {
+              const newCount = prev + 1;
+
+              setPostureFeedback(result.feedback);
+
+              return newCount;
+            });
+
+            repsRef.current.push({
+              count_number: repsRef.current.length + 1,
+              posture_accuracy: result.accuracy,
+              feedback_text: result.feedback,
+            });
+          }
+        }
       }
     } catch (err) {
-      console.warn("Pose detection stopped:", err);
+      console.log("Detection error:", err);
     }
+
     requestAnimationFrame(detectFrame);
   };
 
-  const drawKeypoints = pose => {
-    const ctx = canvasRef.current.getContext("2d");
-    const video = videoRef.current;
-    canvasRef.current.width = video.videoWidth;
-    canvasRef.current.height = video.videoHeight;
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-    pose.keypoints.forEach(kp => {
-      if (kp.score > 0.5) {
-        ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = "red";
-        ctx.fill();
-      }
-    });
-  };
-
-  const smoothKeypoints = keypoints => {
-    keypointHistoryRef.current.push(keypoints);
-    if (keypointHistoryRef.current.length > 5) keypointHistoryRef.current.shift();
-
-    return keypoints.map((kp, idx) => {
-      let avgX = 0, avgY = 0, avgScore = 0;
-      keypointHistoryRef.current.forEach(frame => {
-        avgX += frame[idx].x;
-        avgY += frame[idx].y;
-        avgScore += frame[idx].score;
-      });
-      const n = keypointHistoryRef.current.length;
-      return { ...kp, x: avgX / n, y: avgY / n, score: avgScore / n };
-    });
-  };
-
-  const handleReps = pose => {
-    const keypoints = smoothKeypoints(pose.keypoints);
-    const leftHip = keypoints.find(k => k.name === "left_hip");
-    const leftKnee = keypoints.find(k => k.name === "left_knee");
-    const leftAnkle = keypoints.find(k => k.name === "left_ankle");
-    if (!leftHip || !leftKnee || !leftAnkle) return;
-
-    const kneeAngle = getAngle(leftHip, leftKnee, leftAnkle);
-    let postureScore = 60 + Math.max(0, Math.min(1, (180 - kneeAngle) / 120)) * 40;
-    postureScore = Math.round(postureScore);
-    setPostureAccuracy(postureScore);
-
-    let liveFeedback;
-    if (postureScore > 85) liveFeedback = "Excellent form! Keep it up 💪";
-    else if (postureScore > 70) liveFeedback = "Good form! Almost perfect 👍";
-    else liveFeedback = "Adjust your posture ⚠️";
-    setPostureFeedback(liveFeedback);
-
-    if (kneeAngle < 100 && repStateRef.current === "UP") repStateRef.current = "DOWN";
-
-    if (kneeAngle > 160 && repStateRef.current === "DOWN") {
-      repStateRef.current = "UP";
-
-      setRepetitionsData(prev => {
-        const newRepNumber = prev.length + 1;
-        const newRep = {
-          count_number: newRepNumber,
-          posture_accuracy: postureScore,
-          feedback_text:
-            postureScore > 85
-              ? `Excellent! Rep #${newRepNumber} perfect ✅`
-              : postureScore > 70
-                ? `Good! Rep #${newRepNumber} almost there 👍`
-                : `Needs improvement! Rep #${newRepNumber} keep trying ⚠️`
-        };
-        const newArray = [...prev, newRep];
-        repsRef.current = newArray;
-        setRepCount(newRepNumber);
-        setPostureFeedback(newRep.feedback_text);
-        return newArray;
-      });
-    }
-  };
-
-  const getAngle = (a, b, c) => {
-    const ab = { x: a.x - b.x, y: a.y - b.y };
-    const cb = { x: c.x - b.x, y: c.y - b.y };
-    const dot = ab.x * cb.x + ab.y * cb.y;
-    return (Math.acos(dot / (Math.sqrt(ab.x ** 2 + ab.y ** 2) * Math.sqrt(cb.x ** 2 + cb.y ** 2))) * 180) / Math.PI;
-  };
-
-
+ 
   // ------------------ JSX ------------------
   return (
     <div className="exercise-page container py-5">
@@ -423,12 +376,8 @@ const Exercises = () => {
                     minutes={Math.floor(sessionTime / 60)}
                     seconds={sessionTime % 60}
                     totalReps={repCount}
-                    avgAccuracy={
-                      repetitionsData.length > 0
-                        ? (repetitionsData.reduce((sum, r) => sum + r.posture_accuracy, 0) / repetitionsData.length).toFixed(1)
-                        : "0"
-                    }
-                    repetitions={repetitionsData}
+                    avgAccuracy={postureAccuracy}
+                    repetitions={repsRef.current}
                   />
                 }
                 fileName="Workout_Report.pdf"
