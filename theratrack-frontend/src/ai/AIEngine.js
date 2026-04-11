@@ -313,12 +313,6 @@ export class AIEngine {
         }
 
         // =========================
-        // BODY CENTER (IMPORTANT)
-        // =========================
-        const centerHipX = (lh.x + rh.x) / 2;
-        const centerHipY = (lh.y + rh.y) / 2;
-
-        // =========================
         // LEFT LEG MOVEMENT
         // =========================
         const leftHorizontal = Math.abs(la.x - lh.x);

@@ -4,7 +4,6 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import "../css/Exercises.css";
 import ReportTemplate from "./ReportTemplate";
-import { landmarkNames } from "../../ai/landmarkNames";
 import { AIEngine } from "../../ai/AIEngine";
 
 const backendHost = "http://localhost:8000";
@@ -360,65 +359,6 @@ const Exercises = () => {
     } catch (err) {
       console.error("Error generating/uploading report:", err);
     }
-  };
-
-  const drawPose = (pose) => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-
-    if (!canvas || !video || video.videoWidth === 0) return;
-
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const keypoints = pose.keypoints;
-
-    // Draw joints
-    keypoints.forEach(kp => {
-      if (kp.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = "red";
-        ctx.fill();
-      }
-    });
-
-    // Skeleton connections (MoveNet)
-    const connections = [
-      ["left_shoulder", "right_shoulder"],
-      ["left_shoulder", "left_elbow"],
-      ["left_elbow", "left_wrist"],
-      ["right_shoulder", "right_elbow"],
-      ["right_elbow", "right_wrist"],
-      ["left_shoulder", "left_hip"],
-      ["right_shoulder", "right_hip"],
-      ["left_hip", "right_hip"],
-      ["left_hip", "left_knee"],
-      ["left_knee", "left_ankle"],
-      ["right_hip", "right_knee"],
-      ["right_knee", "right_ankle"]
-    ];
-
-    const getPoint = (name) => keypoints.find(k => k.name === name);
-
-    ctx.strokeStyle = "lime";
-    ctx.lineWidth = 3;
-
-    connections.forEach(([p1, p2]) => {
-      const kp1 = getPoint(p1);
-      const kp2 = getPoint(p2);
-
-      if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
-        ctx.beginPath();
-        ctx.moveTo(kp1.x, kp1.y);
-        ctx.lineTo(kp2.x, kp2.y);
-        ctx.stroke();
-      }
-    });
   };
 
   const smoothKeypoints = (newKps) => {

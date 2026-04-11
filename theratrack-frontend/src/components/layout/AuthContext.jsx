@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext();
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ------------------ Check expiry safely ------------------
-  const isTokenExpired = (token) => {
+  const isTokenExpired = useCallback((token) => {
     if (!token) return true;
 
     const payload = decodeToken(token);
@@ -30,11 +30,10 @@ export const AuthProvider = ({ children }) => {
 
     // buffer = prevents instant logout due to timing mismatch
     const bufferInSeconds = 30;
-
     const currentTime = Date.now() / 1000;
 
     return payload.exp < currentTime + bufferInSeconds;
-  };
+  }, []);
 
   // ------------------ Login ------------------
   const login = ({ token, role }) => {
@@ -48,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ------------------ Logout ------------------
-  const logout = (redirect = true) => {
+  const logout = useCallback((redirect = true) => {
     setAuth({ token: null, role: "user" });
 
     localStorage.removeItem("access_token");
@@ -58,14 +57,14 @@ export const AuthProvider = ({ children }) => {
     if (redirect && window.location.pathname !== "/") {
       navigate("/", {replace:true});
     }
-  };
+  }, [navigate]);
 
   // ------------------ Validate on token change ------------------
   useEffect(() => {
     if (auth.token && isTokenExpired(auth.token)) {
       logout(false);
     }
-  }, [auth.token]);
+  }, [auth.token, isTokenExpired, logout]);
 
   // ------------------ Periodic token check ------------------
   useEffect(() => {
@@ -78,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     }, 60 * 1000); // check every 1 minute
 
     return () => clearInterval(interval);
-  }, [auth.token]);
+  }, [auth.token, isTokenExpired, logout]);
 
   // ------------------ Max session duration (5 days) ------------------
   useEffect(() => {
@@ -91,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     } else if (Date.now() - sessionStart > FIVE_DAYS) {
       logout();
     }
-  }, []);
+  }, [logout]);
 
   // ------------------ Derived state ------------------
   const isLoggedIn = !!auth.token;
