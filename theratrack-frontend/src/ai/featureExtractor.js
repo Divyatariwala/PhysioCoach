@@ -1,30 +1,34 @@
-export const getAngle = (a, b, c) => {
-  const ab = [a.x - b.x, a.y - b.y];
-  const cb = [c.x - b.x, c.y - b.y];
-
-  const dot = ab[0] * cb[0] + ab[1] * cb[1];
-  const magAB = Math.sqrt(ab[0] ** 2 + ab[1] ** 2);
-  const magCB = Math.sqrt(cb[0] ** 2 + cb[1] ** 2);
-
-  return Math.acos(dot / (magAB * magCB)) * (180 / Math.PI);
-};
-
-export const getKeypoint = (keypoints, name) =>
-  keypoints.find(k => k.name === name);
+import { getAngle, getKeypoint } from "./helpers";
 
 export const extractFeatures = (keypoints) => {
-  const hip = getKeypoint(keypoints, "left_hip");
-  const knee = getKeypoint(keypoints, "left_knee");
-  const ankle = getKeypoint(keypoints, "left_ankle");
+  const kp = (name) => getKeypoint(keypoints, name);
 
-  const shoulder = getKeypoint(keypoints, "left_shoulder");
-  const elbow = getKeypoint(keypoints, "left_elbow");
-  const wrist = getKeypoint(keypoints, "left_wrist");
+  // ---- SQUAT ----
+  const squatAngle = kp("left_hip") && kp("left_knee") && kp("left_ankle")
+    ? getAngle(kp("left_hip"), kp("left_knee"), kp("left_ankle"))
+    : null;
 
-  if (!hip || !knee || !ankle || !shoulder || !elbow || !wrist) return null;
+  const squatAngleR = kp("right_hip") && kp("right_knee") && kp("right_ankle")
+    ? getAngle(kp("right_hip"), kp("right_knee"), kp("right_ankle"))
+    : null;
 
-  const kneeAngle = getAngle(hip, knee, ankle);
-  const elbowAngle = getAngle(shoulder, elbow, wrist);
+  // ---- BICEP CURL ----
+  const bicepAngle = kp("right_shoulder") && kp("right_elbow") && kp("right_wrist")
+    ? getAngle(kp("right_shoulder"), kp("right_elbow"), kp("right_wrist"))
+    : null;
 
-  return { kneeAngle, elbowAngle };
+  const bicepAngleL = kp("left_shoulder") && kp("left_elbow") && kp("left_wrist")
+    ? getAngle(kp("left_shoulder"), kp("left_elbow"), kp("left_wrist"))
+    : null;
+
+  // ---- SIDE LEG RAISE ----
+  const legLift = kp("left_hip") && kp("left_knee")
+    ? Math.abs(kp("left_hip").y - kp("left_knee").y)
+    : null;
+
+  return {
+    squatAngle: (squatAngle + squatAngleR) / 2,
+    bicepAngle: (bicepAngle + bicepAngleL) / 2,
+    legLift
+  };
 };

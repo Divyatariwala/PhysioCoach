@@ -268,7 +268,7 @@ const ReportTemplate = ({ session, minutes, seconds, totalReps, avgAccuracy, rep
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statTitle}>Avg Accuracy</Text>
-            <Text style={styles.statValue}>{Math.round(avgAccuracy)}%</Text>
+            <Text style={styles.statValue}>{Number(avgAccuracy).toFixed(1)}%</Text>
           </View>
         </View>
 

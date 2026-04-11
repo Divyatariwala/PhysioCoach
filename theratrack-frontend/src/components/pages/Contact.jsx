@@ -202,3 +202,6 @@ export default Contact;
 
 // train model to analyze the exercises
 
+// commit engine
+// fix the automatic logout
+//

@@ -4,6 +4,7 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import "../css/Exercises.css";
 import ReportTemplate from "./ReportTemplate";
+import { landmarkNames } from "../../ai/landmarkNames";
 import { AIEngine } from "../../ai/AIEngine";
 
 const backendHost = "http://localhost:8000";
@@ -18,7 +19,7 @@ const Exercises = () => {
   const startTimeRef = useRef(null);
   const sessionActiveRef = useRef(false);
   const currentSessionIdRef = useRef(null);
-  
+
   const repsRef = useRef([]);
 
   const [exercises, setExercises] = useState([]);
@@ -26,13 +27,15 @@ const Exercises = () => {
 
   const [repCount, setRepCount] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
-  
+
   const [postureFeedback, setPostureFeedback] = useState("Stand straight and get ready! 🚀");
   const [postureAccuracy, setPostureAccuracy] = useState(0);
-  
+
+  const previousKeypointsRef = useRef([]);
+
   const [sessionActive, setSessionActive] = useState(false);
   const [reportReady, setReportReady] = useState(false);
-  
+
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -71,8 +74,15 @@ const Exercises = () => {
     const initDetector = async () => {
       await tf.ready();
       await tf.setBackend("webgl");
-      detectorRef.current = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
-      console.log("Pose detector ready ✅");
+
+      detectorRef.current = await poseDetection.createDetector(
+        poseDetection.SupportedModels.MoveNet,
+        {
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+        }
+      );
+
+      console.log("Pose detector ready");
     };
     initDetector();
   }, []);
@@ -87,6 +97,17 @@ const Exercises = () => {
     }
     return () => clearInterval(timer);
   }, [sessionActive]);
+
+  // ---------------- INIT AI ENGINE ----------------
+  useEffect(() => {
+    const initAI = async () => {
+      if (selectedExercise) {
+        aiEngineRef.current = new AIEngine(selectedExercise.exercise_name);
+        await aiEngineRef.current.loadModel();
+      }
+    };
+    initAI();
+  }, [selectedExercise]);
 
   // ------------------ Handle click outside dropdown ------------------
   useEffect(() => {
@@ -106,17 +127,23 @@ const Exercises = () => {
     sessionActiveRef.current = true;
     setRepCount(0);
     setSessionTime(0);
-    
-    
+
+
     repsRef.current = [];
-    
+
     setPostureFeedback("📸 Initializing...");
     setReportReady(false);
     currentSessionIdRef.current = null;
     startTimeRef.current = Date.now();
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          facingMode: "user"
+        }
+      });
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
       requestAnimationFrame(detectFrame);
@@ -181,6 +208,80 @@ const Exercises = () => {
     }
   };
 
+  const autoZoomAndDraw = (pose) => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+
+    if (!canvas || !video || video.videoWidth === 0) return;
+
+    const ctx = canvas.getContext("2d");
+
+    const videoWidth = video.videoWidth;
+    const videoHeight = video.videoHeight;
+
+    // match canvas exactly to video
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // draw video first
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const scaleX = canvas.width / videoWidth;
+    const scaleY = canvas.height / videoHeight;
+
+    const keypoints = pose.keypoints;
+
+    // helper: scaled coordinates
+    const getX = (x) => x * scaleX;
+    const getY = (y) => y * scaleY;
+
+    // Draw joints
+    keypoints.forEach((kp) => {
+      if (kp.score > 0.4) {
+        ctx.beginPath();
+        ctx.arc(getX(kp.x), getY(kp.y), 6, 0, 2 * Math.PI);
+        ctx.fillStyle = "#FF3B3B";
+        ctx.fill();
+      }
+    });
+
+    // Skeleton connections
+    const connections = [
+      ["left_shoulder", "right_shoulder"],
+      ["left_shoulder", "left_elbow"],
+      ["left_elbow", "left_wrist"],
+      ["right_shoulder", "right_elbow"],
+      ["right_elbow", "right_wrist"],
+      ["left_shoulder", "left_hip"],
+      ["right_shoulder", "right_hip"],
+      ["left_hip", "right_hip"],
+      ["left_hip", "left_knee"],
+      ["left_knee", "left_ankle"],
+      ["right_hip", "right_knee"],
+      ["right_knee", "right_ankle"],
+    ];
+
+    const getPoint = (name) =>
+      keypoints.find((k) => k.name === name);
+
+    ctx.strokeStyle = "#00FFAA";
+    ctx.lineWidth = 4;
+
+    connections.forEach(([p1, p2]) => {
+      const kp1 = getPoint(p1);
+      const kp2 = getPoint(p2);
+
+      if (kp1 && kp2 && kp1.score > 0.4 && kp2.score > 0.4) {
+        ctx.beginPath();
+        ctx.moveTo(getX(kp1.x), getY(kp1.y));
+        ctx.lineTo(getX(kp2.x), getY(kp2.y));
+        ctx.stroke();
+      }
+    });
+  };
+
   // Utility function to convert watch URL to embed URL
   const getEmbedUrl = (url) => {
     if (!url) return null;
@@ -200,21 +301,37 @@ const Exercises = () => {
     }
   };
 
+  const calculateAvgAccuracy = (repsData) => {
+    if (!repsData || repsData.length === 0) return 0;
+
+    const total = repsData.reduce(
+      (sum, rep) => sum + (rep.posture_accuracy || 0),
+      0
+    );
+    return total / repsData.length;
+  };
+
+  const formatTime = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
   // ------------------ Upload PDF report ------------------
   const uploadReport = async (sessionId, exercise, repsData, duration) => {
     if (!sessionId || !exercise) return;
+
     try {
+      const avgAccuracy = calculateAvgAccuracy(repsData);
+
       const blob = await pdf(
         <ReportTemplate
           session={exercise}
           minutes={Math.floor(duration / 60)}
           seconds={duration % 60}
           totalReps={repsData.length}
-          avgAccuracy={
-            repsData.length > 0
-              ? (repsData.reduce((sum, r) => sum + r.posture_accuracy, 0) / repsData.length).toFixed(1)
-              : "0"
-          }
+          avgAccuracy={avgAccuracy}
           repetitions={repsData}
         />
       ).toBlob();
@@ -227,22 +344,106 @@ const Exercises = () => {
       });
 
       const accessToken = getAccessToken();
+
       await fetch(`${backendHost}/api/save_report/`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json"
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           session_id: sessionId,
           pdf_base64: base64data,
-          generated_by: "AI_Model"
-        })
+          generated_by: "AI_Model",
+        }),
       });
-      console.log("Report uploaded ✅");
     } catch (err) {
       console.error("Error generating/uploading report:", err);
     }
+  };
+
+  const drawPose = (pose) => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+
+    if (!canvas || !video || video.videoWidth === 0) return;
+
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const keypoints = pose.keypoints;
+
+    // Draw joints
+    keypoints.forEach(kp => {
+      if (kp.score > 0.3) {
+        ctx.beginPath();
+        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      }
+    });
+
+    // Skeleton connections (MoveNet)
+    const connections = [
+      ["left_shoulder", "right_shoulder"],
+      ["left_shoulder", "left_elbow"],
+      ["left_elbow", "left_wrist"],
+      ["right_shoulder", "right_elbow"],
+      ["right_elbow", "right_wrist"],
+      ["left_shoulder", "left_hip"],
+      ["right_shoulder", "right_hip"],
+      ["left_hip", "right_hip"],
+      ["left_hip", "left_knee"],
+      ["left_knee", "left_ankle"],
+      ["right_hip", "right_knee"],
+      ["right_knee", "right_ankle"]
+    ];
+
+    const getPoint = (name) => keypoints.find(k => k.name === name);
+
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 3;
+
+    connections.forEach(([p1, p2]) => {
+      const kp1 = getPoint(p1);
+      const kp2 = getPoint(p2);
+
+      if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
+        ctx.beginPath();
+        ctx.moveTo(kp1.x, kp1.y);
+        ctx.lineTo(kp2.x, kp2.y);
+        ctx.stroke();
+      }
+    });
+  };
+
+  const smoothKeypoints = (newKps) => {
+    const prev = previousKeypointsRef.current;
+
+    if (!prev || prev.length === 0) {
+      previousKeypointsRef.current = newKps;
+      return newKps;
+    }
+
+    const smoothed = newKps.map((kp, i) => {
+      const prevKp = prev[i];
+
+      if (!prevKp) return kp;
+
+      return {
+        ...kp,
+        x: kp.x * 0.6 + prevKp.x * 0.4,
+        y: kp.y * 0.6 + prevKp.y * 0.4,
+        score: kp.score
+      };
+    });
+
+    previousKeypointsRef.current = smoothed;
+    return smoothed;
   };
 
   // ---------------- DETECTION LOOP ----------------
@@ -250,37 +451,38 @@ const Exercises = () => {
     if (!sessionActiveRef.current) return;
 
     try {
-      const poses = await detectorRef.current.estimatePoses(
-        videoRef.current
-      );
+      const poses = await detectorRef.current.estimatePoses(videoRef.current);
 
-      if (poses.length > 0 && aiEngineRef.current) {
-        const result = await aiEngineRef.current.analyze(
-          poses[0]
-        );
+      if (poses.length > 0) {
+        const rawKeypoints = poses[0].keypoints.map((kp) => ({
+          x: kp.x,
+          y: kp.y,
+          score: kp.score,
+          name: kp.name
+        }));
+
+        const smoothedKeypoints = smoothKeypoints(rawKeypoints);
+
+        autoZoomAndDraw({ keypoints: smoothedKeypoints });
+
+        const result = await aiEngineRef.current.analyze({
+          keypoints: smoothedKeypoints
+        });
 
         if (result) {
           setPostureAccuracy(result.accuracy);
           setPostureFeedback(result.feedback);
 
           if (result.repCompleted) {
-            setRepCount((prev) => prev + 1);
-
-            setPostureFeedback(result.feedback);
-
-            setRepCount((prev) => {
-              const newCount = prev + 1;
-
-              setPostureFeedback(result.feedback);
-
-              return newCount;
-            });
-
-            repsRef.current.push({
-              count_number: repsRef.current.length + 1,
+            const newRep = {
+              count_number: repCount + 1,
               posture_accuracy: result.accuracy,
-              feedback_text: result.feedback,
-            });
+              feedback_text: result.feedback
+            };
+
+            repsRef.current = [...repsRef.current, newRep];
+
+            setRepCount(prev => prev + 1);
           }
         }
       }
@@ -291,7 +493,7 @@ const Exercises = () => {
     requestAnimationFrame(detectFrame);
   };
 
- 
+
   // ------------------ JSX ------------------
   return (
     <div className="exercise-page container py-5">
@@ -299,7 +501,7 @@ const Exercises = () => {
         <div className="col-lg-7">
           <div className="video-container">
             <video ref={videoRef} autoPlay muted playsInline />
-            <canvas ref={canvasRef} />
+            <canvas ref={canvasRef} id="overlay" />
           </div>
         </div>
 
@@ -358,7 +560,7 @@ const Exercises = () => {
 
             <div className="d-flex justify-content-between">
               <div className="d-flex gap-1"><p>Reps: </p><span>{repCount}</span></div>
-              <div className="d-flex gap-1"><p>Duration: </p><span>{sessionTime}s</span></div>
+              <div className="d-flex gap-1"><p>Duration: </p><span>{formatTime(sessionTime)}</span></div>
             </div>
 
             <div className="d-flex gap-1"><p>Accuracy: </p><span>{postureAccuracy}%</span></div>
@@ -376,7 +578,7 @@ const Exercises = () => {
                     minutes={Math.floor(sessionTime / 60)}
                     seconds={sessionTime % 60}
                     totalReps={repCount}
-                    avgAccuracy={postureAccuracy}
+                    avgAccuracy={calculateAvgAccuracy(repsRef.current)}
                     repetitions={repsRef.current}
                   />
                 }
