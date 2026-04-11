@@ -55,8 +55,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("userRole");
     localStorage.removeItem("session_start");
 
-    if (redirect && window.location.pathname !== "/login") {
-      navigate("/login");
+    if (redirect && window.location.pathname !== "/") {
+      navigate("/", {replace:true});
     }
   };
 
