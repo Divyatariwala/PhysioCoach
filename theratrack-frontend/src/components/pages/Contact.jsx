@@ -200,7 +200,5 @@ export default Contact;
 // change 2 images to free stock
 // change all image in the code
 
-// train model to analyze the exercises
-
 // fix the automatic logout
 //
