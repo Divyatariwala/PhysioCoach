@@ -11,6 +11,7 @@ import json
 import os
 import re
 import traceback
+import pandas as pd
 
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -32,9 +33,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
+from posture.utils.model_loader import load_active_model
+
 from .ai import generate_response
 from .models import (
-    ChatMessage, ChatSession, Contact, Profile, Exercise,
+    ChatMessage, ChatSession, Contact, Profile, Exercise, TrainingData,
     WorkoutSession, Repetition, Report, Feedback, AIModel
 )
 from theratrack import settings
@@ -703,3 +706,61 @@ def contact_api(request):
         created_at=timezone.now()
     )
     return Response({"success": "Message submitted successfully"}, status=status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+def collect_training_data(request):
+    data = request.data
+
+    features = data.get("features", {})
+    label = 1 if data.get("label") == "correct" else 0
+
+    if not isinstance(features, dict):
+        return Response({"error": "Invalid features format"}, status=400)
+    
+    TrainingData.objects.create(
+        exercise=data["exercise"],
+        features=features,
+        label=label
+    )
+
+    return Response({"success": True})
+
+@api_view(["POST"])
+def predict_posture(request):
+    try:
+        data = request.data
+        features = data.get("features")
+
+        if not isinstance(features, dict):
+            return Response({"error": "Invalid features"}, status=400)
+
+        model, scaler, db_model = load_active_model()
+
+        X = pd.DataFrame([{
+            "kneeAngle": float(features.get("kneeAngle") or 0),
+            "hipAngle": float(features.get("hipAngle") or 0),
+            "elbowAngle": float(features.get("elbowAngle") or 0),
+        }])
+
+        # scale input
+        X_scaled = scaler.transform(X)
+
+        # prediction
+        pred = model.predict(X_scaled)[0]
+
+        # probability (FIXED)
+        if hasattr(model, "predict_proba"):
+            prob = float(model.predict_proba(X_scaled)[0].max())
+        else:
+            prob = 1.0
+
+        return Response({
+            "label": "correct" if int(pred) == 1 else "incorrect",
+            "prob": prob,
+            "model_version": db_model.version,
+            "model_accuracy": db_model.accuracy
+        })
+
+    except Exception as e:
+        print("PREDICT ERROR:", str(e))
+        return Response({"error": str(e)}, status=500)

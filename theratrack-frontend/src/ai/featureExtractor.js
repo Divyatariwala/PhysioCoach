@@ -1,34 +1,80 @@
-import { getAngle, getKeypoint } from "./helpers";
+export const extractFeatures = (keypoints, side = "left") => {
+  const get = (name) => keypoints.find(k => k.name === name);
 
-export const extractFeatures = (keypoints) => {
-  const kp = (name) => getKeypoint(keypoints, name);
+  const calculateAngle = (a, b, c) => {
+    if (!a || !b || !c) return 0;
 
-  // ---- SQUAT ----
-  const squatAngle = kp("left_hip") && kp("left_knee") && kp("left_ankle")
-    ? getAngle(kp("left_hip"), kp("left_knee"), kp("left_ankle"))
-    : null;
+    const AB = { x: a.x - b.x, y: a.y - b.y };
+    const CB = { x: c.x - b.x, y: c.y - b.y };
 
-  const squatAngleR = kp("right_hip") && kp("right_knee") && kp("right_ankle")
-    ? getAngle(kp("right_hip"), kp("right_knee"), kp("right_ankle"))
-    : null;
+    const dot = AB.x * CB.x + AB.y * CB.y;
+    const magAB = Math.sqrt(AB.x ** 2 + AB.y ** 2);
+    const magCB = Math.sqrt(CB.x ** 2 + CB.y ** 2);
 
-  // ---- BICEP CURL ----
-  const bicepAngle = kp("right_shoulder") && kp("right_elbow") && kp("right_wrist")
-    ? getAngle(kp("right_shoulder"), kp("right_elbow"), kp("right_wrist"))
-    : null;
+    const angle = Math.acos(dot / (magAB * magCB)) * (180 / Math.PI);
+    return isNaN(angle) ? 0 : angle;
+  };
 
-  const bicepAngleL = kp("left_shoulder") && kp("left_elbow") && kp("left_wrist")
-    ? getAngle(kp("left_shoulder"), kp("left_elbow"), kp("left_wrist"))
-    : null;
+  // ---------------- JOINTS ----------------
+  const hip = get(`${side}_hip`);
+  const knee = get(`${side}_knee`);
+  const ankle = get(`${side}_ankle`);
 
-  // ---- SIDE LEG RAISE ----
-  const legLift = kp("left_hip") && kp("left_knee")
-    ? Math.abs(kp("left_hip").y - kp("left_knee").y)
-    : null;
+  const shoulder = get(`${side}_shoulder`);
+  const elbow = get(`${side}_elbow`);
+  const wrist = get(`${side}_wrist`);
+
+  // fallback if side missing → try both
+  const safeHip = hip || get("left_hip") || get("right_hip");
+  const safeKnee = knee || get("left_knee") || get("right_knee");
+  const safeAnkle = ankle || get("left_ankle") || get("right_ankle");
+  const safeShoulder = shoulder || get("left_shoulder") || get("right_shoulder");
+
+  // ---------------- FEATURES ----------------
+  const kneeAngle = calculateAngle(safeHip, safeKnee, safeAnkle);
+  const hipAngle = calculateAngle(safeShoulder, safeHip, safeKnee);
+
+  // =========================================================
+  // 🔥 FIXED BICEP CURL (LEFT + RIGHT ARM SUPPORT)
+  // =========================================================
+
+  const leftElbowAngle = calculateAngle(
+    get("left_shoulder"),
+    get("left_elbow"),
+    get("left_wrist")
+  );
+
+  const rightElbowAngle = calculateAngle(
+    get("right_shoulder"),
+    get("right_elbow"),
+    get("right_wrist")
+  );
+
+  const leftScore = get("left_elbow")?.score || 0;
+  const rightScore = get("right_elbow")?.score || 0;
+
+  let elbowAngle = 0;
+
+  if (leftScore > 0.4 && rightScore > 0.4) {
+    // BOTH ARMS VISIBLE → average for balanced curls
+    elbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
+  } else if (leftScore > rightScore) {
+    elbowAngle = leftElbowAngle;
+  } else {
+    elbowAngle = rightElbowAngle;
+  }
+
+  // ---------------- SIDE LEG RAISE ----------------
+  const legRaiseAngle = calculateAngle(
+    safeShoulder,
+    safeHip,
+    safeAnkle
+  );
 
   return {
-    squatAngle: (squatAngle + squatAngleR) / 2,
-    bicepAngle: (bicepAngle + bicepAngleL) / 2,
-    legLift
+    kneeAngle,
+    hipAngle,
+    elbowAngle,
+    legRaiseAngle
   };
 };

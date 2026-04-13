@@ -56,6 +56,9 @@ urlpatterns = [
 
     # Chatbot
     path('api/chat/', views.chat_api, name='chat_api'),
+
+    path("api/collect_training_data/", views.collect_training_data, name='collect_training_data'),
+    path("api/predict_posture/", views.predict_posture, name="predict_posture")
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

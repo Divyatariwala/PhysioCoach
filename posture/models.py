@@ -193,3 +193,9 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.notification_type} - {self.sent_at}"
+    
+class TrainingData(models.Model):
+    exercise = models.CharField(max_length=50)
+    features = models.JSONField()
+    label = models.IntegerField()  # 1 = correct, 0 = incorrect
+    created_at = models.DateTimeField(auto_now_add=True)

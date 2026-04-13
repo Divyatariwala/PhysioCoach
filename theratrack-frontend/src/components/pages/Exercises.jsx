@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import "../css/Exercises.css";
 import ReportTemplate from "./ReportTemplate";
-import { AIEngine } from "../../ai/AIEngine";
+import { extractFeatures } from "../../ai/featureExtractor";
 
 const backendHost = "http://localhost:8000";
 
@@ -12,14 +12,25 @@ const Exercises = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const detectorRef = useRef(null);
-
-  const aiEngineRef = useRef(null);
+  const modelRef = useRef(null);
 
   const startTimeRef = useRef(null);
   const sessionActiveRef = useRef(false);
   const currentSessionIdRef = useRef(null);
 
   const repsRef = useRef([]);
+  const repStateRef = useRef({
+    squats: "UP",
+    "bicep curls": "DOWN",
+    "side leg raises": "DOWN",
+  });
+
+  const lastRepTimeRef = useRef({
+    squats: 0,
+    "bicep curls": 0,
+    "side leg raises": 0,
+  });
+  const lastKneeAngleRef = useRef(null);
 
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
@@ -31,6 +42,7 @@ const Exercises = () => {
   const [postureAccuracy, setPostureAccuracy] = useState(0);
 
   const previousKeypointsRef = useRef([]);
+  const squatStableFrames = useRef(0);
 
   const [sessionActive, setSessionActive] = useState(false);
   const [reportReady, setReportReady] = useState(false);
@@ -38,6 +50,7 @@ const Exercises = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const sequenceRef = useRef([]);
 
   // ------------------ Auth token ------------------
   const getAccessToken = () => localStorage.getItem("access_token");
@@ -60,7 +73,7 @@ const Exercises = () => {
         const data = await res.json();
         setExercises(data);
         const squat = data.find(ex => ex.exercise_name.toLowerCase() === "squats");
-        if (squat) setSelectedExercise(squat);
+        if (data.length) setSelectedExercise(squat);
       } catch (err) {
         console.error("Error fetching exercises:", err);
       }
@@ -85,7 +98,6 @@ const Exercises = () => {
     };
     initDetector();
   }, []);
-
   // ------------------ Timer ------------------
   useEffect(() => {
     let timer;
@@ -97,38 +109,86 @@ const Exercises = () => {
     return () => clearInterval(timer);
   }, [sessionActive]);
 
-  // ---------------- INIT AI ENGINE ----------------
+  // ------------------ Handle click outside dropdown ------------------
+  // ------------------ Handle dropdown click outside ------------------
   useEffect(() => {
-    const initAI = async () => {
-      if (selectedExercise) {
-        aiEngineRef.current = new AIEngine(selectedExercise.exercise_name);
-        await aiEngineRef.current.loadModel();
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
       }
     };
-    initAI();
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const collectTrainingData = useCallback(async (features, label) => {
+    if (!features || !selectedExercise) return;
+
+    try {
+      const accessToken = getAccessToken();
+
+      await fetch(`${backendHost}/api/collect_training_data/`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          exercise: selectedExercise.exercise_name,
+          features,
+          label
+        })
+      });
+
+      console.log("Training data saved:", label);
+    } catch (err) {
+      console.error("Data collection error:", err);
+    }
   }, [selectedExercise]);
 
-  // ------------------ Handle click outside dropdown ------------------
+  // ------------------ Keyboard controls (C / I for dataset) ------------------
   useEffect(() => {
-    const handleClickOutside = e => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+    const handleKey = (e) => {
+      const key = e.key.toLowerCase();
+
+      console.log("KEY PRESSED:", key); // 👈 DEBUG
+
+      if (!lastFeaturesRef.current) {
+        console.log("No features yet");
+        return;
+      }
+
+      if (key === "c") {
+        console.log("C pressed → sending correct");
+        collectTrainingData(lastFeaturesRef.current, "correct");
+      }
+
+      if (key === "i") {
+        console.log("I pressed → sending incorrect");
+        collectTrainingData(lastFeaturesRef.current, "incorrect");
+      }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+
+    window.addEventListener("keydown", handleKey);
+
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [collectTrainingData]);
 
   // ------------------ Start session ------------------
   const startSession = async () => {
-    if (!detectorRef.current) return alert("Pose detector not ready");
-    if (!selectedExercise) return alert("Select an exercise first");
-
     setSessionActive(true);
     sessionActiveRef.current = true;
     setRepCount(0);
-    setSessionTime(0);
-
-
     repsRef.current = [];
+    repStateRef.current = {
+      squats: "UP",
+      "bicep curls": "DOWN",
+      "side leg raises": "DOWN",
+    };
 
     setPostureFeedback("📸 Initializing...");
     setReportReady(false);
@@ -138,8 +198,8 @@ const Exercises = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
+          width: { ideal: 640 },
+          height: { ideal: 360 },
           facingMode: "user"
         }
       });
@@ -205,6 +265,16 @@ const Exercises = () => {
     } catch (err) {
       console.error("Error saving session/reps/report:", err);
     }
+  };
+
+  const updateSequence = (features) => {
+    sequenceRef.current.push(features);
+
+    if (sequenceRef.current.length > 10) {
+      sequenceRef.current.shift();
+    }
+
+    return sequenceRef.current;
   };
 
   const autoZoomAndDraw = (pose) => {
@@ -386,6 +456,170 @@ const Exercises = () => {
     return smoothed;
   };
 
+  const lastFeaturesRef = useRef(null);
+  const getActiveSide = (kps) => {
+    const leftHip = kps.find(k => k.name === "left_hip");
+    const rightHip = kps.find(k => k.name === "right_hip");
+
+    if (!leftHip || !rightHip) return "unknown";
+
+    // lower score = not visible side
+    return leftHip.score > rightHip.score ? "left" : "right";
+  };
+
+  // ---------- SQUATS ----------
+  const detectSquatRep = (f) => {
+    const angle = f.kneeAngle;
+    if (!angle) return false;
+
+    const state = repStateRef.current.squats;
+    const now = Date.now();
+
+    const lastAngle = lastKneeAngleRef.current;
+    lastKneeAngleRef.current = angle;
+
+    const isGoingDown = lastAngle != null && angle < lastAngle - 2;
+    const isGoingUp = lastAngle != null && angle > lastAngle + 2;
+
+    // ---------------- IDLE FILTER ----------------
+    // If user is standing still, ignore everything
+    if (!isGoingDown && !isGoingUp && state === "UP") {
+      return false;
+    }
+
+    // ---------------- START DOWN MOVEMENT ----------------
+    if (state === "UP") {
+      if (angle < 150 && isGoingDown) {
+        squatStableFrames.current++;
+      } else {
+        squatStableFrames.current = 0;
+      }
+
+      if (squatStableFrames.current >= 5) {
+        repStateRef.current.squats = "DOWN";
+        squatStableFrames.current = 0;
+      }
+    }
+
+    // ---------------- START UP MOVEMENT ----------------
+    if (state === "DOWN") {
+      if (isGoingUp) {
+        squatStableFrames.current++;
+      } else {
+        squatStableFrames.current = 0;
+      }
+
+      if (angle > 150 && squatStableFrames.current >= 5) {
+        repStateRef.current.squats = "UP";
+
+        // debounce (prevents double counting)
+        if (now - lastRepTimeRef.current.squats < 1200) return false;
+
+        lastRepTimeRef.current.squats = now;
+        squatStableFrames.current = 0;
+
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  // ---------- BICEP CURL ----------
+  const detectBicepRep = (features) => {
+    const angle = features.elbowAngle;
+    if (angle == null || isNaN(angle)) return false;
+
+    const ex = "bicep curls";
+    const state = repStateRef.current[ex];
+
+    if (state === "DOWN" && angle > 150) {
+      repStateRef.current[ex] = "UP";
+    }
+
+    if (state === "UP" && angle < 60) {
+      repStateRef.current[ex] = "DOWN";
+
+      const now = Date.now();
+      if (now - lastRepTimeRef.current[ex] < 1200) return false;
+
+      lastRepTimeRef.current[ex] = now;
+      return true;
+    }
+    return false;
+  };
+
+  // ---------- SIDE LEG RAISE ----------
+  const detectLegRaiseRep = (features) => {
+    const angle = features.legRaiseAngle;
+    if (angle == null || isNaN(angle)) return false;
+
+    const ex = "side leg raises";
+    const state = repStateRef.current[ex];
+    const now = Date.now();
+
+    // standing → leg down
+    if (state === "DOWN" && angle < 140) {
+      repStateRef.current[ex] = "UP";
+    }
+
+    // leg raised → coming back down
+    if (state === "UP" && angle > 160) {
+      repStateRef.current[ex] = "DOWN";
+
+      if (now - lastRepTimeRef.current[ex] < 1200) return false;
+
+      lastRepTimeRef.current[ex] = now;
+      return true;
+    }
+
+    return false;
+  };
+
+  const detectRep = (features) => {
+    const name = selectedExercise?.exercise_name?.toLowerCase();
+
+    switch (name) {
+      case "squats":
+        return detectSquatRep(features);
+
+      case "bicep curls":
+        return detectBicepRep(features);
+
+      case "side leg raises":
+        return detectLegRaiseRep(features);
+
+      default:
+        return false;
+    }
+  };
+
+  const predictPosture = async (features) => {
+    try {
+      const res = await fetch(`${backendHost}/api/predict_posture/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        },
+        body: JSON.stringify({ features })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Backend Error:", data);
+        return { label: "unknown", prob: 0 };
+      }
+
+      return data;
+
+    } catch (err) {
+      console.error("Request failed:", err);
+      return { label: "unknown", prob: 0 };
+    }
+  };
+
   // ---------------- DETECTION LOOP ----------------
   const detectFrame = async () => {
     if (!sessionActiveRef.current) return;
@@ -393,46 +627,174 @@ const Exercises = () => {
     try {
       const poses = await detectorRef.current.estimatePoses(videoRef.current);
 
-      if (poses.length > 0) {
-        const rawKeypoints = poses[0].keypoints.map((kp) => ({
-          x: kp.x,
-          y: kp.y,
-          score: kp.score,
-          name: kp.name
-        }));
-
-        const smoothedKeypoints = smoothKeypoints(rawKeypoints);
-
-        autoZoomAndDraw({ keypoints: smoothedKeypoints });
-
-        const result = await aiEngineRef.current.analyze({
-          keypoints: smoothedKeypoints
-        });
-
-        if (result) {
-          setPostureAccuracy(result.accuracy);
-          setPostureFeedback(result.feedback);
-
-          if (result.repCompleted) {
-            const newRep = {
-              count_number: repCount + 1,
-              posture_accuracy: result.accuracy,
-              feedback_text: result.feedback
-            };
-
-            repsRef.current = [...repsRef.current, newRep];
-
-            setRepCount(prev => prev + 1);
-          }
-        }
+      if (!poses || poses.length === 0) {
+        requestAnimationFrame(detectFrame);
+        return;
       }
+
+      // ---------------- KEYPOINTS ----------------
+      const rawKeypoints = poses[0].keypoints.map((kp) => ({
+        x: kp.x,
+        y: kp.y,
+        score: kp.score,
+        name: kp.name
+      }));
+
+      const smoothedKeypoints = smoothKeypoints(rawKeypoints);
+
+      // DRAW
+      autoZoomAndDraw({ keypoints: smoothedKeypoints });
+
+      // ---------------- FEATURES ----------------
+      const activeSide = getActiveSide(smoothedKeypoints);
+
+      const features = extractFeatures(smoothedKeypoints, activeSide);
+      lastFeaturesRef.current = features;
+
+      // ---------------- SEQUENCE BUFFER ----------------
+      const sequence = updateSequence(features);
+
+      // ---------------- PREDICTION ----------------
+      let prediction = {
+        label: "unknown",
+        prob: 0,
+        feedback: ""
+      };
+
+      const payload = features;
+      prediction = await predictPosture(payload);
+
+      // ---------------- UI UPDATE ----------------
+      const accuracy = prediction?.prob
+        ? Math.min(100, Math.round(prediction.prob * 100))
+        : 0;
+
+      setPostureAccuracy(accuracy);
+      const validateSquatForm = (features) => {
+        const knee = features.kneeAngle;
+
+        if (!knee || isNaN(knee)) return { valid: false, msg: "No pose detected properly" };
+
+        // TOO STRAIGHT (not a squat)
+        if (knee > 160) {
+          return { valid: false, msg: "⚠️ You are not squatting enough" };
+        }
+
+        // TOO DEEP / unstable
+        if (knee < 70) {
+          return { valid: false, msg: "⚠️ Too deep - risk of injury" };
+        }
+
+        return { valid: true, msg: "" };
+      };
+
+      const getExerciseFeedback = (label, prob, exercise, features) => {
+  const name = exercise?.toLowerCase();
+
+  // ---------------- SQUATS ----------------
+  if (name === "squats") {
+    const knee = features.kneeAngle;
+
+    if (!knee || isNaN(knee)) return "⚠️ Stand in camera view properly";
+
+    // posture guidance
+    if (knee > 165) return "⬇️ Go lower into your squat";
+    if (knee < 70) return "⚠️ Too deep — reduce depth for safety";
+
+    if (knee > 140 && knee < 165) {
+      return label === "correct"
+        ? "👍 Good depth — now go a bit lower"
+        : "⬇️ Slightly lower your squat";
+    }
+
+    if (label === "correct" && prob > 0.85) return "🔥 Perfect squat form!";
+    if (label === "correct") return "👍 Solid squat — keep it steady";
+
+    return "🧍 Keep chest up and control your descent";
+  }
+
+  // ---------------- BICEP CURLS ----------------
+  if (name === "bicep curls") {
+    const angle = features.elbowAngle;
+
+    if (!angle || isNaN(angle)) return "💪 Position your arm in frame";
+
+    // too extended
+    if (angle > 160) return "⬇️ Start curl — bend your elbow";
+
+    // too curled
+    if (angle < 40) return "⬆️ Slowly extend your arm fully";
+
+    // mid range guidance
+    if (angle >= 90 && angle <= 140) {
+      return "💪 Nice control — keep elbow stable";
+    }
+
+    if (label === "correct") return "🔥 Clean curl — strong movement!";
+    return "⚠️ Avoid swinging your body";
+  }
+
+  // ---------------- SIDE LEG RAISES ----------------
+  if (name === "side leg raises") {
+    const angle = features.legRaiseAngle;
+
+    if (!angle || isNaN(angle)) return "🦵 Stand sideways to camera";
+
+    // not lifting enough
+    if (angle > 165) return "⬆️ Lift your leg higher";
+
+    // too high / unstable
+    if (angle < 120) return "⚠️ Too high — control your movement";
+
+    // mid control zone
+    if (angle >= 120 && angle <= 150) {
+      return "🚀 Great control — hold and lower slowly";
+    }
+
+    if (label === "correct") return "🔥 Perfect leg raise!";
+    return "🦵 Keep hips steady — don’t swing";
+  }
+
+  return "Keep going! 💪";
+};
+
+      setPostureFeedback(
+        getExerciseFeedback(
+          prediction?.label,
+          prediction?.prob,
+          selectedExercise?.exercise_name,
+          features
+        )
+      );
+
+      const validPose =
+        smoothedKeypoints.filter(kp => kp.score > 0.4).length > 10;
+
+      if (!validPose) {
+        requestAnimationFrame(detectFrame);
+        return;
+      }
+
+      // ---------------- REP DETECTION ----------------
+      const repCompleted = detectRep(features);
+
+      if (repCompleted) {
+        const newRep = {
+          count_number: repCount + 1,
+          posture_accuracy: accuracy,
+          feedback_text: prediction?.feedback || ""
+        };
+
+        repsRef.current = [...repsRef.current, newRep];
+        setRepCount(prev => prev + 1);
+      }
+
     } catch (err) {
-      console.log("Detection error:", err);
+      console.error("Detection error:", err);
     }
 
     requestAnimationFrame(detectFrame);
   };
-
 
   // ------------------ JSX ------------------
   return (
