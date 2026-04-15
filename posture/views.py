@@ -12,6 +12,8 @@ import os
 import re
 import traceback
 import pandas as pd
+import joblib
+import glob
 
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -725,65 +727,112 @@ def collect_training_data(request):
 
     return Response({"success": True})
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR = os.path.join(BASE_DIR, "ml_models")
+
+
+# ---------------- FIND LATEST MODEL ----------------
+def find_latest_model(exercise_name):
+    try:
+        exercise_name = exercise_name.lower().replace(" ", "")
+
+        models = []
+
+        for file in os.listdir(MODEL_DIR):
+            f = file.lower().replace(" ", "")
+
+            if exercise_name in f and f.endswith(".pkl") and "model" in f:
+                models.append(file)
+
+        if not models:
+            return None
+
+        # pick latest version (timestamp at end)
+        models.sort(reverse=True)
+        return os.path.join(MODEL_DIR, models[0])
+
+    except Exception as e:
+        print("FILE SEARCH ERROR:", e)
+        return None
+
+
+def find_scaler(exercise_name):
+    try:
+        exercise_name = exercise_name.lower().replace(" ", "")
+
+        for file in os.listdir(MODEL_DIR):
+            f = file.lower().replace(" ", "")
+
+            if exercise_name in f and "scaler" in f:
+                return os.path.join(MODEL_DIR, file)
+
+        return None
+
+    except Exception as e:
+        print("SCALER SEARCH ERROR:", e)
+        return None
+
+
+# ---------------- VIEW ----------------
 @api_view(["POST"])
 def predict_posture(request):
     try:
         data = request.data
-        features = data.get("features")
-        exercise = data.get("exercise")
+        features = data.get("features", {})
+        exercise = (data.get("exercise") or "").lower().strip()
 
         if not isinstance(features, dict):
             return Response({"error": "Invalid features"}, status=400)
 
-        if not exercise:
-            return Response({"error": "Exercise is required"}, status=400)
+        model_path = find_latest_model(exercise)
 
-        exercise = exercise.lower()
-
-        # ---------------- LOAD CORRECT MODEL ----------------
-        if exercise == "squats":
-            model_path = "ml_models/squat_model.pkl"
-            scaler_path = "ml_models/squat_scaler.pkl"
-
-        elif exercise == "bicep curls":
-            model_path = "ml_models/bicep_model.pkl"
-            scaler_path = "ml_models/bicep_scaler.pkl"
-
-        elif exercise == "side leg raises":
-            model_path = "ml_models/leg_raise_model.pkl"
-            scaler_path = "ml_models/leg_raise_scaler.pkl"
-
-        else:
-            return Response({"error": "Unknown exercise"}, status=400)
+        if not model_path:
+            return Response({
+                "error": f"No model found for {exercise}",
+                "files_in_dir": os.listdir(MODEL_DIR)
+            }, status=500)
 
         model = joblib.load(model_path)
-        scaler = joblib.load(scaler_path)
 
-        # ---------------- BUILD INPUT ----------------
+        # ---------------- BASE FEATURES ----------------
+        knee = float(features.get("kneeAngle", 0))
+        hip = float(features.get("hipAngle", 0))
+        elbow = float(features.get("elbowAngle", 0))
+        leg = float(features.get("legRaiseAngle", 0))
+
+        # ---------------- ENGINEERED FEATURES ----------------
         X = pd.DataFrame([{
-            "kneeAngle": float(features.get("kneeAngle") or 0),
-            "hipAngle": float(features.get("hipAngle") or 0),
-            "elbowAngle": float(features.get("elbowAngle") or 0),
-            "legRaiseAngle": float(features.get("legRaiseAngle") or 0),
+            "kneeAngle": knee,
+            "hipAngle": hip,
+            "elbowAngle": elbow,
+            "legRaiseAngle": leg,
+
+            "knee_hip_diff": abs(knee - hip),
+            "hip_elbow_diff": abs(hip - elbow),
+            "knee_elbow_diff": abs(knee - elbow),
+
+            "body_balance": (knee + hip) / 2,
+            "posture_stability": (knee + hip + elbow) / 3,
+
+            "knee_depth": 180 - knee,
+            "hip_opening": hip - 90,
+            "arm_fold_ratio": elbow / 180
         }])
 
-        X_scaled = scaler.transform(X)
-
         # ---------------- PREDICT ----------------
-        pred = model.predict(X_scaled)[0]
+        pred = model.predict(X)[0]
 
-        prob = (
-            float(model.predict_proba(X_scaled)[0].max())
-            if hasattr(model, "predict_proba")
-            else 1.0
-        )
+        prob = 1.0
+        if hasattr(model, "predict_proba"):
+            prob = float(model.predict_proba(X)[0].max())
 
         return Response({
             "label": "correct" if int(pred) == 1 else "incorrect",
             "prob": prob,
-            "exercise": exercise
+            "exercise": exercise,
+            "model_used": os.path.basename(model_path)
         })
 
     except Exception as e:
-        print("PREDICT ERROR:", str(e))
+        print("PREDICT ERROR:", e)
         return Response({"error": str(e)}, status=500)

@@ -43,6 +43,7 @@ const Exercises = () => {
 
   const previousKeypointsRef = useRef([]);
   const squatStableFrames = useRef(0);
+  const lastFrameTime = useRef(0);
 
   const [sessionActive, setSessionActive] = useState(false);
   const [reportReady, setReportReady] = useState(false);
@@ -51,6 +52,7 @@ const Exercises = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const sequenceRef = useRef([]);
+  const ctxRef = useRef(null);
 
   // ------------------ Auth token ------------------
   const getAccessToken = () => localStorage.getItem("access_token");
@@ -90,7 +92,7 @@ const Exercises = () => {
       detectorRef.current = await poseDetection.createDetector(
         poseDetection.SupportedModels.MoveNet,
         {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
         }
       );
 
@@ -276,14 +278,18 @@ const Exercises = () => {
 
     return sequenceRef.current;
   };
-
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      ctxRef.current = canvas.getContext("2d");
+    }
+  }, []);
   const autoZoomAndDraw = (pose) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-
+    const ctx = ctxRef.current;
     if (!canvas || !video || video.videoWidth === 0) return;
 
-    const ctx = canvas.getContext("2d");
 
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
@@ -777,6 +783,13 @@ const Exercises = () => {
         requestAnimationFrame(detectFrame);
         return;
       }
+
+      const now = performance.now();
+      if (now - lastFrameTime.current < 100) {
+        requestAnimationFrame(detectFrame);
+        return;
+      }
+      lastFrameTime.current = now;
 
       // ---------------- REP DETECTION ----------------
       const repCompleted = detectRep(features);
