@@ -7,7 +7,7 @@ export default function PrivateRoute() {
 
   // If not logged in, redirect to login page
   if (!token) {
-    return <Navigate to="/api/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // If logged in, render the protected component(s)

@@ -14,7 +14,7 @@ import image6 from "../../assets/images/image 6.png";
 import "../css/Home.css";
 
 function Home() {
-  const { isLoggedIn } = useOutletContext(); 
+  const { isLoggedIn } = useOutletContext();
 
   const cards = [
     {
@@ -55,7 +55,12 @@ function Home() {
                 )}
 
                 <div className="hero-video">
-                  <i className="fa-solid fa-play"></i>
+                  <a
+                    href="https://www.youtube.com/shorts/ILDfIhW53oQ"
+                    target="_blank"
+                    rel="noopener noreferrer" className="text-decoration-none">
+                    <i className="fa-solid fa-play"></i>
+                  </a>
                   <span>Watch Video</span>
                 </div>
               </div>
@@ -79,7 +84,7 @@ function Home() {
                     <img src={yogapose1} className="card-img-side" alt="Yoga" />
                     <div>
                       <h5>{card.title}</h5>
-                      <p style={{ fontFamily: '"Poppins", sans-serif', fontSize: "13px", color: "#565555", fontWeight:"300" }}>
+                      <p style={{ fontFamily: '"Poppins", sans-serif', fontSize: "13px", color: "#565555", fontWeight: "300" }}>
                         {card.text}
                       </p>
 

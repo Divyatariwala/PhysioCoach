@@ -59,38 +59,33 @@ export const AuthProvider = ({ children }) => {
     }
   }, [navigate]);
 
-  // ------------------ Validate on token change ------------------
-  useEffect(() => {
-    if (auth.token && isTokenExpired(auth.token)) {
-      logout(false);
-    }
-  }, [auth.token, isTokenExpired, logout]);
-
-  // ------------------ Periodic token check ------------------
-  useEffect(() => {
-    if (!auth.token) return;
-
-    const interval = setInterval(() => {
-      if (isTokenExpired(auth.token)) {
-        logout();
-      }
-    }, 60 * 1000); // check every 1 minute
-
-    return () => clearInterval(interval);
-  }, [auth.token, isTokenExpired, logout]);
-
   // ------------------ Max session duration (5 days) ------------------
-  useEffect(() => {
-    const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+ useEffect(() => {
+  if (!auth.token) return;
 
+  const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+
+  const checkSession = () => {
     const sessionStart = Number(localStorage.getItem("session_start"));
 
+    // if missing → create it (DON’T logout user)
     if (!sessionStart) {
       localStorage.setItem("session_start", Date.now().toString());
-    } else if (Date.now() - sessionStart > FIVE_DAYS) {
+      return;
+    }
+
+    // expire only after 5 days
+    if (Date.now() - sessionStart > FIVE_DAYS) {
       logout();
     }
-  }, [logout]);
+  };
+
+  checkSession(); // run once immediately
+
+  const interval = setInterval(checkSession, 60 * 1000); // check every 1 min
+
+  return () => clearInterval(interval);
+}, [auth.token, logout]);
 
   // ------------------ Derived state ------------------
   const isLoggedIn = !!auth.token;

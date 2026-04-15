@@ -195,10 +195,6 @@ export default Contact;
 
 
 
-// add video in the home page
 
 // change 2 images to free stock
 // change all image in the code
-
-// fix the automatic logout
-//
