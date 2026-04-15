@@ -803,6 +803,17 @@ const Exercises = () => {
 
         repsRef.current = [...repsRef.current, newRep];
         setRepCount(prev => prev + 1);
+        // ---------------- AUTO TRAINING DATA ----------------
+        if (
+          prediction?.prob > 0.85 &&
+          validPose &&
+          sessionActiveRef.current
+        ) {
+          const label = prediction.label;
+
+          collectTrainingData(features, label);
+        }
+
       }
 
     } catch (err) {

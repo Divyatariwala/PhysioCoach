@@ -109,9 +109,9 @@ for ex in exercises:
 
     # ---------------- MODEL ----------------
     model = RandomForestClassifier(
-        n_estimators=600,
-        max_depth=18,
-        min_samples_split=2,
+        n_estimators=100,
+        max_depth=6,
+        min_samples_split=5,
         min_samples_leaf=1,
         class_weight="balanced_subsample",
         random_state=42
