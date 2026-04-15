@@ -128,7 +128,6 @@ export default function Login() {
 
         // Save token in localStorage
         const token = data.access || data.token; // fallback if backend uses 'token'
-        console.log("Saving token to localStorage:", token);
         localStorage.setItem("access_token", token);
 
         login({

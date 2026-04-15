@@ -730,35 +730,58 @@ def predict_posture(request):
     try:
         data = request.data
         features = data.get("features")
+        exercise = data.get("exercise")
 
         if not isinstance(features, dict):
             return Response({"error": "Invalid features"}, status=400)
 
-        model, scaler, db_model = load_active_model()
+        if not exercise:
+            return Response({"error": "Exercise is required"}, status=400)
 
+        exercise = exercise.lower()
+
+        # ---------------- LOAD CORRECT MODEL ----------------
+        if exercise == "squats":
+            model_path = "ml_models/squat_model.pkl"
+            scaler_path = "ml_models/squat_scaler.pkl"
+
+        elif exercise == "bicep curls":
+            model_path = "ml_models/bicep_model.pkl"
+            scaler_path = "ml_models/bicep_scaler.pkl"
+
+        elif exercise == "side leg raises":
+            model_path = "ml_models/leg_raise_model.pkl"
+            scaler_path = "ml_models/leg_raise_scaler.pkl"
+
+        else:
+            return Response({"error": "Unknown exercise"}, status=400)
+
+        model = joblib.load(model_path)
+        scaler = joblib.load(scaler_path)
+
+        # ---------------- BUILD INPUT ----------------
         X = pd.DataFrame([{
             "kneeAngle": float(features.get("kneeAngle") or 0),
             "hipAngle": float(features.get("hipAngle") or 0),
             "elbowAngle": float(features.get("elbowAngle") or 0),
+            "legRaiseAngle": float(features.get("legRaiseAngle") or 0),
         }])
 
-        # scale input
         X_scaled = scaler.transform(X)
 
-        # prediction
+        # ---------------- PREDICT ----------------
         pred = model.predict(X_scaled)[0]
 
-        # probability (FIXED)
-        if hasattr(model, "predict_proba"):
-            prob = float(model.predict_proba(X_scaled)[0].max())
-        else:
-            prob = 1.0
+        prob = (
+            float(model.predict_proba(X_scaled)[0].max())
+            if hasattr(model, "predict_proba")
+            else 1.0
+        )
 
         return Response({
             "label": "correct" if int(pred) == 1 else "incorrect",
             "prob": prob,
-            "model_version": db_model.version,
-            "model_accuracy": db_model.accuracy
+            "exercise": exercise
         })
 
     except Exception as e:

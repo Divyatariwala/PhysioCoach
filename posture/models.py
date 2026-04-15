@@ -82,6 +82,7 @@ class Repetition(models.Model):
 class AIModel(models.Model):
     model_id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=50)
+    exercise = models.CharField(max_length=50, null=True, blank=True)
     description = models.TextField()
     accuracy = models.FloatField()
     last_updated = models.DateTimeField(auto_now=True)

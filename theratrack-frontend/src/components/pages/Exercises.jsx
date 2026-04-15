@@ -176,7 +176,7 @@ const Exercises = () => {
     window.addEventListener("keydown", handleKey);
 
     return () => window.removeEventListener("keydown", handleKey);
-  }, [collectTrainingData]);
+  }, []);
 
   // ------------------ Start session ------------------
   const startSession = async () => {
@@ -602,7 +602,10 @@ const Exercises = () => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("access_token")}`
         },
-        body: JSON.stringify({ features })
+        body: JSON.stringify({
+          features,
+          exercise: selectedExercise?.exercise_name?.toLowerCase()
+        })
       });
 
       const data = await res.json();
@@ -689,74 +692,74 @@ const Exercises = () => {
       };
 
       const getExerciseFeedback = (label, prob, exercise, features) => {
-  const name = exercise?.toLowerCase();
+        const name = exercise?.toLowerCase();
 
-  // ---------------- SQUATS ----------------
-  if (name === "squats") {
-    const knee = features.kneeAngle;
+        // ---------------- SQUATS ----------------
+        if (name === "squats") {
+          const knee = features.kneeAngle;
 
-    if (!knee || isNaN(knee)) return "⚠️ Stand in camera view properly";
+          if (!knee || isNaN(knee)) return "⚠️ Stand in camera view properly";
 
-    // posture guidance
-    if (knee > 165) return "⬇️ Go lower into your squat";
-    if (knee < 70) return "⚠️ Too deep — reduce depth for safety";
+          // posture guidance
+          if (knee > 165) return "⬇️ Go lower into your squat";
+          if (knee < 70) return "⚠️ Too deep — reduce depth for safety";
 
-    if (knee > 140 && knee < 165) {
-      return label === "correct"
-        ? "👍 Good depth — now go a bit lower"
-        : "⬇️ Slightly lower your squat";
-    }
+          if (knee > 140 && knee < 165) {
+            return label === "correct"
+              ? "👍 Good depth — now go a bit lower"
+              : "⬇️ Slightly lower your squat";
+          }
 
-    if (label === "correct" && prob > 0.85) return "🔥 Perfect squat form!";
-    if (label === "correct") return "👍 Solid squat — keep it steady";
+          if (label === "correct" && prob > 0.85) return "🔥 Perfect squat form!";
+          if (label === "correct") return "👍 Solid squat — keep it steady";
 
-    return "🧍 Keep chest up and control your descent";
-  }
+          return "🧍 Keep chest up and control your descent";
+        }
 
-  // ---------------- BICEP CURLS ----------------
-  if (name === "bicep curls") {
-    const angle = features.elbowAngle;
+        // ---------------- BICEP CURLS ----------------
+        if (name === "bicep curls") {
+          const angle = features.elbowAngle;
 
-    if (!angle || isNaN(angle)) return "💪 Position your arm in frame";
+          if (!angle || isNaN(angle)) return "💪 Position your arm in frame";
 
-    // too extended
-    if (angle > 160) return "⬇️ Start curl — bend your elbow";
+          // too extended
+          if (angle > 160) return "⬇️ Start curl — bend your elbow";
 
-    // too curled
-    if (angle < 40) return "⬆️ Slowly extend your arm fully";
+          // too curled
+          if (angle < 40) return "⬆️ Slowly extend your arm fully";
 
-    // mid range guidance
-    if (angle >= 90 && angle <= 140) {
-      return "💪 Nice control — keep elbow stable";
-    }
+          // mid range guidance
+          if (angle >= 90 && angle <= 140) {
+            return "💪 Nice control — keep elbow stable";
+          }
 
-    if (label === "correct") return "🔥 Clean curl — strong movement!";
-    return "⚠️ Avoid swinging your body";
-  }
+          if (label === "correct") return "🔥 Clean curl — strong movement!";
+          return "⚠️ Avoid swinging your body";
+        }
 
-  // ---------------- SIDE LEG RAISES ----------------
-  if (name === "side leg raises") {
-    const angle = features.legRaiseAngle;
+        // ---------------- SIDE LEG RAISES ----------------
+        if (name === "side leg raises") {
+          const angle = features.legRaiseAngle;
 
-    if (!angle || isNaN(angle)) return "🦵 Stand sideways to camera";
+          if (!angle || isNaN(angle)) return "🦵 Stand sideways to camera";
 
-    // not lifting enough
-    if (angle > 165) return "⬆️ Lift your leg higher";
+          // not lifting enough
+          if (angle > 165) return "⬆️ Lift your leg higher";
 
-    // too high / unstable
-    if (angle < 120) return "⚠️ Too high — control your movement";
+          // too high / unstable
+          if (angle < 120) return "⚠️ Too high — control your movement";
 
-    // mid control zone
-    if (angle >= 120 && angle <= 150) {
-      return "🚀 Great control — hold and lower slowly";
-    }
+          // mid control zone
+          if (angle >= 120 && angle <= 150) {
+            return "🚀 Great control — hold and lower slowly";
+          }
 
-    if (label === "correct") return "🔥 Perfect leg raise!";
-    return "🦵 Keep hips steady — don’t swing";
-  }
+          if (label === "correct") return "🔥 Perfect leg raise!";
+          return "🦵 Keep hips steady — don’t swing";
+        }
 
-  return "Keep going! 💪";
-};
+        return "Keep going! 💪";
+      };
 
       setPostureFeedback(
         getExerciseFeedback(
@@ -870,6 +873,36 @@ const Exercises = () => {
             <div className="d-flex gap-2 mt-3">
               <button className="btn btn-custom-start customBtn" onClick={startSession} disabled={sessionActive}>Start</button>
               <button className="btn btn-danger customBtn" onClick={stopSession} disabled={!sessionActive}>Stop</button>
+            </div>
+
+            <div className="d-flex gap-2 mt-3">
+              <button
+                className="btn btn-success"
+                onClick={() => {
+                  if (!lastFeaturesRef.current) {
+                    console.log("No features yet");
+                    return;
+                  }
+                  console.log("Manual CORRECT");
+                  collectTrainingData(lastFeaturesRef.current, "correct");
+                }}
+              >
+                ✅ Correct
+              </button>
+
+              <button
+                className="btn btn-warning"
+                onClick={() => {
+                  if (!lastFeaturesRef.current) {
+                    console.log("No features yet");
+                    return;
+                  }
+                  console.log("Manual INCORRECT");
+                  collectTrainingData(lastFeaturesRef.current, "incorrect");
+                }}
+              >
+                ❌ Incorrect
+              </button>
             </div>
 
             {reportReady && (
