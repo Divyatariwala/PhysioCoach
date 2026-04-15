@@ -13,7 +13,6 @@ const Exercises = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const detectorRef = useRef(null);
-  const modelRef = useRef(null);
 
   const startTimeRef = useRef(null);
   const sessionActiveRef = useRef(false);
@@ -53,7 +52,6 @@ const Exercises = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const sequenceRef = useRef([]);
   const ctxRef = useRef(null);
 
   // ------------------ Auth token ------------------
@@ -154,34 +152,6 @@ const Exercises = () => {
     }
   }, [selectedExercise]);
 
-  // ------------------ Keyboard controls (C / I for dataset) ------------------
-  useEffect(() => {
-    const handleKey = (e) => {
-      const key = e.key.toLowerCase();
-
-      console.log("KEY PRESSED:", key); // 👈 DEBUG
-
-      if (!lastFeaturesRef.current) {
-        console.log("No features yet");
-        return;
-      }
-
-      if (key === "c") {
-        console.log("C pressed → sending correct");
-        collectTrainingData(lastFeaturesRef.current, "correct");
-      }
-
-      if (key === "i") {
-        console.log("I pressed → sending incorrect");
-        collectTrainingData(lastFeaturesRef.current, "incorrect");
-      }
-    };
-
-    window.addEventListener("keydown", handleKey);
-
-    return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
   // ------------------ Start session ------------------
   const startSession = async () => {
     setSessionActive(true);
@@ -271,15 +241,6 @@ const Exercises = () => {
     }
   };
 
-  const updateSequence = (features) => {
-    sequenceRef.current.push(features);
-
-    if (sequenceRef.current.length > 10) {
-      sequenceRef.current.shift();
-    }
-
-    return sequenceRef.current;
-  };
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -662,9 +623,6 @@ const Exercises = () => {
       const features = extractFeatures(smoothedKeypoints, activeSide);
       lastFeaturesRef.current = features;
 
-      // ---------------- SEQUENCE BUFFER ----------------
-      const sequence = updateSequence(features);
-
       // ---------------- PREDICTION ----------------
       let prediction = {
         label: "unknown",
@@ -698,24 +656,6 @@ const Exercises = () => {
       const stableAccuracy = getStableAccuracy(rawAccuracy);
 
       setPostureAccuracy(stableAccuracy);
-
-      const validateSquatForm = (features) => {
-        const knee = features.kneeAngle;
-
-        if (!knee || isNaN(knee)) return { valid: false, msg: "No pose detected properly" };
-
-        // TOO STRAIGHT (not a squat)
-        if (knee > 160) {
-          return { valid: false, msg: "⚠️ You are not squatting enough" };
-        }
-
-        // TOO DEEP / unstable
-        if (knee < 70) {
-          return { valid: false, msg: "⚠️ Too deep - risk of injury" };
-        }
-
-        return { valid: true, msg: "" };
-      };
 
       // ================= HYBRID FEEDBACK SYSTEM =================
 
