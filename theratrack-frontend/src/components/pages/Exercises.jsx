@@ -5,6 +5,7 @@ import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import "../css/Exercises.css";
 import ReportTemplate from "./ReportTemplate";
 import { extractFeatures } from "../../ai/featureExtractor";
+import { runRuleEngine } from "../../ai/ruleEngine";
 
 const backendHost = "http://localhost:8000";
 
@@ -40,6 +41,7 @@ const Exercises = () => {
 
   const [postureFeedback, setPostureFeedback] = useState("Stand straight and get ready! 🚀");
   const [postureAccuracy, setPostureAccuracy] = useState(0);
+  const accuracyBufferRef = useRef([]);
 
   const previousKeypointsRef = useRef([]);
   const squatStableFrames = useRef(0);
@@ -678,7 +680,25 @@ const Exercises = () => {
         ? Math.min(100, Math.round(prediction.prob * 100))
         : 0;
 
-      setPostureAccuracy(accuracy);
+      const getStableAccuracy = (newVal) => {
+        accuracyBufferRef.current.push(newVal);
+
+        if (accuracyBufferRef.current.length > 10) {
+          accuracyBufferRef.current.shift();
+        }
+
+        const avg =
+          accuracyBufferRef.current.reduce((a, b) => a + b, 0) /
+          accuracyBufferRef.current.length;
+
+        return Math.round(avg);
+      };
+
+      const rawAccuracy = prediction?.prob ? prediction.prob * 100 : 0;
+      const stableAccuracy = getStableAccuracy(rawAccuracy);
+
+      setPostureAccuracy(stableAccuracy);
+
       const validateSquatForm = (features) => {
         const knee = features.kneeAngle;
 
@@ -697,85 +717,38 @@ const Exercises = () => {
         return { valid: true, msg: "" };
       };
 
-      const getExerciseFeedback = (label, prob, exercise, features) => {
-        const name = exercise?.toLowerCase();
+      // ================= HYBRID FEEDBACK SYSTEM =================
 
-        // ---------------- SQUATS ----------------
-        if (name === "squats") {
-          const knee = features.kneeAngle;
+      const mlLabel = prediction?.label;
+      const mlProb = prediction?.prob;
 
-          if (!knee || isNaN(knee)) return "⚠️ Stand in camera view properly";
+      // -------- RULE ENGINE TRIGGER --------
+      const useRuleEngine =
+        mlLabel === "incorrect" || mlProb < 0.7;
 
-          // posture guidance
-          if (knee > 165) return "⬇️ Go lower into your squat";
-          if (knee < 70) return "⚠️ Too deep — reduce depth for safety";
+      let feedback = "";
 
-          if (knee > 140 && knee < 165) {
-            return label === "correct"
-              ? "👍 Good depth — now go a bit lower"
-              : "⬇️ Slightly lower your squat";
-          }
+      // ---------------- CASE 1: Strong ML confidence correct
+      if (mlLabel === "correct" && mlProb > 0.85) {
+        feedback = "🔥 Excellent form!";
+      }
 
-          if (label === "correct" && prob > 0.85) return "🔥 Perfect squat form!";
-          if (label === "correct") return "👍 Solid squat — keep it steady";
+      // ---------------- CASE 2: Medium correct
+      else if (mlLabel === "correct") {
+        feedback = "👍 Good rep, refine your form slightly";
+      }
 
-          return "🧍 Keep chest up and control your descent";
-        }
+      // ---------------- CASE 3: RULE ENGINE ACTIVE
+      else if (useRuleEngine) {
+        feedback = runRuleEngine(features, selectedExercise?.exercise_name);
+      }
 
-        // ---------------- BICEP CURLS ----------------
-        if (name === "bicep curls") {
-          const angle = features.elbowAngle;
+      // ---------------- CASE 4: fallback
+      else {
+        feedback = "🧍 Keep posture steady";
+      }
 
-          if (!angle || isNaN(angle)) return "💪 Position your arm in frame";
-
-          // too extended
-          if (angle > 160) return "⬇️ Start curl — bend your elbow";
-
-          // too curled
-          if (angle < 40) return "⬆️ Slowly extend your arm fully";
-
-          // mid range guidance
-          if (angle >= 90 && angle <= 140) {
-            return "💪 Nice control — keep elbow stable";
-          }
-
-          if (label === "correct") return "🔥 Clean curl — strong movement!";
-          return "⚠️ Avoid swinging your body";
-        }
-
-        // ---------------- SIDE LEG RAISES ----------------
-        if (name === "side leg raises") {
-          const angle = features.legRaiseAngle;
-
-          if (!angle || isNaN(angle)) return "🦵 Stand sideways to camera";
-
-          // not lifting enough
-          if (angle > 165) return "⬆️ Lift your leg higher";
-
-          // too high / unstable
-          if (angle < 120) return "⚠️ Too high — control your movement";
-
-          // mid control zone
-          if (angle >= 120 && angle <= 150) {
-            return "🚀 Great control — hold and lower slowly";
-          }
-
-          if (label === "correct") return "🔥 Perfect leg raise!";
-          return "🦵 Keep hips steady — don’t swing";
-        }
-
-        return "Keep going! 💪";
-      };
-
-      setPostureFeedback(
-        getExerciseFeedback(
-          prediction?.label,
-          prediction?.prob,
-          selectedExercise?.exercise_name,
-          features
-        )
-      );
-
+      setPostureFeedback(feedback);
       const validPose =
         smoothedKeypoints.filter(kp => kp.score > 0.4).length > 10;
 

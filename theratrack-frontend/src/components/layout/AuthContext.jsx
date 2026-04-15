@@ -23,17 +23,16 @@ export const AuthProvider = ({ children }) => {
 
   // ------------------ Check expiry safely ------------------
   const isTokenExpired = useCallback((token) => {
-    if (!token) return true;
+  if (!token) return true;
 
-    const payload = decodeToken(token);
-    if (!payload?.exp) return true;
+  const payload = decodeToken(token);
+  if (!payload?.exp) return true;
 
-    // buffer = prevents instant logout due to timing mismatch
-    const bufferInSeconds = 30;
-    const currentTime = Date.now() / 1000;
+  const currentTime = Date.now() / 1000;
 
-    return payload.exp < currentTime + bufferInSeconds;
-  }, []);
+  // only expire AFTER real expiry
+  return payload.exp < currentTime;
+}, []);
 
   // ------------------ Login ------------------
   const login = ({ token, role }) => {

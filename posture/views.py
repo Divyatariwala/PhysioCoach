@@ -822,9 +822,13 @@ def predict_posture(request):
         # ---------------- PREDICT ----------------
         pred = model.predict(X)[0]
 
-        prob = 1.0
+        proba = None
         if hasattr(model, "predict_proba"):
-            prob = float(model.predict_proba(X)[0].max())
+            proba = model.predict_proba(X)[0]
+
+            prob = float(proba[int(pred)])  # probability of predicted class
+        else:
+            prob = 1.0
 
         return Response({
             "label": "correct" if int(pred) == 1 else "incorrect",

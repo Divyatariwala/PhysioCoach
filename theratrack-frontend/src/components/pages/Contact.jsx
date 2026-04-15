@@ -194,7 +194,7 @@ export default Contact;
 
 
 
-
-
+// automatuc logou fix
+// make readme file
 // change 2 images to free stock
 // change all image in the code
