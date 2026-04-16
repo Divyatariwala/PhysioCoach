@@ -671,7 +671,7 @@ def chat_api(request):
             reply_text = generate_response(user_message, conversation_history)
         except Exception:
             tb = traceback.format_exc()
-            print("🔥 THERABOT ERROR:\n", tb, flush=True)
+            print("THERABOT ERROR:\n", tb, flush=True)
 
             reply_text = (
                 "- Sit upright for 30 minutes.\n"
@@ -695,7 +695,7 @@ def chat_api(request):
 
     except Exception:
         tb = traceback.format_exc()
-        print("🔥 CHAT API ERROR:\n", tb, flush=True)
+        print("CHAT API ERROR:\n", tb, flush=True)
 
         return JsonResponse({
             "error": "Internal server error",

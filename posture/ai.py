@@ -20,7 +20,6 @@ _documents = None
 def load_models():
     global _tokenizer, _model, _device, _embedder
     if _model is None:
-        print("🔥 Loading TinyLlama...")
         _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         _model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
@@ -33,7 +32,6 @@ def load_models():
             torch.set_num_threads(4)
 
     if _embedder is None:
-        print("🔥 Loading Embedder...")
         _embedder = SentenceTransformer(
             EMBED_MODEL_NAME,
             device="cuda" if torch.cuda.is_available() else "cpu"
@@ -186,4 +184,3 @@ Answer:
 # ---------------- Initialize ----------------
 load_models()
 build_index()
-print("✅ TheraBot Full AI Version Ready!")
