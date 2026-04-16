@@ -11,7 +11,7 @@ This guide provides step-by-step instructions to set up and run the project loca
 
 ---
 
-# 📁 Project Structure
+# Project Structure
 
 ```
 venv/                         # Virtual environment (outside project root)
@@ -27,7 +27,7 @@ THERATRACK/
 
 ---
 
-# ⚙️ System Requirements
+# System Requirements
 
 ## Backend
 
@@ -47,7 +47,7 @@ THERATRACK/
 
 ---
 
-# 🚀 Installation and Setup
+# Installation and Setup
 
 ## 1. Clone the Repository
 
@@ -108,7 +108,7 @@ pip install -r requirements.txt
 
 ---
 
-# 🗄️ Database Setup
+# Database Setup
 
 Apply migrations:
 
@@ -124,9 +124,9 @@ python manage.py createsuperuser
 
 ---
 
-# ▶️ Running the Application
+# Running the Application
 
-## 🔹 Start Backend Server
+## Start Backend Server
 
 ```bash
 python manage.py runserver
@@ -140,7 +140,7 @@ http://127.0.0.1:8000/
 
 ---
 
-## 🔹 Start Frontend Server
+## Start Frontend Server
 
 Open a **new terminal**:
 
@@ -158,7 +158,7 @@ http://localhost:3000/
 
 ---
 
-# ⚙️ Configuration
+# Configuration
 
 * Default database: **SQLite3**
 * No additional setup required for local development
@@ -184,7 +184,7 @@ GOOGLE_CLIENT_ID=your_google_client_id
 
 ---
 
-# 🧠 Usage Notes
+# Usage Notes
 
 * Always activate the virtual environment before running backend
 * Run backend and frontend in **separate terminals**
@@ -195,7 +195,7 @@ GOOGLE_CLIENT_ID=your_google_client_id
 
 ---
 
-# 🛠️ Troubleshooting
+# Troubleshooting
 
 ## Upgrade pip
 
@@ -215,16 +215,5 @@ npm install
 * Backend not starting → Check virtual environment activation
 * Email errors → Verify `.env` credentials
 * Port conflicts → Change port or stop other services
-
----
-
-# ✅ Summary
-
-* Create venv outside project ✔️
-* Install backend dependencies ✔️
-* Run Django server ✔️
-* Run React frontend ✔️
-
----
 
 TheraTrack is now ready to use locally 🚀
