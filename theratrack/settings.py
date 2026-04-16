@@ -7,6 +7,7 @@ Configured for ngrok public access for both frontend and backend.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()  
 
@@ -48,6 +49,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=5),
 }
 
 AUTHENTICATION_BACKENDS = (
@@ -96,7 +102,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = "TheraTrack <noreply.theratrack@gmail.com>"
+DEFAULT_FROM_EMAIL = "TheraTrack <support.theratrack@gmail.com>"
 
 APP_URL = ""
 # ----------------------

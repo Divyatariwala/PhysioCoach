@@ -245,7 +245,7 @@ If you did not request this, please ignore this email or contact TheraTrack supp
 
 Thank you,
 The TheraTrack Team
-noreply.theratrack@gmail.com
+support.theratrack@gmail.com
 """
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
         return JsonResponse({"success": True, "message": "OTP sent to email"})
