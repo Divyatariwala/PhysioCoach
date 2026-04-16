@@ -31,6 +31,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -170,8 +171,6 @@ OTP_STORE = {}
 @csrf_exempt
 @api_view(['POST'])
 def login_api(request):
-    print("Incoming body:", request.body)
-    print("request.data:", request.data)
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "POST request required"})
 
@@ -322,8 +321,6 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 @csrf_exempt
 @api_view(['POST'])
 def google_login(request):
-    print("Incoming body:", request.body)
-    print("request.data:", request.data)
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
     try:
@@ -415,22 +412,32 @@ def logout_view_api(request):
 @csrf_exempt
 @api_view(['GET'])
 def get_cookie_consent(request):
-    return JsonResponse({"cookiesAccepted": request.session.get("cookies_accepted", False), "isLoggedIn": request.user.is_authenticated})
+    user = request.user
+
+    if not user or not user.is_authenticated:
+        return JsonResponse({
+            "isLoggedIn": False,
+            "cookiesAccepted": False
+        })
+
+    profile = getattr(user, "profile", None)
+
+    return JsonResponse({
+        "isLoggedIn": True,
+        "cookiesAccepted": profile.cookies_accepted if profile else False
+    })
 
 @csrf_exempt
 @api_view(['POST'])
 def set_cookie_consent(request):
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "error": "Login required"}, status=403)
-    if request.method != "POST":
-        return JsonResponse({"success": False, "error": "POST required"}, status=405)
-    try:
-        data = request.data
-        consent = data.get("cookiesAccepted", False)
-        request.session["cookies_accepted"] = consent
-        return JsonResponse({"success": True})
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+    profile = request.user.profile
+    profile.cookies_accepted = True
+    profile.save()
+
+    return JsonResponse({"success": True})
 
 # ---------------------------
 # WORKOUT / REPETITIONS / FEEDBACK / REPORTS

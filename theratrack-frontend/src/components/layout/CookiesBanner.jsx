@@ -3,7 +3,6 @@ import "../css/CookiesBanner.css";
 
 const CookiesBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Get CSRF token from cookies
   const getCSRFToken = () => {
@@ -17,25 +16,23 @@ const CookiesBanner = () => {
   useEffect(() => {
     async function checkConsent() {
       try {
+        const token = localStorage.getItem("access_token");
+
         const res = await fetch("http://localhost:8000/api/get-cookie-consent/", {
           method: "GET",
-          credentials: "include", // This tells the browser to send the sessionid
           headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
         });
 
-        if (!res.ok) return;
-
         const data = await res.json();
+        console.log("COOKIE API:", data);
 
-        if (data.isLoggedIn) {
-          setIsLoggedIn(true);
-          if (!data.cookiesAccepted) setShowBanner(true);
+        if (!data.cookiesAccepted) {
+          setShowBanner(true);
         } else {
-          setIsLoggedIn(false);
-          setShowBanner(false); // hide banner for anonymous
+          setShowBanner(false);
         }
       } catch (err) {
         console.warn("Backend unavailable, cookie banner skipped");
@@ -49,6 +46,9 @@ const CookiesBanner = () => {
   // Handle "Accept" button click
   const handleAccept = async () => {
     const csrfToken = getCSRFToken();
+
+    const token = localStorage.getItem("access_token");
+    
     if (!csrfToken) {
       console.error("CSRF token missing. Login may be required.");
       return;
@@ -57,10 +57,9 @@ const CookiesBanner = () => {
     try {
       const res = await fetch("http://localhost:8000/api/set-cookie-consent/", {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ cookiesAccepted: true }),
       });
@@ -77,9 +76,6 @@ const CookiesBanner = () => {
       console.error("Error setting cookie consent:", err);
     }
   };
-
-  // Only show banner for logged-in users who haven't accepted cookies
-  if (!isLoggedIn || !showBanner) return null;
 
   return (
     <div className={`cookies-banner ${showBanner ? "show" : ""}`}>
