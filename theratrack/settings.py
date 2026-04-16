@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 # ----------------------
 SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -66,6 +66,7 @@ AUTHENTICATION_BACKENDS = (
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

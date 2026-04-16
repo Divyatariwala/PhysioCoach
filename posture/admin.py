@@ -74,6 +74,7 @@ class ExerciseAdmin(admin.ModelAdmin):
 # --------------------------
 class RepetitionInline(admin.TabularInline):
     model = Repetition
+    
     extra = 0
     readonly_fields = ('count_number', 'posture_accuracy_display', 'timestamp')
     can_delete = False
@@ -150,7 +151,7 @@ class AIModelAdmin(admin.ModelAdmin):
 class ChatMessageInline(admin.TabularInline):
     model = ChatMessage
     extra = 0
-    readonly_fields = ('message_type', 'message_text', 'timestamp', 'ai_model')
+    readonly_fields = ('message_type', 'message_text', 'timestamp')
     can_delete = False
 
     def has_add_permission(self, request, obj=None):

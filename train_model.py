@@ -98,6 +98,11 @@ for ex in exercises:
         print(f"No feature set defined for {ex}, skipping")
         continue
 
+    FEATURES = FEATURE_SETS.get(ex, [])
+
+    # keep only features that exist in dataset
+    FEATURES = [f for f in FEATURES if f in data.columns]
+
     X = data[FEATURES].fillna(0)
     y = data["label"]
 
@@ -145,9 +150,10 @@ for ex in exercises:
     joblib.dump(model_bundle, model_path)
 
     # ---------------- DB SAVE ----------------
-    AIModel.objects.all().update(is_active=False)
+    AIModel.objects.filter(exercise=ex).update(is_active=False)
 
     AIModel.objects.create(
+        exercise = ex,
         version=version,
         description=f"{ex} posture model (fixed + optimized)",
         accuracy=float(cv_scores.mean()),
