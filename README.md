@@ -1,109 +1,230 @@
-TheraTrack
+# TheraTrack
 
 TheraTrack is a full-stack web application designed to support the management and tracking of therapy-related activities and user interactions.
-The system consists of a Django-based backend and a React-based frontend.
 
-This document provides step-by-step instructions for setting up and running the project locally.
+The system consists of:
 
-Project Structure
+* A **Django backend**
+* A **React frontend**
+
+This guide provides step-by-step instructions to set up and run the project locally.
+
+---
+
+# 📁 Project Structure
+
+```
+venv/                         # Virtual environment (outside project root)
+
 THERATRACK/
-venv/                    # Python virtual environment (outside project root)
-theratrack/              # Project root
-theratrack-frontend/ # React frontend
-manage.py
-requirements.txt
+│
+├── theratrack/              # Django backend (project root)
+│   ├── manage.py
+│   ├── requirements.txt
+│
+├── theratrack-frontend/     # React frontend
+```
 
+---
 
-System Requirements
-Ensure the following software is installed before running the application:
-Backend Requirements
-Python 3.9 or higher
-pip (Python package manager)
-Virtual Environment (venv)
+# ⚙️ System Requirements
 
-Frontend Requirements
-Node.js 16 or higher
-npm (Node package manager)
-General Tools
-Git
+## Backend
 
-Modern web browser (Google Chrome, Firefox, or equivalent)
+* Python 3.9 or higher
+* pip
+* Virtual environment (venv)
 
-Installation and Setup
-1. Clone the Repository
-git clone [https://github.com/Divyatariwala/TheraTrack.git]
-cd project-folder
+## Frontend
 
-2. Activate Virtual Environment (Before Entering Project Root)
-The virtual environment (venv) is located outside the TheraTrack project root and must be activated first.
-Windows:
+* Node.js 16 or higher
+* npm
+
+## General
+
+* Git
+* Modern web browser (Chrome, Firefox, etc.)
+
+---
+
+# 🚀 Installation and Setup
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/Divyatariwala/TheraTrack.git
+cd TheraTrack
+```
+
+---
+
+## 2. Create Virtual Environment (OUTSIDE project folder)
+
+Create the virtual environment **outside the `theratrack` folder**:
+
+### Windows:
+
+```bash
+python -m venv venv
+```
+
+### macOS/Linux:
+
+```bash
+python3 -m venv venv
+```
+
+---
+
+## 3. Activate Virtual Environment
+
+### Windows:
+
+```bash
 venv\Scripts\activate
+```
 
-macOS/Linux:
+### macOS/Linux:
+
+```bash
 source venv/bin/activate
+```
 
-3. Install Backend Dependencies
-Navigate to the project root:
+---
+
+## 4. Install Backend Dependencies
+
+Navigate to backend folder:
+
+```bash
 cd theratrack
+```
 
-Backend Dependencies
-The backend is built using Django and requires additional packages for API support and frontend communication.
-The main dependencies include:
-Django
-Django REST Framework
-django-cors-headers
+Install required packages:
 
-All required packages are listed in the requirements.txt file.
-Install Python dependencies:
+```bash
 pip install -r requirements.txt
+```
 
-4. Database Setup
-Apply database migrations:
+---
+
+# 🗄️ Database Setup
+
+Apply migrations:
+
+```bash
 python manage.py migrate
+```
 
-(Optional) Create a superuser for admin access:
+(Optional) Create admin user:
+
+```bash
 python manage.py createsuperuser
+```
 
-Running the Application
-Run the Backend Server (Django)
+---
 
-From the project root (theratrack):
+# ▶️ Running the Application
+
+## 🔹 Start Backend Server
+
+```bash
 python manage.py runserver
+```
 
+Backend will run at:
 
-The backend server will run at:
+```
 http://127.0.0.1:8000/
-Keep this terminal session running.
+```
 
-Run the Frontend Server (React)
-Open a new terminal window.
-Navigate to the frontend directory:
+---
+
+## 🔹 Start Frontend Server
+
+Open a **new terminal**:
+
+```bash
 cd theratrack-frontend
-
-Install frontend dependencies (first time only):
 npm install
-
-Start the frontend server:
 npm start
+```
 
-The frontend application will be available at:
+Frontend will run at:
+
+```
 http://localhost:3000/
+```
 
-Configuration
-Default database: SQLite3 (included with Django)
-No additional database configuration is required for local development
-If environment variables are required, create a .env file in the project root and configure accordingly
+---
 
+# ⚙️ Configuration
 
-Usage Notes
-The virtual environment must be activated before running the backend server.
-Backend and frontend must run simultaneously in separate terminal windows.
-Ensure that ports 8000 (backend) and 3000 (frontend) are available.
+* Default database: **SQLite3**
+* No additional setup required for local development
 
-Troubleshooting
-If dependency installation fails, upgrade pip:
+### Environment Variables
+
+Create a `.env` file in the backend root directory (`theratrack/` where manage.py is located):
+The required environment variables are provided in a separate file and have been shared via email for security reasons. These credentials should not be hardcoded or committed to version control.
+
+Example .env file:
+
+```
+# Backend Configuration
+SECRET_KEY=your_django_secret_key
+
+# Email Configuration
+EMAIL_HOST_USER=email@gmail.com
+EMAIL_HOST_PASSWORD=app_password
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+---
+
+# 🧠 Usage Notes
+
+* Always activate the virtual environment before running backend
+* Run backend and frontend in **separate terminals**
+* Ensure ports are available:
+
+  * 8000 → Backend
+  * 3000 → Frontend
+
+---
+
+# 🛠️ Troubleshooting
+
+## Upgrade pip
+
+```bash
 python -m pip install --upgrade pip
+```
 
-Ensure Python and Node.js versions meet the minimum requirements.
-If npm start fails, delete node_modules and reinstall dependencies:
+## Fix frontend issues
+
+```bash
+rm -rf node_modules
 npm install
+```
+
+## Common Issues
+
+* Backend not starting → Check virtual environment activation
+* Email errors → Verify `.env` credentials
+* Port conflicts → Change port or stop other services
+
+---
+
+# ✅ Summary
+
+* Create venv outside project ✔️
+* Install backend dependencies ✔️
+* Run Django server ✔️
+* Run React frontend ✔️
+
+---
+
+TheraTrack is now ready to use locally 🚀
