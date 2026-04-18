@@ -1,7 +1,9 @@
 export const runRuleEngine = (features, exercise) => {
   const name = exercise?.toLowerCase();
 
-  if (!features) return "No features detected";
+  if (!features) {
+    return { label: "incorrect", message: "No features detected" };
+  }
 
   const {
     kneeAngle,
@@ -12,111 +14,106 @@ export const runRuleEngine = (features, exercise) => {
     visibilityScore
   } = features;
 
-  // ==================================================
   // ---------------- GLOBAL CHECKS ----------------
-  // ==================================================
   if (visibilityScore < 0.5) {
-    return "📷 Move back — body not fully visible";
+    return {
+      label: "incorrect",
+      message: "📷 Move back — body not fully visible"
+    };
   }
 
   if (posture_stability < 0.3) {
-    return "⚠️ Too much movement — hold steady";
+    return {
+      label: "incorrect",
+      message: "⚠️ Too much movement — hold steady"
+    };
   }
 
-  // ==================================================
   // ---------------- SQUATS ----------------
-  // ==================================================
   if (name === "squats") {
-    if (!kneeAngle || !hipAngle)
-      return "⚠️ Pose not visible properly";
+    if (!kneeAngle || !hipAngle) {
+      return { label: "incorrect", message: "⚠️ Pose not visible properly" };
+    }
 
-    // 🧍 Standing (top)
-    if (kneeAngle > 170)
-      return "⬇️ Start squatting";
+    if (kneeAngle > 170) {
+      return { label: "correct", message: "⬇️ Start squatting" };
+    }
 
-    // ⬇️ Not deep enough
-    if (kneeAngle > 140)
-      return "⬇️ Go lower";
+    if (kneeAngle > 140) {
+      return { label: "incorrect", message: "⬇️ Go lower" };
+    }
 
-    // ⚠️ Too deep (very low only)
-    if (kneeAngle < 50)
-      return "⚠️ Too deep — rise slightly";
+    if (kneeAngle < 50) {
+      return { label: "incorrect", message: "⚠️ Too deep — rise slightly" };
+    }
 
-    // 🧍 Hip position
-    if (hipAngle < 70)
-      return "🧍 Push hips back";
+    if (hipAngle < 70) {
+      return { label: "incorrect", message: "🧍 Push hips back" };
+    }
 
-    // ⚠️ Knees collapsing (optional if you add feature later)
-    // if (features.kneeInward > threshold) return "⚠️ Keep knees aligned";
-
-    // ✅ GOOD ZONE (wide tolerance)
     if (kneeAngle >= 70 && kneeAngle <= 130) {
-      return "🧍 Good squat form";
+      return { label: "correct", message: "🧍 Good squat form" };
     }
 
-    return "🧍 Adjust squat position";
+    return { label: "incorrect", message: "🧍 Adjust squat position" };
   }
 
-  // ==================================================
   // ---------------- BICEP CURLS ----------------
-  // ==================================================
   if (name === "bicep curls") {
-    if (!elbowAngle)
-      return "💪 Adjust arm visibility";
+    if (!elbowAngle) {
+      return { label: "incorrect", message: "💪 Adjust arm visibility" };
+    }
 
-    // starting (arm straight)
-    if (elbowAngle > 160)
-      return "⬇️ Start curling";
+    if (elbowAngle > 160) {
+      return { label: "correct", message: "⬇️ Start curling" };
+    }
 
-    // fully contracted
-    if (elbowAngle < 40)
-      return "⬆️ Lower slowly";
+    if (elbowAngle < 40) {
+      return { label: "correct", message: "⬆️ Lower slowly" };
+    }
 
-    // ⚠️ body swing
-    if (posture_stability < 0.5)
-      return "⚠️ Avoid swinging body";
+    if (posture_stability < 0.5) {
+      return { label: "incorrect", message: "⚠️ Avoid swinging body" };
+    }
 
-    // ✅ GOOD RANGE
     if (elbowAngle >= 50 && elbowAngle <= 120) {
-      return "💪 Good curl form";
+      return { label: "correct", message: "💪 Good curl form" };
     }
 
-    return "💪 Control your movement";
+    return { label: "incorrect", message: "💪 Control your movement" };
   }
 
-  // ==================================================
   // ---------------- SIDE LEG RAISES ----------------
-  // ==================================================
   if (name === "side leg raises") {
-    if (!legRaiseAngle || !hipAngle)
-      return "⚠️ Full body not visible";
-
-    // 🧍 standing (leg down)
-    if (legRaiseAngle > 160)
-      return "⬆️ Lift your leg to the side";
-
-    // ⚠️ instability FIRST (always important)
-    if (posture_stability < 0.6)
-      return "🧍 Keep hips stable";
-
-    // ✅ GOOD RANGE (waist height sideways lift)
-    if (legRaiseAngle >= 80 && legRaiseAngle <= 120) {
-      return "🦵 Good form!";
+    if (!legRaiseAngle || !hipAngle) {
+      return { label: "incorrect", message: "⚠️ Full body not visible" };
     }
 
-    // ⬆️ not high enough
-    if (legRaiseAngle > 120 && legRaiseAngle <= 160)
-      return "⬆️ Raise your leg higher";
+    if (legRaiseAngle > 160) {
+      return { label: "correct", message: "⬆️ Lift your leg to the side" };
+    }
 
-    // ⚠️ too high / leaning / incorrect plane
-    if (legRaiseAngle < 80)
-      return "⚠️ Too high or leaning — control movement";
+    if (posture_stability < 0.6) {
+      return { label: "incorrect", message: "🧍 Keep hips stable" };
+    }
 
-    return "🦵 Control your leg movement";
+    if (legRaiseAngle >= 80 && legRaiseAngle <= 120) {
+      return { label: "correct", message: "🦵 Good form!" };
+    }
+
+    if (legRaiseAngle > 120) {
+      return { label: "incorrect", message: "⬆️ Raise your leg higher" };
+    }
+
+    if (legRaiseAngle < 80) {
+      return { label: "incorrect", message: "⚠️ Too high or leaning — control movement" };
+    }
+
+    return { label: "incorrect", message: "🦵 Control your leg movement" };
   }
 
-  // ==================================================
-  // ---------------- DEFAULT ----------------
-  // ==================================================
-  return "Keep going 💪";
+  return {
+    label: "correct",
+    message: "Keep going 💪"
+  };
 };

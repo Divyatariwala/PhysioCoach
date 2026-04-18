@@ -4,7 +4,7 @@ import pandas as pd
 import joblib
 from datetime import datetime
 
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix
 
@@ -14,16 +14,17 @@ django.setup()
 
 from posture.models import AIModel
 
-# ---------------- SETUP ----------------
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ---------------- PATH SETUP ----------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(os.path.dirname(__file__), "dataset.csv")
 MODEL_DIR = os.path.join(BASE_DIR, "ml_models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 # ---------------- LOAD DATA ----------------
-df = pd.read_csv("dataset.csv")
+df = pd.read_csv(DATA_PATH)
 
 if df.empty:
-    raise Exception("dataset.csv is empty")
+    raise ValueError("dataset.csv is empty")
 
 # ---------------- CLEANING ----------------
 df["exercise"] = df["exercise"].str.lower().str.strip()
@@ -35,9 +36,7 @@ df = df[
     (df["elbowAngle"].between(0, 180))
 ]
 
-# =========================================================
-# FEATURE ENGINEERING
-# =========================================================
+# ---------------- FEATURE ENGINEERING ----------------
 df["knee_hip_diff"] = abs(df["kneeAngle"] - df["hipAngle"])
 df["hip_elbow_diff"] = abs(df["hipAngle"] - df["elbowAngle"])
 df["knee_elbow_diff"] = abs(df["kneeAngle"] - df["elbowAngle"])
@@ -49,9 +48,7 @@ df["knee_depth"] = 180 - df["kneeAngle"]
 df["hip_opening"] = df["hipAngle"] - 90
 df["arm_fold_ratio"] = df["elbowAngle"] / 180
 
-# =========================================================
-# EXERCISE-SPECIFIC FEATURE SETS (IMPORTANT FIX)
-# =========================================================
+# ---------------- FEATURE MAP ----------------
 FEATURE_SETS = {
     "squats": [
         "kneeAngle",
@@ -75,33 +72,25 @@ FEATURE_SETS = {
     ]
 }
 
-# =========================================================
-# TRAIN MODELS PER EXERCISE
-# =========================================================
-exercises = df["exercise"].unique()
-
-for ex in exercises:
+# ---------------- TRAINING LOOP ----------------
+for exercise_name in df["exercise"].unique():
 
     print("\n==============================")
-    print(f"🚀 Training: {ex}")
+    print(f"🚀 Training Model: {exercise_name}")
     print("==============================")
 
-    data = df[df["exercise"] == ex]
+    data = df[df["exercise"] == exercise_name]
 
     if len(data) < 20:
-        print(f"Skipping {ex} (not enough data)")
+        print(f"Skipping {exercise_name} (not enough data)")
         continue
 
-    FEATURES = FEATURE_SETS.get(ex, None)
-
-    if FEATURES is None:
-        print(f"No feature set defined for {ex}, skipping")
-        continue
-
-    FEATURES = FEATURE_SETS.get(ex, [])
-
-    # keep only features that exist in dataset
+    FEATURES = FEATURE_SETS.get(exercise_name, [])
     FEATURES = [f for f in FEATURES if f in data.columns]
+
+    if not FEATURES:
+        print(f"No valid features for {exercise_name}")
+        continue
 
     X = data[FEATURES].fillna(0)
     y = data["label"]
@@ -112,7 +101,7 @@ for ex in exercises:
     # ---------------- MODEL ----------------
     model = RandomForestClassifier(
         n_estimators=100,
-        max_depth=4,
+        max_depth=5,
         min_samples_split=4,
         min_samples_leaf=3,
         class_weight="balanced",
@@ -125,20 +114,28 @@ for ex in exercises:
 
     print("\n🔁 Cross Validation Mean Accuracy:", cv_scores.mean())
 
-    # ---------------- TRAIN FINAL MODEL ----------------
-    X_train = X
-    y_train = y
+    # ---------------- TRAIN / TEST SPLIT (IMPORTANT FIX) ----------------
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y
+    )
+
+    # ---------------- TRAIN MODEL ----------------
     model.fit(X_train, y_train)
 
-    y_pred = model.predict(X_train)
+    # ---------------- EVALUATION (REAL) ----------------
+    y_pred = model.predict(X_test)
 
-    print("\n📊 Classification Report:")
-    print(classification_report(y_train, y_pred, zero_division=0))
+    print("\n📊 Classification Report (TEST DATA):")
+    print(classification_report(y_test, y_pred, zero_division=0))
 
-    print("\n📉 Confusion Matrix:")
-    print(confusion_matrix(y_train, y_pred))
+    print("\n📉 Confusion Matrix (TEST DATA):")
+    print(confusion_matrix(y_test, y_pred))
 
-    # ---------------- SAVE MODEL + FEATURES ----------------
+    # ---------------- SAVE MODEL ----------------
     version = datetime.now().strftime("%Y%m%d_%H%M")
 
     model_bundle = {
@@ -146,20 +143,20 @@ for ex in exercises:
         "features": FEATURES
     }
 
-    model_path = os.path.join(MODEL_DIR, f"{ex}_model_{version}.pkl")
+    model_path = os.path.join(MODEL_DIR, f"{exercise_name}_model_{version}.pkl")
     joblib.dump(model_bundle, model_path)
 
-    # ---------------- DB SAVE ----------------
-    AIModel.objects.filter(exercise=ex).update(is_active=False)
+    # ---------------- SAVE TO DATABASE ----------------
+    AIModel.objects.filter(exercise=exercise_name).update(is_active=False)
 
     AIModel.objects.create(
-        exercise = ex,
+        exercise=exercise_name,
         version=version,
-        description=f"{ex} posture model (fixed + optimized)",
+        description=f"{exercise_name} posture classification model (train/test fixed)",
         accuracy=float(cv_scores.mean()),
         is_active=True
     )
 
-    print(f"\n✅ Saved model for {ex}")
+    print(f"\n✅ Model saved for {exercise_name}")
 
 print("\n🚀 ALL MODELS TRAINED SUCCESSFULLY!")

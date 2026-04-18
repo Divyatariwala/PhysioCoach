@@ -637,6 +637,13 @@ const Exercises = () => {
       const payload = features;
       prediction = await predictPosture(payload);
 
+      if (prediction?.prob > 0.85) {
+        collectTrainingData(features, "correct");
+      }
+      else if (prediction?.prob < 0.4) {
+        collectTrainingData(features, "incorrect");
+      }
+
       // ---------------- UI UPDATE ----------------
       const accuracy = prediction?.prob
         ? Math.min(100, Math.round(prediction.prob * 100))
@@ -661,12 +668,15 @@ const Exercises = () => {
 
       setPostureAccuracy(stableAccuracy);
 
-      const feedback = runRuleEngine(
+      const result = runRuleEngine(
         features,
         selectedExercise?.exercise_name
       );
 
-      setPostureFeedback(feedback);
+      setPostureFeedback(result.message);
+      const label = result.label;
+
+      collectTrainingData(features, label);
 
       const validPose =
         smoothedKeypoints.filter(kp => kp.score > 0.4).length > 10;
@@ -690,7 +700,7 @@ const Exercises = () => {
         const newRep = {
           count_number: repCount + 1,
           posture_accuracy: accuracy,
-          feedback_text: feedback
+          feedback_text: result.message
         };
 
         repsRef.current = [...repsRef.current, newRep];
@@ -701,9 +711,6 @@ const Exercises = () => {
           validPose &&
           sessionActiveRef.current
         ) {
-          const label = prediction.label;
-
-          collectTrainingData(features, label);
         }
 
       }
@@ -789,36 +796,6 @@ const Exercises = () => {
             <div className="d-flex gap-2 mt-3">
               <button className="btn btn-custom-start customBtn" onClick={startSession} disabled={sessionActive}>Start</button>
               <button className="btn btn-danger customBtn" onClick={stopSession} disabled={!sessionActive}>Stop</button>
-            </div>
-
-            <div className="d-flex gap-2 mt-3">
-              <button
-                className="btn btn-success"
-                onClick={() => {
-                  if (!lastFeaturesRef.current) {
-                    console.log("No features yet");
-                    return;
-                  }
-                  console.log("Manual CORRECT");
-                  collectTrainingData(lastFeaturesRef.current, "correct");
-                }}
-              >
-                ✅ Correct
-              </button>
-
-              <button
-                className="btn btn-warning"
-                onClick={() => {
-                  if (!lastFeaturesRef.current) {
-                    console.log("No features yet");
-                    return;
-                  }
-                  console.log("Manual INCORRECT");
-                  collectTrainingData(lastFeaturesRef.current, "incorrect");
-                }}
-              >
-                ❌ Incorrect
-              </button>
             </div>
 
             {reportReady && (
