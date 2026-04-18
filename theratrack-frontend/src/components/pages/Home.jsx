@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import heroImage from "../../assets/images/home1.png";
 import yogapose1 from "../../assets/images/yoga-pose 1.png";
-import grouppic from "../../assets/images/Group 6.png";
+import grouppic from "../../assets/images/exp.png";
 import trackingimg from "../../assets/images/tracking img.png";
 import service from "../../assets/images/service.png";
 import image1 from "../../assets/images/image 1.png";
@@ -148,7 +148,7 @@ function Home() {
             <div className="service-item">
               <img src={service} alt="Service" className="service-img" />
               <div className="service-text">
-                <span>10+</span>
+                <span>AI</span>
                 <p>AI-GUIDANCE</p>
               </div>
             </div>
@@ -156,7 +156,7 @@ function Home() {
             <div className="service-item">
               <img src={service} alt="Service" className="service-img" />
               <div className="service-text">
-                <span>8+</span>
+                <span>100%</span>
                 <p>PERSONALIZED WORKOUTS</p>
               </div>
             </div>
@@ -164,16 +164,16 @@ function Home() {
             <div className="service-item">
               <img src={service} alt="Service" className="service-img" />
               <div className="service-text">
-                <span>15+</span>
-                <p>PROGRESS TRACKING</p>
+                <span>100%</span>
+                <p>LIVE TRACKING</p>
               </div>
             </div>
 
             <div className="service-item">
               <img src={service} alt="Service" className="service-img" />
               <div className="service-text">
-                <span>5+</span>
-                <p>EXPERT SUPPORT</p>
+                <span>24/7</span>
+                <p>THERABOT SUPPORT</p>
               </div>
             </div>
           </div>

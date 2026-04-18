@@ -3,79 +3,100 @@ import "../css/CookiesBanner.css";
 
 const CookiesBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  // Get CSRF token from cookies
-  const getCSRFToken = () => {
-    const name = "csrftoken";
-    const cookies = document.cookie.split(";").map(c => c.trim());
-    const cookie = cookies.find(c => c.startsWith(name + "="));
-    return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
-  };
-
-  // Check login status and cookie consent
   useEffect(() => {
-    async function checkConsent() {
-      try {
-        const token = localStorage.getItem("access_token");
+    const checkConsent = async () => {
+      const token = localStorage.getItem("access_token");
 
-        const res = await fetch("http://localhost:8000/api/get-cookie-consent/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
+      // ---------------- DEV MODE RESET (NO MORE CONSOLE WORK) ----------------
+      if (process.env.NODE_ENV === "development") {
+        localStorage.removeItem("cookiesAccepted");
+      }
+
+      const isLoggedIn = token && token !== "null" && token !== "undefined";
+
+      // ---------------- GUEST USER ----------------
+      if (!isLoggedIn) {
+        const consent = localStorage.getItem("cookiesAccepted");
+        const accepted = consent === "true";
+
+        console.log("GUEST MODE:", consent);
+
+        setShowBanner(!accepted);
+        setReady(true);
+        return;
+      }
+
+      // ---------------- LOGGED IN USER ----------------
+      try {
+        const res = await fetch(
+          "http://localhost:8000/api/get-cookie-consent/",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("API error");
 
         const data = await res.json();
-        console.log("COOKIE API:", data);
 
-        if (!data.cookiesAccepted) {
-          setShowBanner(true);
-        } else {
-          setShowBanner(false);
-        }
+        setShowBanner(!data.cookiesAccepted);
       } catch (err) {
-        console.warn("Backend unavailable, cookie banner skipped");
+        console.warn("Backend failed → fallback to localStorage");
+
+        const consent = localStorage.getItem("cookiesAccepted");
+        const accepted = consent === "true";
+
+        setShowBanner(!accepted);
       }
-    }
+
+      setReady(true);
+    };
 
     checkConsent();
   }, []);
 
-
-  // Handle "Accept" button click
   const handleAccept = async () => {
-    const csrfToken = getCSRFToken();
-
     const token = localStorage.getItem("access_token");
-    
-    if (!csrfToken) {
-      console.error("CSRF token missing. Login may be required.");
+    const isLoggedIn = token && token !== "null" && token !== "undefined";
+
+    setShowBanner(false);
+
+    // ---------------- GUEST USER ----------------
+    if (!isLoggedIn) {
+      localStorage.setItem("cookiesAccepted", "true");
       return;
     }
 
+    // ---------------- LOGGED IN USER ----------------
     try {
-      const res = await fetch("http://localhost:8000/api/set-cookie-consent/", {
+      await fetch("http://localhost:8000/api/set-cookie-consent/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ cookiesAccepted: true }),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        console.error("Failed to set cookie consent:", data.error);
-        return;
-      }
-
-      // Hide banner after successful consent
-      setShowBanner(false);
+      // keep local sync for fallback
+      localStorage.setItem("cookiesAccepted", "true");
     } catch (err) {
-      console.error("Error setting cookie consent:", err);
+      console.error("Failed to save consent:", err);
+
+      // fallback safety
+      localStorage.setItem("cookiesAccepted", "true");
     }
   };
+
+  // ---------------- SAFETY ----------------
+  if (!ready) return null;
+  if (!showBanner) return null;
 
   return (
     <div className={`cookies-banner ${showBanner ? "show" : ""}`}>
@@ -83,6 +104,7 @@ const CookiesBanner = () => {
         We use cookies to enhance your experience. By continuing, you agree
         to our <a href="/api/privacy">Privacy Policy</a>.
       </p>
+
       <button className="accept-btn" onClick={handleAccept}>
         Accept
       </button>

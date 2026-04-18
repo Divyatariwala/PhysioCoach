@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../layout/AuthContext";
 import { useNavigate } from "react-router-dom";
-import login_pic from "../../assets/images/Login_pic.png";
+import login_pic from "../../assets/images/login_pic.png";
 import logo from "../../assets/images/logo.png";
 import styles from "../css/Login.module.css";
 

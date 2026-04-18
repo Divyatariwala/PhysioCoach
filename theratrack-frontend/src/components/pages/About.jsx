@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import picture from "../../assets/images/about&profile.png";
-import grouppic from "../../assets/images/Group 7.png";
+import grouppic from "../../assets/images/about.png";
 import heartIcon from "../../assets/images/heartIcon.png";
 import styles from "../css/About.module.css";
 import { Link, useOutletContext } from "react-router-dom";

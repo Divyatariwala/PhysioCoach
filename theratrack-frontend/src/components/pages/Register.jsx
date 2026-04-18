@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import registerPic from "../../assets/images/Login_pic.png";
+import registerPic from "../../assets/images/login_pic.png";
 import logo from "../../assets/images/logo.png";
 import styles from "../css/Register.module.css";
 
