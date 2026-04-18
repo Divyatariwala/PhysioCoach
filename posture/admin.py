@@ -93,16 +93,24 @@ class RepetitionInline(admin.TabularInline):
 class FeedbackInline(admin.TabularInline):
     model = Feedback
     extra = 0
-    readonly_fields = ('feedback_text_display', 'accuracy_score_display', 'ai_model', 'date_time')
+
+    readonly_fields = ('get_rep_number', 'feedback_text_display', 'accuracy_score_display', 'date_time')
+    fields = ('get_rep_number', 'feedback_text_display', 'accuracy_score_display', 'date_time')
+
     can_delete = False
+    def get_rep_number(self, obj):
+        return obj.repetition.count_number if obj.repetition else "-"
 
     def feedback_text_display(self, obj):
-        return format_html("<div style='max-width:400px; white-space:pre-wrap;'>{}</div>", obj.feedback_text)
+        return format_html(
+            "<div style='max-width:400px; white-space:pre-wrap;'>{}</div>",
+            obj.feedback_text
+        )
     feedback_text_display.short_description = "Feedback"
 
     def accuracy_score_display(self, obj):
         return f"{obj.accuracy_score:.0f} %"
-    accuracy_score_display.short_description = "Score"
+    accuracy_score_display.short_description = "Accuracy Score"
 
     def has_add_permission(self, request, obj=None):
         return False

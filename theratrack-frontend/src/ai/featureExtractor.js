@@ -1,4 +1,8 @@
-export const extractFeatures = (keypoints, side = "left") => {
+export const extractFeatures = (
+  keypoints,
+  side = "left",
+  prevKeypoints = []
+) => {
   const get = (name) => keypoints.find(k => k.name === name);
 
   const calculateAngle = (a, b, c) => {
@@ -24,20 +28,17 @@ export const extractFeatures = (keypoints, side = "left") => {
   const elbow = get(`${side}_elbow`);
   const wrist = get(`${side}_wrist`);
 
-  // fallback if side missing → try both
+  // fallback if side missing
   const safeHip = hip || get("left_hip") || get("right_hip");
   const safeKnee = knee || get("left_knee") || get("right_knee");
   const safeAnkle = ankle || get("left_ankle") || get("right_ankle");
   const safeShoulder = shoulder || get("left_shoulder") || get("right_shoulder");
 
-  // ---------------- FEATURES ----------------
+  // ---------------- ANGLES ----------------
   const kneeAngle = calculateAngle(safeHip, safeKnee, safeAnkle);
   const hipAngle = calculateAngle(safeShoulder, safeHip, safeKnee);
 
-  // =========================================================
-  // 🔥 FIXED BICEP CURL (LEFT + RIGHT ARM SUPPORT)
-  // =========================================================
-
+  // ---------------- BICEP CURL (SMART ARM SELECTION) ----------------
   const leftElbowAngle = calculateAngle(
     get("left_shoulder"),
     get("left_elbow"),
@@ -56,7 +57,6 @@ export const extractFeatures = (keypoints, side = "left") => {
   let elbowAngle = 0;
 
   if (leftScore > 0.4 && rightScore > 0.4) {
-    // BOTH ARMS VISIBLE → average for balanced curls
     elbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
   } else if (leftScore > rightScore) {
     elbowAngle = leftElbowAngle;
@@ -71,10 +71,39 @@ export const extractFeatures = (keypoints, side = "left") => {
     safeAnkle
   );
 
+  // =========================================================
+  // 🔥 NEW: VISIBILITY SCORE
+  // =========================================================
+  const visibleKeypoints = keypoints.filter(kp => kp.score > 0.4).length;
+  const visibilityScore = visibleKeypoints / keypoints.length;
+
+  // =========================================================
+  // 🔥 NEW: POSTURE STABILITY (movement detection)
+  // =========================================================
+  let movement = 0;
+
+  if (prevKeypoints && prevKeypoints.length === keypoints.length) {
+    for (let i = 0; i < keypoints.length; i++) {
+      const kp = keypoints[i];
+      const prev = prevKeypoints[i];
+
+      if (kp && prev) {
+        movement += Math.hypot(kp.x - prev.x, kp.y - prev.y);
+      }
+    }
+  }
+
+  // normalize (tune this value if needed)
+  const posture_stability = Math.max(0, 1 - movement / 2000);
+
+  // ---------------- RETURN ----------------
   return {
     kneeAngle,
     hipAngle,
     elbowAngle,
-    legRaiseAngle
+    legRaiseAngle,
+
+    visibilityScore,
+    posture_stability
   };
 };

@@ -479,18 +479,19 @@ def save_repetitions_api(request):
         reps = data.get("reps", [])
         session = get_object_or_404(WorkoutSession, pk=session_id)
 
-        for r in reps:
+        for i, r in enumerate(reps, start=1):
             rep = Repetition.objects.create(
                 session=session,
-                count_number=r.get("count_number", 0),
+                count_number=i,
                 posture_accuracy=r.get("posture_accuracy", 0)
             )
+
             Feedback.objects.create(
                 user=session.user,
                 session=session,
+                repetition=rep,
                 feedback_text=r.get("feedback_text"),
                 accuracy_score=r.get("posture_accuracy"),
-                ai_model=None
             )
         return JsonResponse({"success": True})
     except Exception as e:

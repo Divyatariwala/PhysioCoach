@@ -111,16 +111,16 @@ for ex in exercises:
 
     # ---------------- MODEL ----------------
     model = RandomForestClassifier(
-        n_estimators=300,
-        max_depth=8,
-        min_samples_split=5,
-        min_samples_leaf=2,
+        n_estimators=100,
+        max_depth=4,
+        min_samples_split=4,
+        min_samples_leaf=3,
         class_weight="balanced",
         random_state=42
     )
 
     # ---------------- CROSS VALIDATION ----------------
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
     cv_scores = cross_val_score(model, X, y, cv=cv)
 
     print("\n🔁 Cross Validation Mean Accuracy:", cv_scores.mean())

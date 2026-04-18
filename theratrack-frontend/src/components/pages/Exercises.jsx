@@ -620,7 +620,11 @@ const Exercises = () => {
       // ---------------- FEATURES ----------------
       const activeSide = getActiveSide(smoothedKeypoints);
 
-      const features = extractFeatures(smoothedKeypoints, activeSide);
+      const features = extractFeatures(
+        smoothedKeypoints,
+        activeSide,
+        previousKeypointsRef.current
+      );
       lastFeaturesRef.current = features;
 
       // ---------------- PREDICTION ----------------
@@ -657,38 +661,13 @@ const Exercises = () => {
 
       setPostureAccuracy(stableAccuracy);
 
-      // ================= HYBRID FEEDBACK SYSTEM =================
-
-      const mlLabel = prediction?.label;
-      const mlProb = prediction?.prob;
-
-      // -------- RULE ENGINE TRIGGER --------
-      const useRuleEngine =
-        mlLabel === "incorrect" || mlProb < 0.7;
-
-      let feedback = "";
-
-      // ---------------- CASE 1: Strong ML confidence correct
-      if (mlLabel === "correct" && mlProb > 0.85) {
-        feedback = "🔥 Excellent form!";
-      }
-
-      // ---------------- CASE 2: Medium correct
-      else if (mlLabel === "correct") {
-        feedback = "👍 Good rep, refine your form slightly";
-      }
-
-      // ---------------- CASE 3: RULE ENGINE ACTIVE
-      else if (useRuleEngine) {
-        feedback = runRuleEngine(features, selectedExercise?.exercise_name);
-      }
-
-      // ---------------- CASE 4: fallback
-      else {
-        feedback = "🧍 Keep posture steady";
-      }
+      const feedback = runRuleEngine(
+        features,
+        selectedExercise?.exercise_name
+      );
 
       setPostureFeedback(feedback);
+
       const validPose =
         smoothedKeypoints.filter(kp => kp.score > 0.4).length > 10;
 
@@ -711,7 +690,7 @@ const Exercises = () => {
         const newRep = {
           count_number: repCount + 1,
           posture_accuracy: accuracy,
-          feedback_text: prediction?.feedback || ""
+          feedback_text: feedback
         };
 
         repsRef.current = [...repsRef.current, newRep];

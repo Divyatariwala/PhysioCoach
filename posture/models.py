@@ -96,10 +96,10 @@ class Feedback(models.Model):
     feedback_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="feedbacks")
     session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE, related_name="feedbacks")
+    repetition = models.ForeignKey(Repetition, on_delete=models.CASCADE, null=True)
     feedback_text = models.TextField()
     accuracy_score = models.FloatField()
     date_time = models.DateTimeField(auto_now_add=True)
-    ai_model = models.ForeignKey(AIModel, on_delete=models.SET_NULL, null=True, related_name="feedbacks")
 
     def __str__(self):
         return f"Feedback {self.feedback_id} for {self.session.user.username}"
