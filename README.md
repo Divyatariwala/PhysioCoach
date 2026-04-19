@@ -90,6 +90,17 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
+### If activation fails 
+You may see an error like:
+
+Run the following command:
+
+```bash
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+
+Then try activating again:
+
+venv\Scripts\activate
 ---
 
 ## 4. Install Backend Dependencies
@@ -104,6 +115,27 @@ Install required packages:
 
 ```bash
 pip install -r requirements.txt
+```
+
+---
+
+### Environment Variables
+
+Create a `.env` file in the backend root directory (`theratrack/` where manage.py is located):
+The required environment variables are provided in a separate file and have been shared via email for security reasons. These credentials should not be hardcoded or committed to version control.
+
+Example .env file:
+
+```
+# Backend Configuration
+SECRET_KEY=your_django_secret_key
+
+# Email Configuration
+EMAIL_HOST_USER=email@gmail.com
+EMAIL_HOST_PASSWORD=app_password
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
 ---
@@ -162,27 +194,6 @@ http://localhost:3000/
 
 * Default database: **SQLite3**
 * No additional setup required for local development
-
-### Environment Variables
-
-Create a `.env` file in the backend root directory (`theratrack/` where manage.py is located):
-The required environment variables are provided in a separate file and have been shared via email for security reasons. These credentials should not be hardcoded or committed to version control.
-
-Example .env file:
-
-```
-# Backend Configuration
-SECRET_KEY=your_django_secret_key
-
-# Email Configuration
-EMAIL_HOST_USER=email@gmail.com
-EMAIL_HOST_PASSWORD=app_password
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-```
-
----
 
 # Usage Notes
 

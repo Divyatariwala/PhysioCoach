@@ -10,7 +10,15 @@ dj-rest-auth
 django-allauth
 opencv-python
 numpy
+pandas
+joblib
+mediapipe==0.10.13
+scikit-learn
 google-auth
 requests
 transformers
 torch
+accelerate
+faiss-cpu
+sentence-transformers
+social-auth-app-django
