@@ -97,10 +97,12 @@ Run the following command:
 
 ```bash
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+```
 
 Then try activating again:
-
+```
 venv\Scripts\activate
+```
 ---
 
 ## 4. Install Backend Dependencies
