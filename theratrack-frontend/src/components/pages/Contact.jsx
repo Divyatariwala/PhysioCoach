@@ -107,7 +107,7 @@ const Contact = () => {
               <div className={styles.address}>
                 <p>115 New Cavendish St</p>
                 <p>London W1W 6UW</p>
-                <p className="pt-2">Email: <a href="mailto:noreply.theratrack@gmail.com">noreply.theratrack@gmail.com</a></p>
+                <p className="pt-2">Email: <a href="mailto:support.theratrack@gmail.com">support.theratrack@gmail.com</a></p>
                 <p>Phone: 020 7911 5000</p>
               </div>
             </div>
