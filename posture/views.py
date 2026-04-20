@@ -800,7 +800,10 @@ def predict_posture(request):
                 "files_in_dir": os.listdir(MODEL_DIR)
             }, status=500)
 
-        model = joblib.load(model_path)
+        bundle = joblib.load(model_path)
+
+        model = bundle["model"]          # ✅ actual ML model
+        feature_list = bundle["features"]  # ✅ correct feature order
 
         # ---------------- BASE FEATURES ----------------
         knee = float(features.get("kneeAngle", 0))
@@ -827,14 +830,18 @@ def predict_posture(request):
             "arm_fold_ratio": elbow / 180
         }])
 
-        # ---------------- PREDICT ----------------
-        pred = model.predict(X)[0]
+        # extract correct values in correct order
+        input_data = [X.iloc[0][f] if f in X.columns else 0 for f in feature_list]
 
-        proba = None
+        # ensure correct shape
+        input_array = np.array(input_data).reshape(1, -1)
+
+        # predict
+        pred = model.predict(input_array)[0]
+
         if hasattr(model, "predict_proba"):
-            proba = model.predict_proba(X)[0]
-
-            prob = float(proba[int(pred)])  # probability of predicted class
+            proba = model.predict_proba(input_array)[0]
+            prob = float(proba[int(pred)])
         else:
             prob = 1.0
 
