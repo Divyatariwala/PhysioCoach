@@ -96,7 +96,7 @@ export default function Register() {
         showFormPopup(data.error || "Registration failed", "error");
       } else {
         showFormPopup("🎉 Registered successfully! Redirecting to login.", "success");
-        setTimeout(() => navigate("/api/login"), 1500);
+        setTimeout(() => navigate("/login"), 1500);
       }
     } catch {
       showFormPopup("Something went wrong. Please try again.", "error");

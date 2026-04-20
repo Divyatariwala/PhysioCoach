@@ -194,5 +194,3 @@ export default Contact;
 
 
 
-// change 2 images to free stock
-// change all image in the code

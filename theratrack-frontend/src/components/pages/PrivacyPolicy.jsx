@@ -136,7 +136,7 @@ const PrivacyPolicy = () => {
           <p>TheraTrack project team at: if you have any concerns about this privacy statement, want to access your data, or want to exercise any of your rights.</p>
           <p className="m-0">
             <span>Email address: </span>
-            <a href="mailto:noreply.theratrack@gmail.com"></a>noreply.theratrack@gmail.com
+            <a href="mailto:support.theratrack@gmail.com"></a>support.theratrack@gmail.com
           </p>
           <p className="m-0">
             <span>Project Lead: </span>

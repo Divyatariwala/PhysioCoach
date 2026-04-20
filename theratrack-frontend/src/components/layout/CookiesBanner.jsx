@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../css/CookiesBanner.css";
+import { Link } from "react-router-dom";
 
 const CookiesBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
@@ -102,7 +103,7 @@ const CookiesBanner = () => {
     <div className={`cookies-banner ${showBanner ? "show" : ""}`}>
       <p>
         We use cookies to enhance your experience. By continuing, you agree
-        to our <a href="/api/privacy">Privacy Policy</a>.
+        to our <Link to="/privacy">Privacy Policy</Link>.
       </p>
 
       <button className="accept-btn" onClick={handleAccept}>
