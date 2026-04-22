@@ -82,7 +82,7 @@ class Command(BaseCommand):
 
         context = {
             "user": user,
-            "app_url": settings.APP_URL  # Make sure to define APP_URL in settings
+            "app_url": settings.APP_URL  
         }
 
         return self.send_html_email(
@@ -112,7 +112,7 @@ class Command(BaseCommand):
         context = {
             "user": user,
             "inactive_days": inactive_days,
-            "app_url": settings.APP_URL  # Make sure to define APP_URL in settings
+            "app_url": settings.APP_URL  
         }
 
         return self.send_html_email(

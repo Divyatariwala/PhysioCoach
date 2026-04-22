@@ -187,10 +187,12 @@ def login_api(request):
         return JsonResponse({"success": False, "error": "Password is required"})
 
     user = None
+    # Login using email
     if not re.match(EMAIL_REGEX, identifier):
         user = authenticate(request, username=identifier, password=password)
         if not user:
             return JsonResponse({"success": False, "error": "No account found. Sign up!"})
+    # Login using email
     else:
         user_obj = User.objects.filter(email__iexact=identifier).first()
         if not user_obj:
@@ -204,7 +206,8 @@ def login_api(request):
 
     if user.is_staff or user.is_superuser:
         return JsonResponse({"success": False, "error": "Admin cannot log in from user portal"})
-
+    
+    # Login success + JWT token generation
     login(request, user)
     refresh = RefreshToken.for_user(user)
 
@@ -802,8 +805,8 @@ def predict_posture(request):
 
         bundle = joblib.load(model_path)
 
-        model = bundle["model"]          # ✅ actual ML model
-        feature_list = bundle["features"]  # ✅ correct feature order
+        model = bundle["model"]          # actual ML model
+        feature_list = bundle["features"]  # correct feature order
 
         # ---------------- BASE FEATURES ----------------
         knee = float(features.get("kneeAngle", 0))

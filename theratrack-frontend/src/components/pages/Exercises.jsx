@@ -111,7 +111,6 @@ const Exercises = () => {
     return () => clearInterval(timer);
   }, [sessionActive]);
 
-  // ------------------ Handle click outside dropdown ------------------
   // ------------------ Handle dropdown click outside ------------------
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -676,7 +675,7 @@ const Exercises = () => {
       setPostureFeedback(result.message);
       const label = result.label;
 
-      collectTrainingData(features, label);
+      // collectTrainingData(features, label);
 
       const validPose =
         smoothedKeypoints.filter(kp => kp.score > 0.4).length > 10;
