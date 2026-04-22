@@ -1,4 +1,6 @@
-# posture/views.py
+# ============================
+# IMPORTS
+# ============================
 
 from io import BytesIO
 from random import randint
@@ -25,19 +27,22 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+# Django REST Framework imports
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
+# JWT Authentication
+from rest_framework_simplejwt.tokens import RefreshToken
+
+# External integrations
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
+# Local imports
 from posture.utils.model_loader import load_active_model
-
 from .ai import generate_response
 from .models import (
     ChatMessage, ChatSession, Contact, Profile, Exercise, TrainingData,
@@ -46,12 +51,15 @@ from .models import (
 from theratrack import settings
 
 # ---------------------------
-# JWT Utility
+# JWT TOKEN GENERATION
 # ---------------------------
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {"refresh": str(refresh), "access": str(refresh.access_token)}
 
+# ============================
+# CURRENT USER API
+# ============================
 @api_view(['GET'])
 def current_user(request):
     if request.user.is_authenticated:
@@ -68,6 +76,7 @@ class ProfileAPIView(APIView):
         user = request.user
         profile = getattr(user, "profile", None)
 
+        # Prepare profile data
         profile_data = {
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -79,7 +88,10 @@ class ProfileAPIView(APIView):
             "is_google": profile.google_flag if profile else False
         }
 
+        # Fetch reports
         reports = Report.objects.filter(session__user=user).order_by("-generated_at")
+        
+        # Convert reports to JSON
         reports_data = []
         for report in reports:
             reports_data.append({
@@ -90,6 +102,7 @@ class ProfileAPIView(APIView):
                 "pdf_file": report.pdf_file.url if report.pdf_file else None
             })
 
+        # Fetch available exercises
         exercises = Exercise.objects.all()
         exercises_data = [{"exercise_id": ex.exercise_id, "name": ex.exercise_name} for ex in exercises]
 
@@ -181,6 +194,7 @@ def login_api(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"})
 
+    # Basic validation
     if not identifier:
         return JsonResponse({"success": False, "error": "Username or email is required"})
     if not password:
@@ -215,6 +229,9 @@ def login_api(request):
                          "access": str(refresh.access_token),
                          "refresh": str(refresh)})
 
+# ============================
+# OTP + PASSWORD RESET
+# ============================
 @csrf_exempt
 @api_view(['POST'])
 def send_otp(request):
@@ -613,7 +630,7 @@ def analyze_pose_api(request):
     return JsonResponse({"landmarks": landmarks_list})
 
 # ---------------------------
-# CHAT
+# CHATBOT
 # ---------------------------
 @csrf_exempt
 @api_view(['POST'])
